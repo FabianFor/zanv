@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart'; // ✅ AGREGADO
 import '../models/product.dart';
 import '../providers/product_provider.dart';
+import '../providers/settings_provider.dart'; // ✅ AGREGADO
 import '../screens/products_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -11,8 +13,26 @@ class ProductCard extends StatelessWidget {
 
   const ProductCard({super.key, required this.product});
 
+  String _getCategoryTranslation(String categoryKey, AppLocalizations l10n) {
+    switch (categoryKey) {
+      case 'food':
+        return l10n.food;
+      case 'drinks':
+        return l10n.drinks;
+      case 'desserts':
+        return l10n.desserts;
+      case 'others':
+        return l10n.others;
+      default:
+        return categoryKey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
+    final settingsProvider = Provider.of<SettingsProvider>(context); // ✅ AGREGADO
+
     return Card(
       margin: EdgeInsets.only(bottom: 12.h),
       shape: RoundedRectangleBorder(
@@ -93,7 +113,7 @@ class ProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Text(
-                            product.category,
+                            _getCategoryTranslation(product.category, l10n), // ✅ TRADUCIDO
                             style: TextStyle(
                               fontSize: 10.sp,
                               color: Colors.grey[700],
@@ -102,7 +122,7 @@ class ProductCard extends StatelessWidget {
                         ),
                         SizedBox(width: 8.w),
                         Text(
-                          'Stock: ${product.stock}',
+                          '${l10n.stock}: ${product.stock}', // ✅ TRADUCIDO
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: product.stock <= 5 
@@ -125,7 +145,7 @@ class ProductCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '\$${product.price.toStringAsFixed(0)}',
+                    settingsProvider.formatPrice(product.price), // ✅ MONEDA DINÁMICA
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
@@ -167,6 +187,9 @@ class ProductCard extends StatelessWidget {
   }
 
   void _showProductDetails(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -247,7 +270,7 @@ class ProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20.r),
                           ),
                           child: Text(
-                            product.category,
+                            _getCategoryTranslation(product.category, l10n), // ✅ TRADUCIDO
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: const Color(0xFF2196F3),
@@ -260,7 +283,7 @@ class ProductCard extends StatelessWidget {
                         // Description
                         if (product.description.isNotEmpty) ...[
                           Text(
-                            'Descripción',
+                            l10n.description, // ✅ TRADUCIDO
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -287,16 +310,18 @@ class ProductCard extends StatelessWidget {
                           child: Column(
                             children: [
                               _buildDetailRow(
+                                context,
                                 icon: Icons.attach_money,
-                                label: 'Precio',
-                                value: '\$${product.price.toStringAsFixed(0)}',
+                                label: l10n.price, // ✅ TRADUCIDO
+                                value: settingsProvider.formatPrice(product.price), // ✅ MONEDA DINÁMICA
                                 valueColor: const Color(0xFF4CAF50),
                               ),
                               Divider(height: 24.h),
                               _buildDetailRow(
+                                context,
                                 icon: Icons.inventory_2,
-                                label: 'Stock',
-                                value: '${product.stock} unidades',
+                                label: l10n.stock, // ✅ TRADUCIDO
+                                value: _getStockText(context, product.stock), // ✅ TRADUCIDO
                                 valueColor: product.stock <= 5 
                                     ? Colors.red 
                                     : Colors.black87,
@@ -318,7 +343,7 @@ class ProductCard extends StatelessWidget {
                           _editProduct(context);
                         },
                         icon: const Icon(Icons.edit),
-                        label: const Text('Editar'),
+                        label: Text(l10n.edit), // ✅ TRADUCIDO
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF2196F3),
                           padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -336,7 +361,7 @@ class ProductCard extends StatelessWidget {
                           _confirmDelete(context);
                         },
                         icon: const Icon(Icons.delete),
-                        label: const Text('Eliminar'),
+                        label: Text(l10n.delete), // ✅ TRADUCIDO
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
@@ -357,7 +382,24 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow({
+  String _getStockText(BuildContext context, int stock) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (l10n.localeName) {
+      case 'es':
+        return '$stock unidades';
+      case 'en':
+        return '$stock units';
+      case 'pt':
+        return '$stock unidades';
+      case 'zh':
+        return '$stock 单位';
+      default:
+        return '$stock units';
+    }
+  }
+
+  Widget _buildDetailRow(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required String value,
@@ -396,6 +438,8 @@ class ProductCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -406,7 +450,7 @@ class ProductCard extends StatelessWidget {
           children: [
             const Icon(Icons.warning_amber_rounded, color: Colors.orange),
             SizedBox(width: 12.w),
-            const Text('Confirmar eliminación'),
+            Text(l10n.confirmDelete), // ✅ TRADUCIDO
           ],
         ),
         content: Column(
@@ -414,7 +458,7 @@ class ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Estás seguro de eliminar este producto?',
+              _getDeleteConfirmationText(l10n), // ✅ TRADUCIDO
               style: TextStyle(fontSize: 16.sp),
             ),
             SizedBox(height: 12.h),
@@ -431,7 +475,7 @@ class ProductCard extends StatelessWidget {
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      'Esta acción no se puede deshacer',
+                      l10n.cannotUndo, // ✅ TRADUCIDO
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: Colors.red[700],
@@ -443,7 +487,7 @@ class ProductCard extends StatelessWidget {
             ),
             SizedBox(height: 12.h),
             Text(
-              'Producto: ${product.name}',
+              '${_getProductText(l10n)}: ${product.name}', // ✅ TRADUCIDO
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.bold,
@@ -454,7 +498,7 @@ class ProductCard extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel), // ✅ TRADUCIDO
           ),
           ElevatedButton(
             onPressed: () {
@@ -467,7 +511,7 @@ class ProductCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.check_circle, color: Colors.white),
                       SizedBox(width: 8.w),
-                      const Text('Producto eliminado exitosamente'),
+                      Text(_getProductDeletedText(l10n)), // ✅ TRADUCIDO
                     ],
                   ),
                   backgroundColor: Colors.green,
@@ -479,10 +523,55 @@ class ProductCard extends StatelessWidget {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Eliminar'),
+            child: Text(l10n.delete), // ✅ TRADUCIDO
           ),
         ],
       ),
     );
+  }
+
+  String _getDeleteConfirmationText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return '¿Estás seguro de eliminar este producto?';
+      case 'en':
+        return 'Are you sure you want to delete this product?';
+      case 'pt':
+        return 'Tem certeza de que deseja excluir este produto?';
+      case 'zh':
+        return '您确定要删除此产品吗？';
+      default:
+        return 'Are you sure you want to delete this product?';
+    }
+  }
+
+  String _getProductText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Producto';
+      case 'en':
+        return 'Product';
+      case 'pt':
+        return 'Produto';
+      case 'zh':
+        return '产品';
+      default:
+        return 'Product';
+    }
+  }
+
+  String _getProductDeletedText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Producto eliminado exitosamente';
+      case 'en':
+        return 'Product deleted successfully';
+      case 'pt':
+        return 'Produto excluído com sucesso';
+      case 'zh':
+        return '产品已成功删除';
+      default:
+        return 'Product deleted successfully';
+    }
   }
 }

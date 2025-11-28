@@ -4,8 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import '../l10n/app_localizations.dart'; // ✅ AGREGADO
 import '../providers/invoice_provider.dart';
 import '../providers/business_provider.dart';
+import '../providers/settings_provider.dart'; // ✅ AGREGADO
 import '../services/invoice_image_generator.dart';
 import '../services/permission_handler.dart';
 import '../services/gallery_saver.dart';
@@ -23,6 +25,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
+    final settingsProvider = Provider.of<SettingsProvider>(context); // ✅ AGREGADO
     final invoiceProvider = Provider.of<InvoiceProvider>(context);
     
     // Filtrar boletas
@@ -41,7 +45,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Boletas', style: TextStyle(fontSize: 18.sp)),
+        title: Text(l10n.invoices, style: TextStyle(fontSize: 18.sp)), // ✅ TRADUCIDO
         backgroundColor: const Color(0xFF2196F3),
         foregroundColor: Colors.white,
         actions: [
@@ -53,12 +57,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                   _filterDate = null;
                 });
               },
-              tooltip: 'Limpiar filtro',
+              tooltip: _getClearFilterText(l10n), // ✅ TRADUCIDO
             ),
           IconButton(
             icon: Icon(Icons.calendar_today, size: 22.sp),
             onPressed: _selectFilterDate,
-            tooltip: 'Filtrar por fecha',
+            tooltip: _getFilterByDateText(l10n), // ✅ TRADUCIDO
           ),
         ],
       ),
@@ -75,7 +79,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Buscar por cliente o número...',
+                hintText: _getSearchByCustomerText(l10n), // ✅ TRADUCIDO
                 hintStyle: TextStyle(fontSize: 14.sp),
                 prefixIcon: Icon(Icons.search, size: 20.sp),
                 suffixIcon: _searchQuery.isNotEmpty
@@ -113,7 +117,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      '${filteredInvoices.length} resultado(s)',
+                      _getResultsText(l10n, filteredInvoices.length), // ✅ TRADUCIDO
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: Colors.blue[900],
@@ -154,8 +158,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                         SizedBox(height: 16.h),
                         Text(
                           _searchQuery.isNotEmpty || _filterDate != null
-                              ? 'No se encontraron boletas'
-                              : 'No hay boletas registradas',
+                              ? _getNoInvoicesFoundText(l10n) // ✅ TRADUCIDO
+                              : l10n.noInvoices, // ✅ TRADUCIDO
                           style: TextStyle(fontSize: 18.sp, color: Colors.grey),
                         ),
                         if (_searchQuery.isNotEmpty || _filterDate != null) ...[
@@ -168,7 +172,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                               });
                             },
                             icon: Icon(Icons.clear_all, size: 18.sp),
-                            label: Text('Limpiar filtros',
+                            label: Text(_getClearFiltersText(l10n), // ✅ TRADUCIDO
                                 style: TextStyle(fontSize: 14.sp)),
                           ),
                         ],
@@ -197,7 +201,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Boleta #${invoice.invoiceNumber}',
+                                      '${_getInvoiceText(l10n)} #${invoice.invoiceNumber}', // ✅ TRADUCIDO
                                       style: TextStyle(
                                         fontSize: 18.sp,
                                         fontWeight: FontWeight.bold,
@@ -205,7 +209,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                       ),
                                     ),
                                     Text(
-                                      '\$${invoice.total.toStringAsFixed(0)}',
+                                      settingsProvider.formatPrice(invoice.total), // ✅ MONEDA DINÁMICA
                                       style: TextStyle(
                                         fontSize: 18.sp,
                                         fontWeight: FontWeight.bold,
@@ -275,7 +279,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     borderRadius: BorderRadius.circular(4.r),
                                   ),
                                   child: Text(
-                                    '${invoice.items.length} producto(s)',
+                                    _getProductsCountText(l10n, invoice.items.length), // ✅ TRADUCIDO
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       color: Colors.grey[700],
@@ -321,8 +325,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   }
 
   void _showInvoiceDetails(BuildContext context, invoice) {
-    final businessProvider =
-        Provider.of<BusinessProvider>(context, listen: false);
+    final l10n = AppLocalizations.of(context)!;
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final businessProvider = Provider.of<BusinessProvider>(context, listen: false);
 
     showModalBottomSheet(
       context: context,
@@ -365,7 +370,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Boleta #${invoice.invoiceNumber}',
+                                '${_getInvoiceText(l10n)} #${invoice.invoiceNumber}', // ✅ TRADUCIDO
                                 style: TextStyle(
                                   fontSize: 20.sp,
                                   fontWeight: FontWeight.bold,
@@ -373,7 +378,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                 ),
                               ),
                               Text(
-                                '\$${invoice.total.toStringAsFixed(0)}',
+                                settingsProvider.formatPrice(invoice.total), // ✅ MONEDA DINÁMICA
                                 style: TextStyle(
                                   fontSize: 20.sp,
                                   fontWeight: FontWeight.bold,
@@ -410,7 +415,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                           ),
                         SizedBox(height: 24.h),
                         Text(
-                          'Productos:',
+                          '${_getProductsText(l10n)}:', // ✅ TRADUCIDO
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
@@ -430,7 +435,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '\$${item.total.toStringAsFixed(0)}',
+                                  settingsProvider.formatPrice(item.total), // ✅ MONEDA DINÁMICA
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.bold,
@@ -445,14 +450,14 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Total:',
+                              '${l10n.total}:', // ✅ TRADUCIDO
                               style: TextStyle(
                                 fontSize: 18.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              '\$${invoice.total.toStringAsFixed(0)}',
+                              settingsProvider.formatPrice(invoice.total), // ✅ MONEDA DINÁMICA
                               style: TextStyle(
                                 fontSize: 22.sp,
                                 fontWeight: FontWeight.bold,
@@ -476,7 +481,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                           businessProvider,
                         ),
                         icon: Icon(Icons.share, size: 18.sp),
-                        label: Text('Compartir', style: TextStyle(fontSize: 14.sp)),
+                        label: Text(l10n.share, style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,
@@ -496,7 +501,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                           businessProvider,
                         ),
                         icon: Icon(Icons.download, size: 18.sp),
-                        label: Text('Descargar', style: TextStyle(fontSize: 14.sp)),
+                        label: Text(l10n.download, style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF2196F3),
                           padding: EdgeInsets.symmetric(vertical: 14.h),
@@ -507,7 +512,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                       ),
                     ),
                     SizedBox(width: 8.w),
-                    // ✅ BOTÓN ELIMINAR
                     IconButton(
                       onPressed: () {
                         Navigator.pop(context);
@@ -515,7 +519,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                       },
                       icon: Icon(Icons.delete, size: 24.sp),
                       color: Colors.red,
-                      tooltip: 'Eliminar',
+                      tooltip: l10n.delete, // ✅ TRADUCIDO
                     ),
                   ],
                 ),
@@ -526,9 +530,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       ),
     );
   }
-
-  // ✅ NUEVO: Confirmar eliminación
   void _confirmDeleteInvoice(BuildContext context, dynamic invoice) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -537,17 +541,17 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 24.sp),
             SizedBox(width: 12.w),
-            Text('Eliminar boleta', style: TextStyle(fontSize: 18.sp)),
+            Text(_getDeleteInvoiceText(l10n), style: TextStyle(fontSize: 18.sp)), // ✅ TRADUCIDO
           ],
         ),
         content: Text(
-          '¿Estás seguro de eliminar la Boleta #${invoice.invoiceNumber}?\n\nEsta acción no se puede deshacer.',
+          _getDeleteInvoiceConfirmationText(l10n, invoice.invoiceNumber), // ✅ TRADUCIDO
           style: TextStyle(fontSize: 15.sp),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(fontSize: 14.sp)),
+            child: Text(l10n.cancel, style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
           ),
           ElevatedButton(
             onPressed: () async {
@@ -564,7 +568,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                       children: [
                         Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
                         SizedBox(width: 8.w),
-                        Text('Boleta eliminada', style: TextStyle(fontSize: 14.sp)),
+                        Text(_getInvoiceDeletedText(l10n), style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
                       ],
                     ),
                     backgroundColor: Colors.green,
@@ -577,7 +581,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text('Eliminar', style: TextStyle(fontSize: 14.sp)),
+            child: Text(l10n.delete, style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
           ),
         ],
       ),
@@ -589,6 +593,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     dynamic invoice,
     BusinessProvider businessProvider,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
+    
     final hasPermission =
         await AppPermissionHandler.requestStoragePermission(context);
 
@@ -597,7 +603,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '⚠️ Se necesitan permisos para compartir',
+              '⚠️ ${_getPermissionsNeededShareText(l10n)}', // ✅ TRADUCIDO
               style: TextStyle(fontSize: 14.sp),
             ),
             backgroundColor: Colors.orange,
@@ -628,14 +634,14 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
       await Share.shareXFiles(
         [XFile(imagePath)],
-        text: 'Boleta #${invoice.invoiceNumber}',
+        text: '${_getInvoiceText(l10n)} #${invoice.invoiceNumber}', // ✅ TRADUCIDO
       );
     } catch (e) {
       if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e', style: TextStyle(fontSize: 14.sp)),
+            content: Text('❌ ${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
             backgroundColor: Colors.red,
           ),
         );
@@ -648,6 +654,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     dynamic invoice,
     BusinessProvider businessProvider,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
+    
     final hasPermission =
         await AppPermissionHandler.requestStoragePermission(context);
 
@@ -656,7 +664,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '⚠️ Se necesitan permisos para descargar',
+              '⚠️ ${_getPermissionsNeededDownloadText(l10n)}', // ✅ TRADUCIDO
               style: TextStyle(fontSize: 14.sp),
             ),
             backgroundColor: Colors.orange,
@@ -693,7 +701,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '✅ Guardado en galería',
+              '✅ ${_getSavedToGalleryText(l10n)}', // ✅ TRADUCIDO
               style: TextStyle(fontSize: 14.sp),
             ),
             backgroundColor: Colors.green,
@@ -705,11 +713,238 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e', style: TextStyle(fontSize: 14.sp)),
+            content: Text('❌ ${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
             backgroundColor: Colors.red,
           ),
         );
       }
     }
   }
+  // ✅ FUNCIONES HELPER PARA TRADUCCIONES
+  
+  String _getClearFilterText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Limpiar filtro';
+      case 'en':
+        return 'Clear filter';
+      case 'pt':
+        return 'Limpar filtro';
+      case 'zh':
+        return '清除过滤器';
+      default:
+        return 'Clear filter';
+    }
+  }
+
+  String _getFilterByDateText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Filtrar por fecha';
+      case 'en':
+        return 'Filter by date';
+      case 'pt':
+        return 'Filtrar por data';
+      case 'zh':
+        return '按日期过滤';
+      default:
+        return 'Filter by date';
+    }
+  }
+
+  String _getSearchByCustomerText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Buscar por cliente o número...';
+      case 'en':
+        return 'Search by customer or number...';
+      case 'pt':
+        return 'Buscar por cliente ou número...';
+      case 'zh':
+        return '按客户或号码搜索...';
+      default:
+        return 'Search by customer or number...';
+    }
+  }
+
+  String _getResultsText(AppLocalizations l10n, int count) {
+    switch (l10n.localeName) {
+      case 'es':
+        return '$count resultado(s)';
+      case 'en':
+        return '$count result(s)';
+      case 'pt':
+        return '$count resultado(s)';
+      case 'zh':
+        return '$count 结果';
+      default:
+        return '$count result(s)';
+    }
+  }
+
+  String _getNoInvoicesFoundText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'No se encontraron boletas';
+      case 'en':
+        return 'No invoices found';
+      case 'pt':
+        return 'Nenhuma nota fiscal encontrada';
+      case 'zh':
+        return '未找到发票';
+      default:
+        return 'No invoices found';
+    }
+  }
+
+  String _getClearFiltersText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Limpiar filtros';
+      case 'en':
+        return 'Clear filters';
+      case 'pt':
+        return 'Limpar filtros';
+      case 'zh':
+        return '清除过滤器';
+      default:
+        return 'Clear filters';
+    }
+  }
+
+  String _getInvoiceText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Boleta';
+      case 'en':
+        return 'Invoice';
+      case 'pt':
+        return 'Nota Fiscal';
+      case 'zh':
+        return '发票';
+      default:
+        return 'Invoice';
+    }
+  }
+
+  String _getProductsCountText(AppLocalizations l10n, int count) {
+    switch (l10n.localeName) {
+      case 'es':
+        return '$count producto(s)';
+      case 'en':
+        return '$count product(s)';
+      case 'pt':
+        return '$count produto(s)';
+      case 'zh':
+        return '$count 产品';
+      default:
+        return '$count product(s)';
+    }
+  }
+
+  String _getProductsText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Productos';
+      case 'en':
+        return 'Products';
+      case 'pt':
+        return 'Produtos';
+      case 'zh':
+        return '产品';
+      default:
+        return 'Products';
+    }
+  }
+
+  String _getDeleteInvoiceText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Eliminar boleta';
+      case 'en':
+        return 'Delete invoice';
+      case 'pt':
+        return 'Excluir nota fiscal';
+      case 'zh':
+        return '删除发票';
+      default:
+        return 'Delete invoice';
+    }
+  }
+
+  String _getDeleteInvoiceConfirmationText(AppLocalizations l10n, int invoiceNumber) {
+    switch (l10n.localeName) {
+      case 'es':
+        return '¿Estás seguro de eliminar la Boleta #$invoiceNumber?\n\nEsta acción no se puede deshacer.';
+      case 'en':
+        return 'Are you sure you want to delete Invoice #$invoiceNumber?\n\nThis action cannot be undone.';
+      case 'pt':
+        return 'Tem certeza de que deseja excluir a Nota Fiscal #$invoiceNumber?\n\nEsta ação não pode ser desfeita.';
+      case 'zh':
+        return '您确定要删除发票 #$invoiceNumber 吗？\n\n此操作无法撤消。';
+      default:
+        return 'Are you sure you want to delete Invoice #$invoiceNumber?\n\nThis action cannot be undone.';
+    }
+  }
+
+  String _getInvoiceDeletedText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Boleta eliminada';
+      case 'en':
+        return 'Invoice deleted';
+      case 'pt':
+        return 'Nota fiscal excluída';
+      case 'zh':
+        return '发票已删除';
+      default:
+        return 'Invoice deleted';
+    }
+  }
+
+  String _getPermissionsNeededShareText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Se necesitan permisos para compartir';
+      case 'en':
+        return 'Permissions needed to share';
+      case 'pt':
+        return 'Permissões necessárias para compartilhar';
+      case 'zh':
+        return '需要权限才能分享';
+      default:
+        return 'Permissions needed to share';
+    }
+  }
+
+  String _getPermissionsNeededDownloadText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Se necesitan permisos para descargar';
+      case 'en':
+        return 'Permissions needed to download';
+      case 'pt':
+        return 'Permissões necessárias para baixar';
+      case 'zh':
+        return '需要权限才能下载';
+      default:
+        return 'Permissions needed to download';
+    }
+  }
+
+  String _getSavedToGalleryText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es':
+        return 'Guardado en galería';
+      case 'en':
+        return 'Saved to gallery';
+      case 'pt':
+        return 'Salvo na galeria';
+      case 'zh':
+        return '已保存到图库';
+      default:
+        return 'Saved to gallery';
+    }
+  }
 }
+

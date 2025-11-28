@@ -3,17 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider with ChangeNotifier {
   // Configuración de moneda
-  String _currencyCode = 'PEN'; // Soles por defecto
+  String _currencyCode = 'PEN';
   String _currencySymbol = 'S/';
   
   // Configuración de idioma
-  Locale _locale = const Locale('es'); // Español por defecto
+  Locale _locale = const Locale('es');
 
   String get currencyCode => _currencyCode;
   String get currencySymbol => _currencySymbol;
   Locale get locale => _locale;
 
-  // Monedas soportadas (las más usadas en Latinoamérica + USD + EUR + CNY)
   static const Map<String, Map<String, String>> supportedCurrencies = {
     'PEN': {'name': 'Sol Peruano', 'symbol': 'S/', 'flag': '🇵🇪'},
     'USD': {'name': 'Dólar Estadounidense', 'symbol': '\$', 'flag': '🇺🇸'},
@@ -28,7 +27,6 @@ class SettingsProvider with ChangeNotifier {
     'JPY': {'name': 'Yen Japonés', 'symbol': '¥', 'flag': '🇯🇵'},
   };
 
-  // Idiomas soportados (los más usados)
   static const Map<String, Map<String, String>> supportedLanguages = {
     'es': {'name': 'Español', 'flag': '🇪🇸'},
     'en': {'name': 'English', 'flag': '🇬🇧'},
@@ -36,7 +34,6 @@ class SettingsProvider with ChangeNotifier {
     'zh': {'name': '中文', 'flag': '🇨🇳'},
   };
 
-  /// Cargar configuración guardada
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     
@@ -50,7 +47,6 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}');
   }
 
-  /// Cambiar moneda
   Future<void> setCurrency(String code) async {
     if (!supportedCurrencies.containsKey(code)) {
       print('❌ Moneda no soportada: $code');
@@ -68,7 +64,6 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Moneda cambiada a: $code ($_currencySymbol)');
   }
 
-  /// Cambiar idioma
   Future<void> setLanguage(String languageCode) async {
     if (!supportedLanguages.containsKey(languageCode)) {
       print('❌ Idioma no soportado: $languageCode');
@@ -84,34 +79,37 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Idioma cambiado a: $languageCode');
   }
 
-  /// Formatear precio con la moneda actual
+  /// ✅ CORREGIDO: Formatear precio SIN decimales .00 innecesarios
   String formatPrice(double price) {
-    // Monedas sin decimales (Yen, Pesos Chilenos, etc.)
+    // Monedas sin decimales
     final noDecimalCurrencies = ['JPY', 'CLP', 'COP'];
     
     if (noDecimalCurrencies.contains(_currencyCode)) {
       return '$_currencySymbol${price.toStringAsFixed(0)}';
     }
     
-    return '$_currencySymbol${price.toStringAsFixed(2)}';
+    // ✅ Solo mostrar decimales si son necesarios
+    if (price == price.toInt()) {
+      // Si el precio es un número entero (20.0 -> 20)
+      return '$_currencySymbol${price.toInt()}';
+    } else {
+      // Si tiene decimales, mostrarlos (20.50 -> 20.50)
+      return '$_currencySymbol${price.toStringAsFixed(2)}';
+    }
   }
 
-  /// Obtener nombre de la moneda actual
   String get currentCurrencyName {
     return supportedCurrencies[_currencyCode]?['name'] ?? 'Desconocida';
   }
 
-  /// Obtener bandera de la moneda actual
   String get currentCurrencyFlag {
     return supportedCurrencies[_currencyCode]?['flag'] ?? '';
   }
 
-  /// Obtener nombre del idioma actual
   String get currentLanguageName {
     return supportedLanguages[_locale.languageCode]?['name'] ?? 'Unknown';
   }
 
-  /// Obtener bandera del idioma actual
   String get currentLanguageFlag {
     return supportedLanguages[_locale.languageCode]?['flag'] ?? '';
   }
