@@ -7,17 +7,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/invoice.dart';
 import '../models/business_profile.dart';
-import '../providers/settings_provider.dart'; // ✅ AGREGADO
+import '../providers/settings_provider.dart';
 
 class InvoiceImageGenerator {
   static final GlobalKey _globalKey = GlobalKey();
 
-  /// Genera imagen de boleta con diseño minimalista
   static Future<String> generateImage({
     required Invoice invoice,
     required BusinessProfile businessProfile,
     required BuildContext context,
-    required SettingsProvider settingsProvider, // ✅ NUEVO PARÁMETRO
+    required SettingsProvider settingsProvider,
   }) async {
     try {
       print('📸 Generando boleta minimalista...');
@@ -38,7 +37,7 @@ class InvoiceImageGenerator {
                 child: MinimalistInvoiceWidget(
                   invoice: invoice,
                   businessProfile: businessProfile,
-                  settingsProvider: settingsProvider, // ✅ PASAMOS EL PROVIDER
+                  settingsProvider: settingsProvider,
                 ),
               ),
             ),
@@ -79,13 +78,13 @@ class InvoiceImageGenerator {
 class MinimalistInvoiceWidget extends StatelessWidget {
   final Invoice invoice;
   final BusinessProfile businessProfile;
-  final SettingsProvider settingsProvider; // ✅ AGREGADO
+  final SettingsProvider settingsProvider;
 
   const MinimalistInvoiceWidget({
     super.key,
     required this.invoice,
     required this.businessProfile,
-    required this.settingsProvider, // ✅ AGREGADO
+    required this.settingsProvider,
   });
 
   @override
@@ -98,12 +97,10 @@ class MinimalistInvoiceWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ==================== HEADER ====================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // NÚMERO DE BOLETA
               Text(
                 'N° ${invoice.invoiceNumber.toString().padLeft(7, '0')}',
                 style: const TextStyle(
@@ -113,8 +110,6 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                   letterSpacing: 1,
                 ),
               ),
-
-              // INFO DEL NEGOCIO
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -183,10 +178,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 40),
-
-          // ==================== TABLA ====================
           Container(
             padding: const EdgeInsets.only(bottom: 8),
             decoration: const BoxDecoration(
@@ -249,10 +241,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Items
           ...invoice.items.map((item) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -277,14 +266,14 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                         fontSize: 15,
                         color: Color(0xFF2C2C2C),
                       ),
-                      maxLines: 2, // ✅ Protección contra nombres largos
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   SizedBox(
                     width: 100,
                     child: Text(
-                      settingsProvider.formatPrice(item.price), // ✅ USA MONEDA CORRECTA
+                      settingsProvider.formatPrice(item.price),
                       style: const TextStyle(
                         fontSize: 15,
                         color: Color(0xFF2C2C2C),
@@ -296,7 +285,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                   SizedBox(
                     width: 100,
                     child: Text(
-                      settingsProvider.formatPrice(item.total), // ✅ USA MONEDA CORRECTA
+                      settingsProvider.formatPrice(item.total),
                       style: const TextStyle(
                         fontSize: 15,
                         color: Color(0xFF2C2C2C),
@@ -308,10 +297,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
               ),
             );
           }),
-
           const SizedBox(height: 20),
-
-          // ==================== TOTAL ====================
           Container(
             padding: const EdgeInsets.only(top: 12),
             decoration: const BoxDecoration(
@@ -334,7 +320,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  settingsProvider.formatPrice(invoice.total), // ✅ USA MONEDA CORRECTA
+                  settingsProvider.formatPrice(invoice.total),
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -345,13 +331,10 @@ class MinimalistInvoiceWidget extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 40),
-
-          // ==================== MENSAJE FINAL ====================
           Center(
             child: Text(
-              _getThankYouMessage(settingsProvider.locale.languageCode), // ✅ TRADUCIDO
+              _getThankYouMessage(settingsProvider.locale.languageCode),
               style: const TextStyle(
                 fontSize: 15,
                 color: Color(0xFF5C5C5C),
@@ -359,10 +342,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Fecha
           Center(
             child: Text(
               DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
@@ -377,7 +357,6 @@ class MinimalistInvoiceWidget extends StatelessWidget {
     );
   }
 
-  // ✅ Traducción del mensaje de agradecimiento
   String _getThankYouMessage(String languageCode) {
     switch (languageCode) {
       case 'es':
