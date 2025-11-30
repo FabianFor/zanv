@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
+import '../services/permission_handler.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -93,22 +94,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 value: 'all',
                 child: Text('Todas las categorías'),
               ),
-              PopupMenuItem(
-                value: 'food',
-                child: Text(l10n.food),
-              ),
-              PopupMenuItem(
-                value: 'drinks',
-                child: Text(l10n.drinks),
-              ),
-              PopupMenuItem(
-                value: 'desserts',
-                child: Text(l10n.desserts),
-              ),
-              PopupMenuItem(
-                value: 'others',
-                child: Text(l10n.others),
-              ),
+              PopupMenuItem(value: 'food', child: Text(l10n.food)),
+              PopupMenuItem(value: 'drinks', child: Text(l10n.drinks)),
+              PopupMenuItem(value: 'desserts', child: Text(l10n.desserts)),
+              PopupMenuItem(value: 'others', child: Text(l10n.others)),
             ],
           ),
         ],
@@ -289,18 +278,56 @@ class _AddProductDialogState extends State<AddProductDialog> {
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 800,
-      maxHeight: 800,
-      imageQuality: 85,
-    );
+    try {
+      // ✅ 1. PEDIR PERMISOS PRIMERO
+      final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
+      
+      if (!hasPermission) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Necesitas dar permisos para elegir una imagen'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      }
 
-    if (image != null) {
-      setState(() {
-        _imagePath = image.path;
-      });
+      // ✅ 2. ABRIR GALERÍA
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      // ✅ 3. GUARDAR RUTA
+      if (image != null && mounted) {
+        setState(() {
+          _imagePath = image.path;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Imagen seleccionada correctamente'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Error al seleccionar imagen: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error al seleccionar imagen: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -313,46 +340,62 @@ class _AddProductDialogState extends State<AddProductDialog> {
       _isSubmitting = true;
     });
 
-    final productProvider = context.read<ProductProvider>();
-    
-    final product = Product(
-      id: widget.product?.id ?? const Uuid().v4(),
-      name: _nameController.text.trim(),
-      description: _descriptionController.text.trim(),
-      price: double.parse(_priceController.text),
-      stock: int.parse(_stockController.text),
-      category: _selectedCategory,
-      imagePath: _imagePath,
-    );
+    try {
+      final productProvider = context.read<ProductProvider>();
+      
+      final product = Product(
+        id: widget.product?.id ?? const Uuid().v4(),
+        name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        price: double.parse(_priceController.text),
+        stock: int.parse(_stockController.text),
+        category: _selectedCategory,
+        imagePath: _imagePath,
+      );
 
-    bool success;
-    if (widget.product == null) {
-      success = await productProvider.addProduct(product);
-    } else {
-      success = await productProvider.updateProduct(product);
-    }
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
-
-      if (success) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.product == null
-                  ? 'Producto agregado exitosamente'
-                  : 'Producto actualizado exitosamente',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+      bool success;
+      if (widget.product == null) {
+        success = await productProvider.addProduct(product);
       } else {
+        success = await productProvider.updateProduct(product);
+      }
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        if (success) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                widget.product == null
+                    ? '✅ Producto agregado exitosamente'
+                    : '✅ Producto actualizado exitosamente',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(productProvider.error ?? '❌ Error desconocido'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Error al guardar producto: $e');
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(productProvider.error ?? 'Error desconocido'),
+            content: Text('❌ Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -390,7 +433,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    widget.product == null ? l10n.add : l10n.edit,
+                    widget.product == null ? 'Agregar Producto' : 'Editar Producto',
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
@@ -427,7 +470,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'El nombre no puede estar vacío';
+                            return 'El nombre es obligatorio';
                           }
                           if (value.trim().length < 2) {
                             return 'El nombre debe tener al menos 2 caracteres';
@@ -466,11 +509,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'El precio no puede estar vacío';
+                            return 'El precio es obligatorio';
                           }
                           final price = double.tryParse(value);
                           if (price == null || price <= 0) {
-                            return 'Ingrese un precio válido';
+                            return 'Ingrese un precio válido mayor a 0';
                           }
                           return null;
                         },
@@ -490,11 +533,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'El stock no puede estar vacío';
+                            return 'El stock es obligatorio';
                           }
                           final stock = int.tryParse(value);
                           if (stock == null || stock < 0) {
-                            return 'Ingrese un stock válido';
+                            return 'Ingrese un stock válido (0 o mayor)';
                           }
                           return null;
                         },

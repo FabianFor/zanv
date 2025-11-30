@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/business_provider.dart';
-import '../models/business_profile.dart';
 import '../services/permission_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,125 +17,86 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _businessNameController;
+  late TextEditingController _addressController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
-  late TextEditingController _addressController;
-  String? _logoPath;
+  String _logoPath = '';
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    final profile = Provider.of<BusinessProvider>(context, listen: false).profile;
-    _businessNameController = TextEditingController(text: profile.businessName);
-    _phoneController = TextEditingController(text: profile.phone);
-    _emailController = TextEditingController(text: profile.email);
-    _addressController = TextEditingController(text: profile.address);
-    _logoPath = profile.logoPath.isNotEmpty ? profile.logoPath : null;
+    final businessProvider = context.read<BusinessProvider>();
+    _businessNameController = TextEditingController(
+      text: businessProvider.profile.businessName,
+    );
+    _addressController = TextEditingController(
+      text: businessProvider.profile.address,
+    );
+    _phoneController = TextEditingController(
+      text: businessProvider.profile.phone,
+    );
+    _emailController = TextEditingController(
+      text: businessProvider.profile.email,
+    );
+    _logoPath = businessProvider.profile.logoPath;
   }
 
   @override
   void dispose() {
     _businessNameController.dispose();
+    _addressController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
-  Future<void> _showImageSourceDialog() async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Seleccionar logo'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFF2196F3)),
-              title: const Text('Galería'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickLogo(ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFF4CAF50)),
-              title: const Text('Cámara'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickLogo(ImageSource.camera);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickLogo(ImageSource source) async {
-    bool hasPermission = false;
-
-    // Solicitar permisos según la fuente
-    if (source == ImageSource.gallery) {
-      hasPermission = await AppPermissionHandler.requestGalleryPermission(context);
-      
-      if (!hasPermission) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ Se necesitan permisos para acceder a la galería'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-    } else if (source == ImageSource.camera) {
-      hasPermission = await AppPermissionHandler.requestCameraPermission(context);
-      
-      if (!hasPermission) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ Se necesitan permisos para usar la cámara'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-    }
-
+  Future<void> _pickLogo() async {
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
+      // ✅ PEDIR PERMISOS PRIMERO
+      final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
+      
+      if (!hasPermission) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Necesitas dar permisos para elegir una imagen'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      }
+
+      // ✅ ABRIR GALERÍA
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
         maxWidth: 512,
         maxHeight: 512,
         imageQuality: 85,
       );
-      
-      if (pickedFile != null) {
+
+      if (image != null && mounted) {
         setState(() {
-          _logoPath = pickedFile.path;
+          _logoPath = image.path;
         });
         
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Logo seleccionado'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Logo seleccionado correctamente'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
       }
     } catch (e) {
       print('❌ Error al seleccionar logo: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error al seleccionar logo: $e'),
+            content: Text('❌ Error al seleccionar imagen: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -143,77 +104,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final businessProvider = context.read<BusinessProvider>();
+
+    await businessProvider.updateProfile(
+      businessName: _businessNameController.text.trim(),
+      address: _addressController.text.trim(),
+      phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
+      logoPath: _logoPath,
+    );
+
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Perfil actualizado correctamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil del Negocio'),
+        title: Text(l10n.businessProfile, style: TextStyle(fontSize: 18.sp)),
         backgroundColor: const Color(0xFF2196F3),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
+        padding: EdgeInsets.all(isLargeScreen ? 32.w : 20.w),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Logo del negocio
               Center(
                 child: GestureDetector(
-                  onTap: _showImageSourceDialog,
+                  onTap: _pickLogo,
                   child: Stack(
                     children: [
                       Container(
-                        width: 120.w,
-                        height: 120.w,
+                        width: 150.w,
+                        height: 150.w,
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey[300]!, width: 2),
-                        ),
-                        child: _logoPath != null
-                            ? ClipOval(
-                                child: Image.file(
-                                  File(_logoPath!),
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo,
-                                      size: 40.sp, color: Colors.grey),
-                                  SizedBox(height: 8.h),
-                                  Text(
-                                    'Agregar Logo',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                      if (_logoPath != null)
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2196F3),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.edit,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: _showImageSourceDialog,
-                            ),
+                          color: Colors.grey[200],
+                          border: Border.all(
+                            color: const Color(0xFF2196F3),
+                            width: 3,
                           ),
                         ),
+                        child: _logoPath.isNotEmpty
+                            ? ClipOval(
+                                child: Image.file(
+                                  File(_logoPath),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.store,
+                                      size: 60.sp,
+                                      color: Colors.grey[400],
+                                    );
+                                  },
+                                ),
+                              )
+                            : Icon(
+                                Icons.store,
+                                size: 60.sp,
+                                color: Colors.grey[400],
+                              ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF2196F3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20.sp,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -223,77 +220,90 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Text(
                   'Toca para cambiar el logo',
                   style: TextStyle(
-                    color: Colors.grey[600],
                     fontSize: 12.sp,
+                    color: Colors.grey[600],
                   ),
                 ),
               ),
               SizedBox(height: 32.h),
-              Text(
-                'Información del Negocio',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 16.h),
+
+              // Nombre del negocio
               TextFormField(
                 controller: _businessNameController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre del Negocio',
-                  hintText: 'Ej: MiNegocio',
-                  prefixIcon: const Icon(Icons.store),
+                  labelText: l10n.businessName,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
+                  prefixIcon: const Icon(Icons.store),
                 ),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Campo requerido' : null,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'El nombre del negocio es obligatorio';
+                  }
+                  return null;
+                },
+                textCapitalization: TextCapitalization.words,
               ),
               SizedBox(height: 16.h),
+
+              // Dirección
+              TextFormField(
+                controller: _addressController,
+                decoration: InputDecoration(
+                  labelText: l10n.address,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  prefixIcon: const Icon(Icons.location_on),
+                ),
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              SizedBox(height: 16.h),
+
+              // Teléfono
               TextFormField(
                 controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: 'Teléfono',
-                  hintText: '+51 999 999 999',
-                  prefixIcon: const Icon(Icons.phone),
+                  labelText: l10n.phone,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
+                  prefixIcon: const Icon(Icons.phone),
                 ),
                 keyboardType: TextInputType.phone,
               ),
               SizedBox(height: 16.h),
+
+              // Email
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'ejemplo@email.com',
-                  prefixIcon: const Icon(Icons.email),
+                  labelText: l10n.email,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
+                  prefixIcon: const Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: 16.h),
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                  labelText: 'Dirección',
-                  hintText: 'Calle, Ciudad',
-                  prefixIcon: const Icon(Icons.location_on),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                maxLines: 2,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Ingrese un email válido';
+                    }
+                  }
+                  return null;
+                },
               ),
               SizedBox(height: 32.h),
+
+              // Botón guardar
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveProfile,
+                  onPressed: _isSubmitting ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
                     padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -301,13 +311,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
-                  child: Text(
-                    'Guardar Cambios',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? SizedBox(
+                          height: 20.h,
+                          width: 20.h,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          l10n.save,
+                          style: TextStyle(fontSize: 16.sp),
+                        ),
                 ),
               ),
             ],
@@ -315,26 +331,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-  }
-
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      final profile = BusinessProfile(
-        businessName: _businessNameController.text,
-        logoPath: _logoPath ?? '',
-        phone: _phoneController.text,
-        email: _emailController.text,
-        address: _addressController.text,
-      );
-
-      Provider.of<BusinessProvider>(context, listen: false)
-          .updateProfile(profile);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado exitosamente')),
-      );
-
-      Navigator.pop(context);
-    }
   }
 }
