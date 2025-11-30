@@ -8,7 +8,6 @@ import '../providers/order_provider.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/dashboard_card.dart';
-import '../widgets/adaptive_navigation.dart';
 import 'products_screen.dart';
 import 'orders_screen.dart';
 import 'invoices_screen.dart';
@@ -40,44 +39,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ DETECTAR TAMAÑO DE PANTALLA
     final screenWidth = MediaQuery.of(context).size.width;
-    final isLargeScreen = screenWidth > 600; // Tablets y desktop
+    final isLargeScreen = screenWidth > 600;
 
     return Scaffold(
-      body: Row(
-        children: [
-          // ✅ NAVEGACIÓN LATERAL (solo en pantallas grandes)
-          if (isLargeScreen)
-            AdaptiveNavigation(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              isLargeScreen: true,
-            ),
-          
-          // ✅ CONTENIDO PRINCIPAL
-          Expanded(
-            child: _screens[_currentIndex],
-          ),
-        ],
-      ),
-      
-      // ✅ BOTTOM BAR (solo en móviles)
+      body: _screens[_currentIndex],
       bottomNavigationBar: isLargeScreen
           ? null
-          : AdaptiveNavigation(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              isLargeScreen: false,
-            ),
+          : _buildBottomNavBar(context),
+    );
+  }
+
+  Widget _buildBottomNavBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.white,
+      selectedItemColor: const Color(0xFF2196F3),
+      unselectedItemColor: Colors.grey[600],
+      selectedFontSize: 12.sp,
+      unselectedFontSize: 11.sp,
+      iconSize: 24.sp,
+      elevation: 8,
+      items: [
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.dashboard_outlined),
+          activeIcon: const Icon(Icons.dashboard),
+          label: l10n.dashboard,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.inventory_2_outlined),
+          activeIcon: const Icon(Icons.inventory_2),
+          label: l10n.products,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.shopping_cart_outlined),
+          activeIcon: const Icon(Icons.shopping_cart),
+          label: l10n.orders,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.receipt_long_outlined),
+          activeIcon: const Icon(Icons.receipt_long),
+          label: l10n.invoices,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.settings_outlined),
+          activeIcon: const Icon(Icons.settings),
+          label: l10n.settings,
+        ),
+      ],
     );
   }
 }
@@ -94,7 +111,6 @@ class DashboardHome extends StatelessWidget {
     final invoiceProvider = context.watch<InvoiceProvider>();
     final settingsProvider = context.watch<SettingsProvider>();
 
-    // ✅ DETECTAR TAMAÑO DE PANTALLA
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth > 600;
 
@@ -102,7 +118,6 @@ class DashboardHome extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
@@ -146,7 +161,6 @@ class DashboardHome extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // ✅ ALERTA DE STOCK BAJO
                       if (productProvider.lowStockProducts.isNotEmpty)
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -182,8 +196,6 @@ class DashboardHome extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Dashboard Title
             Padding(
               padding: EdgeInsets.all(isLargeScreen ? 32.w : 20.w),
               child: Align(
@@ -197,317 +209,100 @@ class DashboardHome extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ✅ CONTENIDO RESPONSIVO
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(
                   horizontal: isLargeScreen ? 32.w : 20.w,
                 ),
-                child: isLargeScreen
-                    ? _buildLargeScreenLayout(
-                        context,
-                        l10n,
-                        productProvider,
-                        orderProvider,
-                        invoiceProvider,
-                        settingsProvider,
-                      )
-                    : _buildSmallScreenLayout(
-                        context,
-                        l10n,
-                        productProvider,
-                        orderProvider,
-                        invoiceProvider,
-                        settingsProvider,
+                child: Column(
+                  children: [
+                    DashboardCard(
+                      title: l10n.productsRegistered,
+                      value: '${productProvider.totalProducts}',
+                      color: const Color(0xFF4CAF50),
+                      icon: Icons.inventory_2,
+                    ),
+                    SizedBox(height: 16.h),
+                    DashboardCard(
+                      title: l10n.ordersPlaced,
+                      value: '${orderProvider.totalOrders}',
+                      color: const Color(0xFF2196F3),
+                      icon: Icons.shopping_cart,
+                    ),
+                    SizedBox(height: 16.h),
+                    DashboardCard(
+                      title: l10n.totalRevenue,
+                      value: settingsProvider.formatPrice(invoiceProvider.totalRevenue),
+                      color: const Color(0xFF9C27B0),
+                      icon: Icons.attach_money,
+                    ),
+                    SizedBox(height: 24.h),
+                    if (productProvider.lowStockProducts.isNotEmpty) ...[
+                      Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24.sp),
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: Text(
+                                    _getLowStockText(l10n),
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red[900],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 12.h),
+                            ...productProvider.lowStockProducts.take(3).map((product) {
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: 8.h),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        product.name,
+                                        style: TextStyle(fontSize: 14.sp),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${l10n.stock}: ${product.stock}',
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
                       ),
+                      SizedBox(height: 24.h),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  // ✅ LAYOUT PARA MÓVILES (vertical)
-  Widget _buildSmallScreenLayout(
-    BuildContext context,
-    AppLocalizations l10n,
-    ProductProvider productProvider,
-    OrderProvider orderProvider,
-    InvoiceProvider invoiceProvider,
-    SettingsProvider settingsProvider,
-  ) {
-    return Column(
-      children: [
-        DashboardCard(
-          title: l10n.productsRegistered,
-          value: '${productProvider.totalProducts}',
-          color: const Color(0xFF4CAF50),
-          icon: Icons.inventory_2,
-        ),
-        SizedBox(height: 16.h),
-        DashboardCard(
-          title: l10n.ordersPlaced,
-          value: '${orderProvider.totalOrders}',
-          color: const Color(0xFF2196F3),
-          icon: Icons.shopping_cart,
-        ),
-        SizedBox(height: 16.h),
-        DashboardCard(
-          title: l10n.totalRevenue,
-          value: settingsProvider.formatPrice(invoiceProvider.totalRevenue),
-          color: const Color(0xFF9C27B0),
-          icon: Icons.attach_money,
-        ),
-        SizedBox(height: 24.h),
-        
-        // ✅ ALERTA DE STOCK BAJO (expandida)
-        if (productProvider.lowStockProducts.isNotEmpty) ...[
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24.sp),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: Text(
-                        _getLowStockText(l10n),
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red[900],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-                ...productProvider.lowStockProducts.take(3).map((product) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 8.h),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            product.name,
-                            style: TextStyle(fontSize: 14.sp),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          '${l10n.stock}: ${product.stock}',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
-          SizedBox(height: 24.h),
-        ],
-        
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ProductsScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF9800),
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.inventory_2, color: Colors.white),
-                    SizedBox(width: 8.w),
-                    Text(
-                      l10n.products,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const OrdersScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BCD4),
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.shopping_cart, color: Colors.white),
-                    SizedBox(width: 8.w),
-                    Text(
-                      l10n.orders,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 24.h),
-      ],
-    );
-  }
-
-  // ✅ LAYOUT PARA TABLETS/DESKTOP (grid de 2 columnas)
-  Widget _buildLargeScreenLayout(
-    BuildContext context,
-    AppLocalizations l10n,
-    ProductProvider productProvider,
-    OrderProvider orderProvider,
-    InvoiceProvider invoiceProvider,
-    SettingsProvider settingsProvider,
-  ) {
-    return Column(
-      children: [
-        // Grid de tarjetas 2x2
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 20.w,
-          mainAxisSpacing: 20.h,
-          childAspectRatio: 2.5,
-          children: [
-            DashboardCard(
-              title: l10n.productsRegistered,
-              value: '${productProvider.totalProducts}',
-              color: const Color(0xFF4CAF50),
-              icon: Icons.inventory_2,
-            ),
-            DashboardCard(
-              title: l10n.ordersPlaced,
-              value: '${orderProvider.totalOrders}',
-              color: const Color(0xFF2196F3),
-              icon: Icons.shopping_cart,
-            ),
-            DashboardCard(
-              title: l10n.totalRevenue,
-              value: settingsProvider.formatPrice(invoiceProvider.totalRevenue),
-              color: const Color(0xFF9C27B0),
-              icon: Icons.attach_money,
-            ),
-            DashboardCard(
-              title: _getMonthlyRevenueText(l10n),
-              value: settingsProvider.formatPrice(invoiceProvider.monthlyRevenue),
-              color: const Color(0xFFFF9800),
-              icon: Icons.calendar_month,
-            ),
-          ],
-        ),
-        
-        SizedBox(height: 32.h),
-        
-        // Alerta de stock bajo (si existe)
-        if (productProvider.lowStockProducts.isNotEmpty) ...[
-          Container(
-            padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28.sp),
-                    SizedBox(width: 12.w),
-                    Text(
-                      _getLowStockText(l10n),
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red[900],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16.h),
-                ...productProvider.lowStockProducts.map((product) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 12.h),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            product.name,
-                            style: TextStyle(fontSize: 16.sp),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        SizedBox(width: 16.w),
-                        Text(
-                          '${l10n.stock}: ${product.stock}',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
-          SizedBox(height: 32.h),
-        ],
-      ],
     );
   }
 
@@ -523,21 +318,6 @@ class DashboardHome extends StatelessWidget {
         return '库存不足的产品';
       default:
         return 'Low stock products';
-    }
-  }
-
-  String _getMonthlyRevenueText(AppLocalizations l10n) {
-    switch (l10n.localeName) {
-      case 'es':
-        return 'Ingresos del mes';
-      case 'en':
-        return 'Monthly revenue';
-      case 'pt':
-        return 'Receita mensal';
-      case 'zh':
-        return '月收入';
-      default:
-        return 'Monthly revenue';
     }
   }
 }

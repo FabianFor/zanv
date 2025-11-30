@@ -5,21 +5,19 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    primaryColor: const Color(0xFF2196F3),
-    scaffoldBackgroundColor: const Color(0xFFF5F5F5),
     
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF2196F3),
       secondary: Color(0xFF4CAF50),
       error: Color(0xFFE53935),
-      background: Color(0xFFF5F5F5),
       surface: Colors.white,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onError: Colors.white,
-      onBackground: Color(0xFF212121),
       onSurface: Color(0xFF212121),
     ),
+    
+    scaffoldBackgroundColor: const Color(0xFFF5F5F5),
     
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF2196F3),
@@ -28,12 +26,12 @@ class AppTheme {
       centerTitle: false,
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
     ),
     
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -81,11 +79,11 @@ class AppTheme {
       type: BottomNavigationBarType.fixed,
     ),
     
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      elevation: 8,
+      surfaceTintColor: Colors.transparent,
     ),
     
     snackBarTheme: SnackBarThemeData(
@@ -100,21 +98,19 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    primaryColor: const Color(0xFF2196F3),
-    scaffoldBackgroundColor: const Color(0xFF121212),
     
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF2196F3),
       secondary: Color(0xFF4CAF50),
       error: Color(0xFFEF5350),
-      background: Color(0xFF121212),
       surface: Color(0xFF1E1E1E),
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onError: Colors.white,
-      onBackground: Colors.white,
       onSurface: Colors.white,
     ),
+    
+    scaffoldBackgroundColor: const Color(0xFF121212),
     
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF1E1E1E),
@@ -123,12 +119,13 @@ class AppTheme {
       centerTitle: false,
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       color: const Color(0xFF1E1E1E),
+      surfaceTintColor: Colors.transparent,
     ),
     
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -176,12 +173,12 @@ class AppTheme {
       type: BottomNavigationBarType.fixed,
     ),
     
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: const Color(0xFF1E1E1E),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      elevation: 8,
+      surfaceTintColor: Colors.transparent,
     ),
     
     snackBarTheme: SnackBarThemeData(

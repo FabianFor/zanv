@@ -1,263 +1,515 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/order.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
+import '../models/order.dart';  // ✅ AGREGAR ESTA LÍNEA
+import '../providers/order_provider.dart';
+import '../providers/settings_provider.dart';
 
-class OrderProvider with ChangeNotifier {
-  List<Order> _orders = [];
-  bool _isLoading = false;
-  String? _error;
-  bool _isInitialized = false;
-  
-  // ✅ NUEVO: Items del pedido actual (para crear pedidos)
-  List<OrderItem> _currentOrderItems = [];
+class OrdersScreen extends StatefulWidget {
+  const OrdersScreen({super.key});
 
-  List<Order> get orders => _orders;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-  int get totalOrders => _orders.length;
-  List<OrderItem> get currentOrderItems => _currentOrderItems; // ✅ NUEVO
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
 
-  // ✅ Órdenes pendientes
-  List<Order> get pendingOrders =>
-      _orders.where((o) => o.status == 'pending').toList();
 
-  // ✅ Órdenes completadas
-  List<Order> get completedOrders =>
-      _orders.where((o) => o.status == 'completed').toList();
+class _OrdersScreenState extends State<OrdersScreen> {
+  String _searchQuery = '';
+  String _selectedStatus = 'all';
 
-  // ✅ Total de ventas
-  double get totalSales {
-    return _orders
-        .where((o) => o.status == 'completed')
-        .fold(0.0, (sum, order) => sum + order.total);
-  }
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final orderProvider = context.watch<OrderProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
 
-  Future<void> loadOrders() async {
-    if (_isInitialized) {
-      print('✅ Órdenes ya en caché');
-      return;
+    List<Order> filteredOrders = orderProvider.orders;
+
+    if (_searchQuery.isNotEmpty) {
+      filteredOrders = orderProvider.searchOrders(_searchQuery);
     }
 
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? ordersJson = prefs.getString('orders');
-
-      if (ordersJson != null) {
-        final List<dynamic> decodedList = json.decode(ordersJson);
-        _orders = decodedList.map((item) => Order.fromJson(item)).toList();
-        print('✅ ${_orders.length} órdenes cargadas');
-      } else {
-        _orders = [];
-      }
-
-      _isInitialized = true;
-    } catch (e) {
-      _error = 'Error al cargar órdenes: $e';
-      print('❌ $_error');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> _saveOrders() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String encodedData = json.encode(
-        _orders.map((order) => order.toJson()).toList(),
-      );
-      await prefs.setString('orders', encodedData);
-      print('✅ Órdenes guardadas');
-    } catch (e) {
-      print('❌ Error al guardar órdenes: $e');
-      _error = 'Error al guardar: $e';
-      notifyListeners();
-    }
-  }
-
-  // ✅ VALIDACIÓN al agregar orden
-  Future<bool> addOrder(Order order) async {
-    if (order.customerName.trim().isEmpty) {
-      _error = 'El nombre del cliente no puede estar vacío';
-      notifyListeners();
-      return false;
+    if (_selectedStatus != 'all') {
+      filteredOrders = filteredOrders
+          .where((o) => o.status == _selectedStatus)
+          .toList();
     }
 
-    if (order.items.isEmpty) {
-      _error = 'La orden debe tener al menos un producto';
-      notifyListeners();
-      return false;
-    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.orders, style: TextStyle(fontSize: 18.sp)),
+        backgroundColor: const Color(0xFF2196F3),
+        foregroundColor: Colors.white,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (value) {
+              setState(() {
+                _selectedStatus = value;
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'all',
+                child: Text(_getAllOrdersText(l10n)),
+              ),
+              PopupMenuItem(
+                value: 'pending',
+                child: Text(_getPendingOrdersText(l10n)),
+              ),
+              PopupMenuItem(
+                value: 'completed',
+                child: Text(_getCompletedOrdersText(l10n)),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.w),
+            color: Colors.white,
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: _getSearchOrdersText(l10n),
+                hintStyle: TextStyle(fontSize: 14.sp),
+                prefixIcon: Icon(Icons.search, size: 20.sp),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, size: 20.sp),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                filled: true,
+                fillColor: Colors.grey[100],
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
+              ),
+              style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
 
-    if (order.total <= 0) {
-      _error = 'El total debe ser mayor a 0';
-      notifyListeners();
-      return false;
-    }
+          if (_selectedStatus != 'all')
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              color: Colors.blue[50],
+              child: Row(
+                children: [
+                  Chip(
+                    label: Text(_getStatusName(_selectedStatus, l10n)),
+                    deleteIcon: Icon(Icons.close, size: 18.sp),
+                    onDeleted: () {
+                      setState(() {
+                        _selectedStatus = 'all';
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
 
-    try {
-      _orders.insert(0, order); // ✅ Insertar al inicio (más reciente primero)
-      await _saveOrders();
-      _error = null;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = 'Error al agregar orden: $e';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> updateOrderStatus(String orderId, String newStatus) async {
-    try {
-      final index = _orders.indexWhere((o) => o.id == orderId);
-      if (index != -1) {
-        _orders[index] = _orders[index].copyWith(status: newStatus);
-        await _saveOrders();
-        notifyListeners();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      _error = 'Error al actualizar estado: $e';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<void> deleteOrder(String orderId) async {
-    try {
-      _orders.removeWhere((order) => order.id == orderId);
-      await _saveOrders();
-      _error = null;
-      notifyListeners();
-    } catch (e) {
-      _error = 'Error al eliminar orden: $e';
-      notifyListeners();
-    }
-  }
-
-  // ✅ NUEVO: Agregar item al pedido actual
-  void addItemToCurrentOrder(OrderItem item) {
-    // Verificar si el producto ya está en el pedido
-    final existingIndex = _currentOrderItems.indexWhere(
-      (i) => i.productId == item.productId,
+          Expanded(
+            child: filteredOrders.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.shopping_cart_outlined,
+                          size: 80.sp,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          l10n.noOrders,
+                          style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: filteredOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: InkWell(
+                          onTap: () => _showOrderDetails(context, order, settingsProvider),
+                          borderRadius: BorderRadius.circular(12.r),
+                          child: Padding(
+                            padding: EdgeInsets.all(16.w),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '${_getOrderText(l10n)} #${order.orderNumber}',
+                                      style: TextStyle(
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF2196F3),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12.w,
+                                        vertical: 4.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: order.status == 'pending'
+                                            ? Colors.orange.withOpacity(0.2)
+                                            : Colors.green.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12.r),
+                                      ),
+                                      child: Text(
+                                        _getStatusName(order.status, l10n),
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: order.status == 'pending'
+                                              ? Colors.orange[800]
+                                              : Colors.green[800],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.person, size: 16.sp, color: Colors.grey[700]),
+                                    SizedBox(width: 8.w),
+                                    Expanded(
+                                      child: Text(
+                                        order.customerName,
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8.h),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      DateFormat('dd/MM/yyyy HH:mm').format(order.createdAt),
+                                      style: TextStyle(
+                                        fontSize: 13.sp,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    Text(
+                                      settingsProvider.formatPrice(order.total),
+                                      style: TextStyle(
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF4CAF50),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
-
-    if (existingIndex != -1) {
-      // Si ya existe, actualizar cantidad
-      final existing = _currentOrderItems[existingIndex];
-      _currentOrderItems[existingIndex] = existing.copyWith(
-        quantity: existing.quantity + item.quantity,
-        total: (existing.quantity + item.quantity) * existing.price,
-      );
-    } else {
-      // Si no existe, agregar nuevo
-      _currentOrderItems.add(item);
-    }
-    
-    notifyListeners();
   }
 
-  // ✅ NUEVO: Remover item del pedido actual
-  void removeItemFromCurrentOrder(String productId) {
-    _currentOrderItems.removeWhere((item) => item.productId == productId);
-    notifyListeners();
-  }
+void _showOrderDetails(BuildContext context, Order order, SettingsProvider settingsProvider) {
+  final l10n = AppLocalizations.of(context)!;
+  final orderProvider = Provider.of<OrderProvider>(context, listen: false); // ✅ AGREGAR ESTA LÍNEA
 
-  // ✅ NUEVO: Actualizar cantidad de un item
-  void updateItemQuantity(String productId, int newQuantity) {
-    final index = _currentOrderItems.indexWhere(
-      (item) => item.productId == productId,
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) {
+          return Container(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_getOrderText(l10n)} #${order.orderNumber}',
+                          style: TextStyle(
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: order.status == 'pending'
+                                ? Colors.orange.withOpacity(0.2)
+                                : Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            _getStatusName(order.status, l10n),
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                              color: order.status == 'pending'
+                                  ? Colors.orange[800]
+                                  : Colors.green[800],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20.h),
+                        Text(
+                          order.customerName,
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (order.customerPhone.isNotEmpty)
+                          Text(
+                            order.customerPhone,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          DateFormat('dd/MM/yyyy HH:mm').format(order.createdAt),
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: 24.h),
+                        Text(
+                          '${l10n.products}:',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        ...order.items.map((item) {
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 12.h),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${item.productName} x${item.quantity}',
+                                    style: TextStyle(fontSize: 14.sp),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                SizedBox(width: 12.w),
+                                Text(
+                                  settingsProvider.formatPrice(item.total),
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        Divider(height: 32.h, thickness: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${l10n.total}:',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              settingsProvider.formatPrice(order.total),
+                              style: TextStyle(
+                                fontSize: 22.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF4CAF50),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                if (order.status == 'pending')
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await orderProvider.updateOrderStatus(order.id, 'completed');
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(_getOrderCompletedText(l10n)),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.check_circle),
+                    label: Text(_getMarkCompletedText(l10n)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 50.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
+  }
 
-    if (index != -1) {
-      if (newQuantity <= 0) {
-        _currentOrderItems.removeAt(index);
-      } else {
-        final item = _currentOrderItems[index];
-        _currentOrderItems[index] = item.copyWith(
-          quantity: newQuantity,
-          total: newQuantity * item.price,
-        );
-      }
-      notifyListeners();
+  String _getAllOrdersText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Todos los pedidos';
+      case 'en': return 'All orders';
+      case 'pt': return 'Todos os pedidos';
+      case 'zh': return '所有订单';
+      default: return 'All orders';
     }
   }
 
-  // ✅ NUEVO: Limpiar pedido actual
-  void clearCurrentOrder() {
-    _currentOrderItems.clear();
-    notifyListeners();
-  }
-
-  // ✅ NUEVO: Obtener copia de items del pedido actual
-  List<OrderItem> getCurrentOrderItemsCopy() {
-    return List.from(_currentOrderItems);
-  }
-
-  // ✅ NUEVO: Calcular subtotal del pedido actual
-  double getCurrentSubtotal() {
-    return _currentOrderItems.fold(
-      0.0,
-      (sum, item) => sum + item.total,
-    );
-  }
-
-  // ✅ NUEVO: Calcular tax del pedido actual (18% por ejemplo)
-  double getCurrentTax() {
-    return getCurrentSubtotal() * 0.18;
-  }
-
-  // ✅ NUEVO: Calcular total del pedido actual
-  double getCurrentTotal() {
-    return getCurrentSubtotal() + getCurrentTax();
-  }
-
-  // ✅ NUEVO: Crear factura desde el pedido actual
-  Map<String, dynamic> createInvoice({
-    required String customerName,
-    required String customerPhone,
-  }) {
-    if (_currentOrderItems.isEmpty) {
-      _error = 'No hay items en el pedido';
-      notifyListeners();
-      return {};
+  String _getPendingOrdersText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Pendientes';
+      case 'en': return 'Pending';
+      case 'pt': return 'Pendentes';
+      case 'zh': return '待处理';
+      default: return 'Pending';
     }
-
-    final subtotal = getCurrentSubtotal();
-    final tax = getCurrentTax();
-    final total = getCurrentTotal();
-
-    return {
-      'customerName': customerName,
-      'customerPhone': customerPhone,
-      'items': _currentOrderItems.map((item) => item.toJson()).toList(),
-      'subtotal': subtotal,
-      'tax': tax,
-      'total': total,
-    };
   }
 
-  // ✅ Buscar órdenes
-  List<Order> searchOrders(String query) {
-    if (query.isEmpty) return _orders;
-    
-    final lowerQuery = query.toLowerCase();
-    return _orders.where((order) {
-      return order.customerName.toLowerCase().contains(lowerQuery) ||
-             order.orderNumber.toString().contains(query) ||
-             order.customerPhone.contains(query);
-    }).toList();
+  String _getCompletedOrdersText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Completados';
+      case 'en': return 'Completed';
+      case 'pt': return 'Concluídos';
+      case 'zh': return '已完成';
+      default: return 'Completed';
+    }
   }
 
-  void clearError() {
-    _error = null;
-    notifyListeners();
+  String _getSearchOrdersText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Buscar pedidos...';
+      case 'en': return 'Search orders...';
+      case 'pt': return 'Buscar pedidos...';
+      case 'zh': return '搜索订单...';
+      default: return 'Search orders...';
+    }
+  }
+
+  String _getOrderText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Pedido';
+      case 'en': return 'Order';
+      case 'pt': return 'Pedido';
+      case 'zh': return '订单';
+      default: return 'Order';
+    }
+  }
+
+  String _getStatusName(String status, AppLocalizations l10n) {
+    switch (status) {
+      case 'pending':
+        return _getPendingOrdersText(l10n);
+      case 'completed':
+        return _getCompletedOrdersText(l10n);
+      default:
+        return status;
+    }
+  }
+
+  String _getMarkCompletedText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Marcar como completado';
+      case 'en': return 'Mark as completed';
+      case 'pt': return 'Marcar como concluído';
+      case 'zh': return '标记为已完成';
+      default: return 'Mark as completed';
+    }
+  }
+
+  String _getOrderCompletedText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Pedido completado';
+      case 'en': return 'Order completed';
+      case 'pt': return 'Pedido concluído';
+      case 'zh': return '订单已完成';
+      default: return 'Order completed';
+    }
   }
 }
