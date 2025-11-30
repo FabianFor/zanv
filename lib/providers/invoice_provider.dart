@@ -2,91 +2,149 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/invoice.dart';
-import '../models/order.dart';
 
 class InvoiceProvider with ChangeNotifier {
   List<Invoice> _invoices = [];
-  int _lastInvoiceNumber = 2517;
+  bool _isLoading = false;
+  String? _error;
+  bool _isInitialized = false;
 
   List<Invoice> get invoices => _invoices;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  // ✅ Total de ingresos
+  double get totalRevenue {
+    return _invoices.fold(0.0, (sum, invoice) => sum + invoice.total);
+  }
+
+  // ✅ Ingresos del mes actual
+  double get monthlyRevenue {
+    final now = DateTime.now();
+    return _invoices
+        .where((invoice) =>
+            invoice.createdAt.year == now.year &&
+            invoice.createdAt.month == now.month)
+        .fold(0.0, (sum, invoice) => sum + invoice.total);
+  }
+
+  // ✅ Total de facturas
   int get totalInvoices => _invoices.length;
 
-  double get totalRevenue =>
-      _invoices.fold(0, (sum, invoice) => sum + invoice.total);
-
   Future<void> loadInvoices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('invoices');
-    final lastNumber = prefs.getInt('last_invoice_number');
-
-    if (jsonString != null) {
-      final List<dynamic> jsonList = json.decode(jsonString);
-      _invoices = jsonList.map((json) => Invoice.fromJson(json)).toList();
+    if (_isInitialized) {
+      print('✅ Facturas ya en caché');
+      return;
     }
 
-    if (lastNumber != null) {
-      _lastInvoiceNumber = lastNumber;
-    }
-
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? invoicesJson = prefs.getString('invoices');
+
+      if (invoicesJson != null) {
+        final List<dynamic> decodedList = json.decode(invoicesJson);
+        _invoices = decodedList.map((item) => Invoice.fromJson(item)).toList();
+        print('✅ ${_invoices.length} facturas cargadas');
+      } else {
+        _invoices = [];
+      }
+
+      _isInitialized = true;
+    } catch (e) {
+      _error = 'Error al cargar facturas: $e';
+      print('❌ $_error');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> _saveInvoices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = json.encode(_invoices.map((i) => i.toJson()).toList());
-    await prefs.setString('invoices', jsonString);
-    await prefs.setInt('last_invoice_number', _lastInvoiceNumber);
-  }
-
-  /// ✅ ARREGLADO: Crear boleta con COPIA PROFUNDA de items
-  Future<Invoice> createInvoice({
-    required String customerName,
-    required String customerPhone,
-    required List<OrderItem> items,
-  }) async {
-    _lastInvoiceNumber++;
-
-    // ✅ CRÍTICO: Crear copia profunda de cada item
-    // Esto evita que la boleta se modifique cuando el carrito cambie
-    final List<OrderItem> itemsCopy = items.map((item) {
-      return OrderItem(
-        productId: item.productId,
-        productName: item.productName,
-        price: item.price,
-        quantity: item.quantity,
-      );
-    }).toList();
-
-    final invoice = Invoice(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      invoiceNumber: _lastInvoiceNumber,
-      customerName: customerName,
-      customerPhone: customerPhone,
-      items: itemsCopy, // ✅ Usar la copia, no la referencia original
-      createdAt: DateTime.now(),
-      total: itemsCopy.fold(0, (sum, item) => sum + item.total),
-    );
-
-    _invoices.insert(0, invoice);
-    await _saveInvoices();
-    notifyListeners();
-    
-    print('✅ Boleta creada con ${itemsCopy.length} items (copia profunda)');
-    return invoice;
-  }
-
-  /// Eliminar boleta
-  Future<void> deleteInvoice(String id) async {
-    _invoices.removeWhere((i) => i.id == id);
-    await _saveInvoices();
-    notifyListeners();
-  }
-
-  Invoice? getInvoiceById(String id) {
     try {
-      return _invoices.firstWhere((i) => i.id == id);
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = json.encode(
+        _invoices.map((invoice) => invoice.toJson()).toList(),
+      );
+      await prefs.setString('invoices', encodedData);
+      print('✅ Facturas guardadas');
     } catch (e) {
-      return null;
+      print('❌ Error al guardar facturas: $e');
+      _error = 'Error al guardar: $e';
+      notifyListeners();
     }
+  }
+
+  // ✅ VALIDACIÓN al agregar factura
+  Future<bool> addInvoice(Invoice invoice) async {
+    if (invoice.customerName.trim().isEmpty) {
+      _error = 'El nombre del cliente no puede estar vacío';
+      notifyListeners();
+      return false;
+    }
+
+    if (invoice.items.isEmpty) {
+      _error = 'La factura debe tener al menos un producto';
+      notifyListeners();
+      return false;
+    }
+
+    if (invoice.total <= 0) {
+      _error = 'El total debe ser mayor a 0';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      _invoices.insert(0, invoice); // Más reciente primero
+      await _saveInvoices();
+      _error = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Error al agregar factura: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> deleteInvoice(String invoiceId) async {
+    try {
+      _invoices.removeWhere((invoice) => invoice.id == invoiceId);
+      await _saveInvoices();
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Error al eliminar factura: $e';
+      notifyListeners();
+    }
+  }
+
+  // ✅ Buscar facturas
+  List<Invoice> searchInvoices(String query) {
+    if (query.isEmpty) return _invoices;
+    
+    final lowerQuery = query.toLowerCase();
+    return _invoices.where((invoice) {
+      return invoice.customerName.toLowerCase().contains(lowerQuery) ||
+             invoice.invoiceNumber.toString().contains(query) ||
+             invoice.customerPhone.contains(query);
+    }).toList();
+  }
+
+  // ✅ Filtrar por rango de fechas
+  List<Invoice> getInvoicesByDateRange(DateTime start, DateTime end) {
+    return _invoices.where((invoice) {
+      return invoice.createdAt.isAfter(start) &&
+             invoice.createdAt.isBefore(end);
+    }).toList();
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

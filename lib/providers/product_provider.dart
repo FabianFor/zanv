@@ -5,133 +5,201 @@ import '../models/product.dart';
 
 class ProductProvider with ChangeNotifier {
   List<Product> _products = [];
+  bool _isLoading = false;
+  String? _error;
+  bool _isInitialized = false; // ✅ NUEVO: Control de caché
 
   List<Product> get products => _products;
-
+  bool get isLoading => _isLoading;
+  String? get error => _error;
   int get totalProducts => _products.length;
 
-  // Obtener productos con stock bajo (<=5)
-  List<Product> get lowStockProducts =>
-      _products.where((p) => p.stock <= 5 && p.stock > 0).toList();
+  // ✅ Productos con stock bajo
+  List<Product> get lowStockProducts => 
+      _products.where((p) => p.stock <= 5).toList();
 
-  // Obtener productos sin stock
-  List<Product> get outOfStockProducts =>
-      _products.where((p) => p.stock == 0).toList();
+  // ✅ Productos por categoría
+  List<Product> getProductsByCategory(String category) {
+    return _products.where((p) => p.category == category).toList();
+  }
 
+  // ✅ OPTIMIZADO: Solo carga una vez del disco
   Future<void> loadProducts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('products');
-    if (jsonString != null) {
-      final List<dynamic> jsonList = json.decode(jsonString);
-      _products = jsonList.map((json) => Product.fromJson(json)).toList();
+    if (_isInitialized) {
+      print('✅ Productos ya en caché, no se recarga');
+      return;
+    }
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? productsJson = prefs.getString('products');
+
+      if (productsJson != null) {
+        final List<dynamic> decodedList = json.decode(productsJson);
+        _products = decodedList.map((item) => Product.fromJson(item)).toList();
+        print('✅ ${_products.length} productos cargados');
+      } else {
+        _products = [];
+        print('ℹ️ No hay productos guardados');
+      }
+
+      _isInitialized = true;
+    } catch (e) {
+      _error = 'Error al cargar productos: $e';
+      print('❌ $_error');
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
   Future<void> _saveProducts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = json.encode(_products.map((p) => p.toJson()).toList());
-    await prefs.setString('products', jsonString);
-  }
-
-  Future<void> addProduct(Product product) async {
-    _products.add(product);
-    await _saveProducts();
-    notifyListeners();
-  }
-
-  Future<void> updateProduct(Product product) async {
-    final index = _products.indexWhere((p) => p.id == product.id);
-    if (index != -1) {
-      _products[index] = product;
-      await _saveProducts();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = json.encode(
+        _products.map((product) => product.toJson()).toList(),
+      );
+      await prefs.setString('products', encodedData);
+      print('✅ Productos guardados: ${_products.length}');
+    } catch (e) {
+      print('❌ Error al guardar productos: $e');
+      _error = 'Error al guardar: $e';
       notifyListeners();
     }
   }
 
-  Future<void> deleteProduct(String id) async {
-    _products.removeWhere((p) => p.id == id);
-    await _saveProducts();
-    notifyListeners();
-  }
+  // ✅ VALIDACIÓN al agregar producto
+  Future<bool> addProduct(Product product) async {
+    // Validar que no esté vacío
+    if (product.name.trim().isEmpty) {
+      _error = 'El nombre del producto no puede estar vacío';
+      notifyListeners();
+      return false;
+    }
 
-  Product? getProductById(String id) {
+    // Validar precio
+    if (product.price <= 0) {
+      _error = 'El precio debe ser mayor a 0';
+      notifyListeners();
+      return false;
+    }
+
+    // Validar stock
+    if (product.stock < 0) {
+      _error = 'El stock no puede ser negativo';
+      notifyListeners();
+      return false;
+    }
+
     try {
-      return _products.firstWhere((p) => p.id == id);
+      _products.add(product);
+      await _saveProducts();
+      _error = null;
+      notifyListeners();
+      return true;
     } catch (e) {
-      return null;
+      _error = 'Error al agregar producto: $e';
+      notifyListeners();
+      return false;
     }
   }
 
-  /// Verifica si hay suficiente stock para una cantidad específica
-  bool hasEnoughStock(String productId, int requestedQuantity) {
-    final product = getProductById(productId);
-    if (product == null) return false;
-    return product.stock >= requestedQuantity;
-  }
-
-  /// Reduce el stock de un producto
-  Future<bool> reduceStock(String productId, int quantity) async {
-    final product = getProductById(productId);
-    if (product == null || product.stock < quantity) {
+  // ✅ VALIDACIÓN al actualizar producto
+  Future<bool> updateProduct(Product updatedProduct) async {
+    // Validaciones
+    if (updatedProduct.name.trim().isEmpty) {
+      _error = 'El nombre del producto no puede estar vacío';
+      notifyListeners();
       return false;
     }
 
-    final updatedProduct = product.copyWith(
-      stock: product.stock - quantity,
-    );
-
-    await updateProduct(updatedProduct);
-    return true;
-  }
-
-  /// Aumenta el stock de un producto (útil para cancelaciones)
-  Future<void> increaseStock(String productId, int quantity) async {
-    final product = getProductById(productId);
-    if (product == null) return;
-
-    final updatedProduct = product.copyWith(
-      stock: product.stock + quantity,
-    );
-
-    await updateProduct(updatedProduct);
-  }
-
-  /// Valida el stock de múltiples productos
-  /// Retorna null si todo está bien, o un mensaje de error si hay problemas
-  String? validateStock(List<Map<String, dynamic>> items) {
-    for (final item in items) {
-      final productId = item['productId'] as String;
-      final quantity = item['quantity'] as int;
-      final product = getProductById(productId);
-
-      if (product == null) {
-        return 'Producto no encontrado';
-      }
-
-      if (product.stock < quantity) {
-        return 'Stock insuficiente para ${product.name}. '
-            'Disponible: ${product.stock}, Solicitado: $quantity';
-      }
-    }
-    return null;
-  }
-
-  /// Reduce el stock de múltiples productos (usado al crear boleta)
-  Future<bool> reduceStockBatch(List<Map<String, dynamic>> items) async {
-    // Primero validar que todo esté disponible
-    final error = validateStock(items);
-    if (error != null) {
+    if (updatedProduct.price <= 0) {
+      _error = 'El precio debe ser mayor a 0';
+      notifyListeners();
       return false;
     }
 
-    // Reducir stock de cada producto
-    for (final item in items) {
-      final productId = item['productId'] as String;
-      final quantity = item['quantity'] as int;
-      await reduceStock(productId, quantity);
+    if (updatedProduct.stock < 0) {
+      _error = 'El stock no puede ser negativo';
+      notifyListeners();
+      return false;
     }
 
-    return true;
+    try {
+      final index = _products.indexWhere((p) => p.id == updatedProduct.id);
+      if (index != -1) {
+        _products[index] = updatedProduct;
+        await _saveProducts();
+        _error = null;
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _error = 'Error al actualizar producto: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> deleteProduct(String productId) async {
+    try {
+      _products.removeWhere((product) => product.id == productId);
+      await _saveProducts();
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Error al eliminar producto: $e';
+      notifyListeners();
+    }
+  }
+
+  // ✅ Actualizar stock (útil para órdenes)
+  Future<bool> updateStock(String productId, int newStock) async {
+    try {
+      final index = _products.indexWhere((p) => p.id == productId);
+      if (index != -1) {
+        final updatedProduct = Product(
+          id: _products[index].id,
+          name: _products[index].name,
+          description: _products[index].description,
+          price: _products[index].price,
+          stock: newStock,
+          category: _products[index].category,
+          imagePath: _products[index].imagePath,
+        );
+        _products[index] = updatedProduct;
+        await _saveProducts();
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _error = 'Error al actualizar stock: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ✅ Buscar productos
+  List<Product> searchProducts(String query) {
+    if (query.isEmpty) return _products;
+    
+    final lowerQuery = query.toLowerCase();
+    return _products.where((product) {
+      return product.name.toLowerCase().contains(lowerQuery) ||
+             product.description.toLowerCase().contains(lowerQuery) ||
+             product.category.toLowerCase().contains(lowerQuery);
+    }).toList();
+  }
+
+  // ✅ Limpiar error
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

@@ -8,10 +8,16 @@ class SettingsProvider with ChangeNotifier {
   
   // Configuración de idioma
   Locale _locale = const Locale('es');
+  
+  // ✅ NUEVO: Configuración de tema
+  ThemeMode _themeMode = ThemeMode.light;
 
   String get currencyCode => _currencyCode;
   String get currencySymbol => _currencySymbol;
   Locale get locale => _locale;
+  ThemeMode get themeMode => _themeMode; // ✅ NUEVO
+  
+  bool get isDarkMode => _themeMode == ThemeMode.dark; // ✅ NUEVO
 
   static const Map<String, Map<String, String>> supportedCurrencies = {
     'PEN': {'name': 'Sol Peruano', 'symbol': 'S/', 'flag': '🇵🇪'},
@@ -43,8 +49,12 @@ class SettingsProvider with ChangeNotifier {
     final languageCode = prefs.getString('language_code') ?? 'es';
     _locale = Locale(languageCode);
     
+    // ✅ NUEVO: Cargar preferencia de tema
+    final isDark = prefs.getBool('is_dark_mode') ?? false;
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    
     notifyListeners();
-    print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}');
+    print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}, Dark: $isDark');
   }
 
   Future<void> setCurrency(String code) async {
@@ -79,21 +89,33 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Idioma cambiado a: $languageCode');
   }
 
-  /// ✅ CORREGIDO: Formatear precio SIN decimales .00 innecesarios
+  // ✅ NUEVO: Cambiar tema
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_dark_mode', mode == ThemeMode.dark);
+
+    notifyListeners();
+    print('✅ Tema cambiado a: ${mode == ThemeMode.dark ? "Oscuro" : "Claro"}');
+  }
+
+  // ✅ NUEVO: Toggle dark mode
+  Future<void> toggleDarkMode() async {
+    final newMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    await setThemeMode(newMode);
+  }
+
   String formatPrice(double price) {
-    // Monedas sin decimales
     final noDecimalCurrencies = ['JPY', 'CLP', 'COP'];
     
     if (noDecimalCurrencies.contains(_currencyCode)) {
       return '$_currencySymbol${price.toStringAsFixed(0)}';
     }
     
-    // ✅ Solo mostrar decimales si son necesarios
     if (price == price.toInt()) {
-      // Si el precio es un número entero (20.0 -> 20)
       return '$_currencySymbol${price.toInt()}';
     } else {
-      // Si tiene decimales, mostrarlos (20.50 -> 20.50)
       return '$_currencySymbol${price.toStringAsFixed(2)}';
     }
   }

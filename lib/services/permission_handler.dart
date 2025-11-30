@@ -4,11 +4,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 class AppPermissionHandler {
-  /// Solicita permisos para GUARDAR imágenes en la galería según versión de Android
+  
+  /// Solicita permisos para GUARDAR imágenes en la galería
   static Future<bool> requestStoragePermission(BuildContext context) async {
     try {
       if (!Platform.isAndroid) {
-        return true; // iOS maneja permisos automáticamente
+        return true;
       }
 
       final androidInfo = await DeviceInfoPlugin().androidInfo;
@@ -16,63 +17,37 @@ class AppPermissionHandler {
 
       print('📱 Android SDK: $sdkInt');
 
-      // Android 13+ (API 33+) - Usa MediaStore, no necesita permisos
-      if (sdkInt >= 33) {
-        print('✅ Android 13+: No requiere permisos (MediaStore API)');
+      // Android 13+ y 10-12 no necesitan permisos especiales para guardar
+      if (sdkInt >= 29) {
+        print('✅ Android 10+: No requiere permisos para guardar');
         return true;
-      } 
-      // Android 10-12 (API 29-32) - Scoped Storage, no necesita permisos
-      else if (sdkInt >= 29) {
-        print('✅ Android 10-12: No requiere permisos (Scoped Storage)');
+      }
+
+      // Android 9 y anteriores - Solicita WRITE_EXTERNAL_STORAGE
+      print('📱 Solicitando permiso de almacenamiento...');
+      
+      // ✅ ESTO HACE QUE APAREZCA EL POPUP DE ANDROID
+      var status = await Permission.storage.request();
+      
+      if (status.isGranted) {
+        print('✅ Permiso otorgado');
         return true;
-      } 
-      // Android 9 y anteriores (API 28-) - Necesita WRITE_EXTERNAL_STORAGE
-      else {
-        print('📱 Android 9-: Solicitando permisos de almacenamiento...');
-        
-        var status = await Permission.storage.status;
-        
-        if (status.isGranted) {
-          print('✅ Permisos ya otorgados');
-          return true;
+      } else if (status.isPermanentlyDenied) {
+        if (context.mounted) {
+          _showGoToSettingsDialog(context, 'almacenamiento');
         }
-        
-        if (status.isDenied) {
-          // ✅ Solicitar permiso - AQUÍ APARECERÁ EL POPUP DE ANDROID
-          status = await Permission.storage.request();
-          
-          if (status.isGranted) {
-            print('✅ Permisos otorgados por el usuario');
-            return true;
-          } else if (status.isPermanentlyDenied) {
-            if (context.mounted) {
-              _showPermissionDeniedDialog(context, true);
-            }
-            return false;
-          } else {
-            if (context.mounted) {
-              _showPermissionDeniedDialog(context, false);
-            }
-            return false;
-          }
-        }
-        
-        if (status.isPermanentlyDenied) {
-          if (context.mounted) {
-            _showPermissionDeniedDialog(context, true);
-          }
-          return false;
-        }
-        
+        return false;
+      } else {
+        print('❌ Permiso denegado');
         return false;
       }
     } catch (e) {
-      print('❌ Error al verificar permisos: $e');
+      print('❌ Error: $e');
       return false;
     }
   }
 
-  /// Solicita permisos para LEER/ACCEDER a la galería (al seleccionar imágenes)
+  /// Solicita permisos para ACCEDER a la galería (seleccionar imágenes)
   static Future<bool> requestGalleryPermission(BuildContext context) async {
     try {
       if (!Platform.isAndroid) {
@@ -84,83 +59,33 @@ class AppPermissionHandler {
 
       print('📷 Solicitando permisos de galería - SDK: $sdkInt');
 
-      // Android 13+ (API 33+) - READ_MEDIA_IMAGES
+      Permission permission;
+
+      // Android 13+ usa Permission.photos
       if (sdkInt >= 33) {
-        var status = await Permission.photos.status;
-        
-        if (status.isGranted) {
-          print('✅ Permiso de fotos ya otorgado');
-          return true;
+        permission = Permission.photos;
+      } else {
+        // Android 12 y anteriores usa Permission.storage
+        permission = Permission.storage;
+      }
+
+      // ✅ ESTO HACE QUE APAREZCA EL POPUP DE ANDROID
+      var status = await permission.request();
+      
+      if (status.isGranted) {
+        print('✅ Permiso de galería otorgado');
+        return true;
+      } else if (status.isPermanentlyDenied) {
+        if (context.mounted) {
+          _showGoToSettingsDialog(context, 'galería');
         }
-        
-        if (status.isDenied) {
-          // ✅ SOLICITAR PERMISO - POPUP AUTOMÁTICO
-          status = await Permission.photos.request();
-          
-          if (status.isGranted) {
-            print('✅ Permiso de fotos otorgado');
-            return true;
-          } else if (status.isPermanentlyDenied) {
-            if (context.mounted) {
-              _showGalleryPermissionDialog(context);
-            }
-            return false;
-          }
-          
-          return false;
-        }
-        
-        if (status.isPermanentlyDenied) {
-          if (context.mounted) {
-            _showGalleryPermissionDialog(context);
-          }
-          return false;
-        }
-        
         return false;
-      } 
-      // Android 10-12 (API 29-32) - READ_EXTERNAL_STORAGE
-      else if (sdkInt >= 29) {
-        var status = await Permission.storage.status;
-        
-        if (status.isGranted) {
-          return true;
-        }
-        
-        // ✅ SOLICITAR PERMISO - POPUP AUTOMÁTICO
-        status = await Permission.storage.request();
-        
-        if (status.isPermanentlyDenied) {
-          if (context.mounted) {
-            _showGalleryPermissionDialog(context);
-          }
-          return false;
-        }
-        
-        return status.isGranted;
-      } 
-      // Android 9- (API 28-) - READ_EXTERNAL_STORAGE
-      else {
-        var status = await Permission.storage.status;
-        
-        if (status.isGranted) {
-          return true;
-        }
-        
-        // ✅ SOLICITAR PERMISO - POPUP AUTOMÁTICO
-        status = await Permission.storage.request();
-        
-        if (status.isPermanentlyDenied) {
-          if (context.mounted) {
-            _showGalleryPermissionDialog(context);
-          }
-          return false;
-        }
-        
-        return status.isGranted;
+      } else {
+        print('❌ Permiso de galería denegado');
+        return false;
       }
     } catch (e) {
-      print('❌ Error al solicitar permisos de galería: $e');
+      print('❌ Error: $e');
       return false;
     }
   }
@@ -168,104 +93,47 @@ class AppPermissionHandler {
   /// Solicita permisos de cámara
   static Future<bool> requestCameraPermission(BuildContext context) async {
     try {
-      var status = await Permission.camera.status;
+      print('📷 Solicitando permiso de cámara...');
+      
+      // ✅ ESTO HACE QUE APAREZCA EL POPUP DE ANDROID
+      var status = await Permission.camera.request();
       
       if (status.isGranted) {
-        print('✅ Permiso de cámara ya otorgado');
+        print('✅ Permiso de cámara otorgado');
         return true;
-      }
-      
-      if (status.isDenied) {
-        // ✅ SOLICITAR PERMISO - POPUP AUTOMÁTICO
-        status = await Permission.camera.request();
-        
-        if (status.isGranted) {
-          print('✅ Permiso de cámara otorgado');
-          return true;
-        } else if (status.isPermanentlyDenied) {
-          if (context.mounted) {
-            _showCameraPermissionDialog(context);
-          }
-          return false;
-        }
-        
-        return false;
-      }
-      
-      if (status.isPermanentlyDenied) {
+      } else if (status.isPermanentlyDenied) {
         if (context.mounted) {
-          _showCameraPermissionDialog(context);
+          _showGoToSettingsDialog(context, 'cámara');
         }
         return false;
+      } else {
+        print('❌ Permiso de cámara denegado');
+        return false;
       }
-      
-      return false;
     } catch (e) {
-      print('❌ Error al solicitar permiso de cámara: $e');
+      print('❌ Error: $e');
       return false;
     }
   }
 
-  // ==================== DIÁLOGOS ====================
-
-  static void _showPermissionDeniedDialog(BuildContext context, bool isPermanent) {
+  /// Muestra un diálogo para ir a configuración (solo si el permiso está bloqueado permanentemente)
+  static void _showGoToSettingsDialog(BuildContext context, String permissionName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
-            SizedBox(width: 12),
-            Text('Permisos necesarios'),
+            const Icon(Icons.settings, color: Color(0xFF2196F3), size: 28),
+            const SizedBox(width: 12),
+            const Text('Permiso bloqueado'),
           ],
         ),
         content: Text(
-          isPermanent
-              ? 'Los permisos de almacenamiento han sido denegados permanentemente.\n\n'
-                'Para guardar boletas, necesitas habilitar los permisos manualmente desde la configuración de la app.'
-              : 'Para guardar boletas en tu dispositivo, necesitamos acceso al almacenamiento.\n\n'
-                'Por favor, autoriza el permiso cuando aparezca el mensaje.',
-        ),
-        actions: [
-          if (!isPermanent)
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              if (isPermanent) {
-                openAppSettings();
-              }
-            },
-            icon: Icon(isPermanent ? Icons.settings : Icons.check),
-            label: Text(isPermanent ? 'Abrir Configuración' : 'Entendido'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static void _showGalleryPermissionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.photo_library, color: Color(0xFF2196F3), size: 28),
-            SizedBox(width: 12),
-            Text('Acceso a galería'),
-          ],
-        ),
-        content: const Text(
-          'Para seleccionar imágenes de la galería, necesitas habilitar los permisos desde la configuración de la app.\n\n'
-          'Ve a Configuración → Aplicaciones → MiNegocio → Permisos → Fotos y multimedia',
+          'El permiso de $permissionName está bloqueado.\n\n'
+          'Para usarlo, debes habilitarlo manualmente en:\n'
+          'Configuración → Aplicaciones → MiNegocio → Permisos → $permissionName',
+          style: const TextStyle(fontSize: 15),
         ),
         actions: [
           TextButton(
@@ -275,47 +143,10 @@ class AppPermissionHandler {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              openAppSettings();
+              openAppSettings(); // Abre la configuración de la app
             },
             icon: const Icon(Icons.settings),
-            label: const Text('Abrir Configuración'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static void _showCameraPermissionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.camera_alt, color: Color(0xFF2196F3), size: 28),
-            SizedBox(width: 12),
-            Text('Acceso a cámara'),
-          ],
-        ),
-        content: const Text(
-          'Para tomar fotos, necesitas habilitar el permiso de cámara desde la configuración de la app.\n\n'
-          'Ve a Configuración → Aplicaciones → MiNegocio → Permisos → Cámara',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);  // ✅ CORREGIDO (punto y coma en vez de coma)
-              openAppSettings();
-            },
-            icon: const Icon(Icons.settings),
-            label: const Text('Abrir Configuración'),
+            label: const Text('Abrir configuración'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2196F3),
             ),

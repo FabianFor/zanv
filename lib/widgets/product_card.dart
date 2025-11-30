@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart'; // ✅ AGREGADO
+import '../l10n/app_localizations.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
-import '../providers/settings_provider.dart'; // ✅ AGREGADO
+import '../providers/settings_provider.dart';
 import '../screens/products_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -30,8 +30,8 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
-    final settingsProvider = Provider.of<SettingsProvider>(context); // ✅ AGREGADO
+    final l10n = AppLocalizations.of(context)!;
+    final settingsProvider = context.read<SettingsProvider>(); // ✅ OPTIMIZADO: read en lugar de watch
 
     return Card(
       margin: EdgeInsets.only(bottom: 12.h),
@@ -47,33 +47,37 @@ class ProductCard extends StatelessWidget {
           child: Row(
             children: [
               // Product Image
-              Container(
-                width: 80.w,
-                height: 80.w,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: product.imagePath.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8.r),
-                        child: Image.file(
-                          File(product.imagePath),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.broken_image,
-                              size: 40.sp,
-                              color: Colors.grey,
-                            );
-                          },
+              Hero( // ✅ AGREGADO: Animación hero
+                tag: 'product_${product.id}',
+                child: Container(
+                  width: 80.w,
+                  height: 80.w,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: product.imagePath.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: Image.file(
+                            File(product.imagePath),
+                            fit: BoxFit.cover,
+                            cacheWidth: 240, // ✅ OPTIMIZACIÓN: Cache de imagen
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.broken_image,
+                                size: 40.sp,
+                                color: Colors.grey,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.inventory_2,
+                          size: 40.sp,
+                          color: Colors.grey,
                         ),
-                      )
-                    : Icon(
-                        Icons.inventory_2,
-                        size: 40.sp,
-                        color: Colors.grey,
-                      ),
+                ),
               ),
               SizedBox(width: 16.w),
 
@@ -82,55 +86,60 @@ class ProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ✅ TÍTULO PROTEGIDO - Máximo 2 líneas
                     Text(
                       product.name,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4.h),
-                    if (product.description.isNotEmpty)
-                      Text(
-                        product.description,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: Colors.grey[600],
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     SizedBox(height: 8.h),
+                    
+                    // ✅ SIN DESCRIPCIÓN (se ve solo en detalle)
+                    
                     Row(
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
-                            vertical: 4.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(4.r),
-                          ),
-                          child: Text(
-                            _getCategoryTranslation(product.category, l10n), // ✅ TRADUCIDO
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              color: Colors.grey[700],
+                        // Categoría
+                        Flexible(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 4.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(4.r),
+                            ),
+                            child: Text(
+                              _getCategoryTranslation(product.category, l10n),
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                color: Colors.grey[700],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        Text(
-                          '${l10n.stock}: ${product.stock}', // ✅ TRADUCIDO
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: product.stock <= 5 
-                                ? Colors.red 
-                                : Colors.grey[600],
-                            fontWeight: product.stock <= 5 
-                                ? FontWeight.bold 
-                                : FontWeight.normal,
+                        // Stock protegido
+                        Flexible(
+                          child: Text(
+                            '${l10n.stock}: ${product.stock}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: product.stock <= 5 
+                                  ? Colors.red 
+                                  : Colors.grey[600],
+                              fontWeight: product.stock <= 5 
+                                  ? FontWeight.bold 
+                                  : FontWeight.normal,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -144,12 +153,18 @@ class ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    settingsProvider.formatPrice(product.price), // ✅ MONEDA DINÁMICA
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF4CAF50),
+                  // ✅ PRECIO PROTEGIDO
+                  Flexible(
+                    child: Text(
+                      settingsProvider.formatPrice(product.price),
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF4CAF50),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      textAlign: TextAlign.right,
                     ),
                   ),
                   SizedBox(height: 8.h),
@@ -164,6 +179,7 @@ class ProductCard extends StatelessWidget {
                         iconSize: 20.sp,
                         padding: EdgeInsets.all(4.w),
                         constraints: const BoxConstraints(),
+                        tooltip: l10n.edit,
                       ),
                       SizedBox(width: 4.w),
                       // Delete Button
@@ -174,6 +190,7 @@ class ProductCard extends StatelessWidget {
                         iconSize: 20.sp,
                         padding: EdgeInsets.all(4.w),
                         constraints: const BoxConstraints(),
+                        tooltip: l10n.delete,
                       ),
                     ],
                   ),
@@ -221,28 +238,31 @@ class ProductCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Image
+                        // Image con Hero animation
                         if (product.imagePath.isNotEmpty)
                           Center(
-                            child: Container(
-                              width: 200.w,
-                              height: 200.w,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(12.r),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12.r),
-                                child: Image.file(
-                                  File(product.imagePath),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.broken_image,
-                                      size: 80,
-                                      color: Colors.grey,
-                                    );
-                                  },
+                            child: Hero(
+                              tag: 'product_${product.id}',
+                              child: Container(
+                                width: 200.w,
+                                height: 200.w,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  child: Image.file(
+                                    File(product.imagePath),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.broken_image,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
@@ -270,7 +290,7 @@ class ProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20.r),
                           ),
                           child: Text(
-                            _getCategoryTranslation(product.category, l10n), // ✅ TRADUCIDO
+                            _getCategoryTranslation(product.category, l10n),
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: const Color(0xFF2196F3),
@@ -280,10 +300,10 @@ class ProductCard extends StatelessWidget {
                         ),
                         SizedBox(height: 24.h),
 
-                        // Description
+                        // ✅ DESCRIPCIÓN COMPLETA (solo aquí)
                         if (product.description.isNotEmpty) ...[
                           Text(
-                            l10n.description, // ✅ TRADUCIDO
+                            l10n.description,
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -312,16 +332,16 @@ class ProductCard extends StatelessWidget {
                               _buildDetailRow(
                                 context,
                                 icon: Icons.attach_money,
-                                label: l10n.price, // ✅ TRADUCIDO
-                                value: settingsProvider.formatPrice(product.price), // ✅ MONEDA DINÁMICA
+                                label: l10n.price,
+                                value: settingsProvider.formatPrice(product.price),
                                 valueColor: const Color(0xFF4CAF50),
                               ),
                               Divider(height: 24.h),
                               _buildDetailRow(
                                 context,
                                 icon: Icons.inventory_2,
-                                label: l10n.stock, // ✅ TRADUCIDO
-                                value: _getStockText(context, product.stock), // ✅ TRADUCIDO
+                                label: l10n.stock,
+                                value: _getStockText(context, product.stock),
                                 valueColor: product.stock <= 5 
                                     ? Colors.red 
                                     : Colors.black87,
@@ -343,7 +363,7 @@ class ProductCard extends StatelessWidget {
                           _editProduct(context);
                         },
                         icon: const Icon(Icons.edit),
-                        label: Text(l10n.edit), // ✅ TRADUCIDO
+                        label: Text(l10n.edit),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF2196F3),
                           padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -361,7 +381,7 @@ class ProductCard extends StatelessWidget {
                           _confirmDelete(context);
                         },
                         icon: const Icon(Icons.delete),
-                        label: Text(l10n.delete), // ✅ TRADUCIDO
+                        label: Text(l10n.delete),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
@@ -418,12 +438,16 @@ class ProductCard extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: valueColor ?? Colors.black87,
+        Flexible( // ✅ Protección para valores largos
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: valueColor ?? Colors.black87,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -450,7 +474,13 @@ class ProductCard extends StatelessWidget {
           children: [
             const Icon(Icons.warning_amber_rounded, color: Colors.orange),
             SizedBox(width: 12.w),
-            Text(l10n.confirmDelete), // ✅ TRADUCIDO
+            Flexible( // ✅ Protección
+              child: Text(
+                l10n.confirmDelete,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -458,7 +488,7 @@ class ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _getDeleteConfirmationText(l10n), // ✅ TRADUCIDO
+              _getDeleteConfirmationText(l10n),
               style: TextStyle(fontSize: 16.sp),
             ),
             SizedBox(height: 12.h),
@@ -475,7 +505,7 @@ class ProductCard extends StatelessWidget {
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      l10n.cannotUndo, // ✅ TRADUCIDO
+                      l10n.cannotUndo,
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: Colors.red[700],
@@ -487,18 +517,20 @@ class ProductCard extends StatelessWidget {
             ),
             SizedBox(height: 12.h),
             Text(
-              '${_getProductText(l10n)}: ${product.name}', // ✅ TRADUCIDO
+              '${_getProductText(l10n)}: ${product.name}',
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.bold,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel), // ✅ TRADUCIDO
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -511,7 +543,9 @@ class ProductCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.check_circle, color: Colors.white),
                       SizedBox(width: 8.w),
-                      Text(_getProductDeletedText(l10n)), // ✅ TRADUCIDO
+                      Expanded(
+                        child: Text(_getProductDeletedText(l10n)),
+                      ),
                     ],
                   ),
                   backgroundColor: Colors.green,
@@ -523,7 +557,7 @@ class ProductCard extends StatelessWidget {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(l10n.delete), // ✅ TRADUCIDO
+            child: Text(l10n.delete),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/invoice.dart';
 import '../models/business_profile.dart';
+import '../providers/settings_provider.dart'; // ✅ AGREGADO
 
 class InvoiceImageGenerator {
   static final GlobalKey _globalKey = GlobalKey();
@@ -16,6 +17,7 @@ class InvoiceImageGenerator {
     required Invoice invoice,
     required BusinessProfile businessProfile,
     required BuildContext context,
+    required SettingsProvider settingsProvider, // ✅ NUEVO PARÁMETRO
   }) async {
     try {
       print('📸 Generando boleta minimalista...');
@@ -32,10 +34,11 @@ class InvoiceImageGenerator {
             child: Material(
               child: Container(
                 width: 600,
-                color: const Color(0xFFF5F3EE), // Fondo beige/crema
+                color: const Color(0xFFF5F3EE),
                 child: MinimalistInvoiceWidget(
                   invoice: invoice,
                   businessProfile: businessProfile,
+                  settingsProvider: settingsProvider, // ✅ PASAMOS EL PROVIDER
                 ),
               ),
             ),
@@ -76,18 +79,20 @@ class InvoiceImageGenerator {
 class MinimalistInvoiceWidget extends StatelessWidget {
   final Invoice invoice;
   final BusinessProfile businessProfile;
+  final SettingsProvider settingsProvider; // ✅ AGREGADO
 
   const MinimalistInvoiceWidget({
     super.key,
     required this.invoice,
     required this.businessProfile,
+    required this.settingsProvider, // ✅ AGREGADO
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 600,
-      color: const Color(0xFFF5F3EE), // Fondo beige/crema como la imagen
+      color: const Color(0xFFF5F3EE),
       padding: const EdgeInsets.all(50),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -98,7 +103,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // NÚMERO DE BOLETA (Izquierda)
+              // NÚMERO DE BOLETA
               Text(
                 'N° ${invoice.invoiceNumber.toString().padLeft(7, '0')}',
                 style: const TextStyle(
@@ -109,11 +114,10 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                 ),
               ),
 
-              // LOGO Y INFO DEL NEGOCIO (Derecha)
+              // INFO DEL NEGOCIO
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Logo (si existe)
                   if (businessProfile.logoPath.isNotEmpty)
                     Container(
                       width: 100,
@@ -137,8 +141,6 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                  // Nombre del negocio
                   Text(
                     businessProfile.businessName.toUpperCase(),
                     style: const TextStyle(
@@ -150,8 +152,6 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                     textAlign: TextAlign.right,
                   ),
                   const SizedBox(height: 8),
-
-                  // Email
                   if (businessProfile.email.isNotEmpty)
                     Text(
                       businessProfile.email,
@@ -160,19 +160,17 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                         color: Color(0xFF5C5C5C),
                       ),
                     ),
-
-                  // Dirección
                   if (businessProfile.address.isNotEmpty)
                     Text(
-                      'Dirección: ${businessProfile.address}',
+                      businessProfile.address,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF5C5C5C),
                       ),
                       textAlign: TextAlign.right,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-
-                  // Teléfono
                   if (businessProfile.phone.isNotEmpty)
                     Text(
                       businessProfile.phone,
@@ -188,8 +186,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
 
           const SizedBox(height: 40),
 
-          // ==================== TABLA DE PRODUCTOS ====================
-          // Header de la tabla
+          // ==================== TABLA ====================
           Container(
             padding: const EdgeInsets.only(bottom: 8),
             decoration: const BoxDecoration(
@@ -255,7 +252,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Items de la tabla
+          // Items
           ...invoice.items.map((item) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -280,12 +277,14 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                         fontSize: 15,
                         color: Color(0xFF2C2C2C),
                       ),
+                      maxLines: 2, // ✅ Protección contra nombres largos
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   SizedBox(
                     width: 100,
                     child: Text(
-                      '\$${item.price.toStringAsFixed(2)}',
+                      settingsProvider.formatPrice(item.price), // ✅ USA MONEDA CORRECTA
                       style: const TextStyle(
                         fontSize: 15,
                         color: Color(0xFF2C2C2C),
@@ -297,7 +296,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                   SizedBox(
                     width: 100,
                     child: Text(
-                      '\$${item.total.toStringAsFixed(2)}',
+                      settingsProvider.formatPrice(item.total), // ✅ USA MONEDA CORRECTA
                       style: const TextStyle(
                         fontSize: 15,
                         color: Color(0xFF2C2C2C),
@@ -335,7 +334,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${invoice.total.toStringAsFixed(2)}',
+                  settingsProvider.formatPrice(invoice.total), // ✅ USA MONEDA CORRECTA
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -350,10 +349,10 @@ class MinimalistInvoiceWidget extends StatelessWidget {
           const SizedBox(height: 40),
 
           // ==================== MENSAJE FINAL ====================
-          const Center(
+          Center(
             child: Text(
-              'Gracias por su preferencia.',
-              style: TextStyle(
+              _getThankYouMessage(settingsProvider.locale.languageCode), // ✅ TRADUCIDO
+              style: const TextStyle(
                 fontSize: 15,
                 color: Color(0xFF5C5C5C),
                 fontStyle: FontStyle.italic,
@@ -363,7 +362,7 @@ class MinimalistInvoiceWidget extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Fecha y hora (pequeño, abajo)
+          // Fecha
           Center(
             child: Text(
               DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
@@ -376,5 +375,21 @@ class MinimalistInvoiceWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ✅ Traducción del mensaje de agradecimiento
+  String _getThankYouMessage(String languageCode) {
+    switch (languageCode) {
+      case 'es':
+        return 'Gracias por su preferencia.';
+      case 'en':
+        return 'Thank you for your preference.';
+      case 'pt':
+        return 'Obrigado pela sua preferência.';
+      case 'zh':
+        return '感谢您的惠顾。';
+      default:
+        return 'Thank you for your preference.';
+    }
   }
 }

@@ -3,67 +3,308 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../l10n/app_localizations.dart'; // ✅ CORREGIDO
-import '../providers/product_provider.dart';
-import '../providers/settings_provider.dart';
+import 'package:uuid/uuid.dart';
+import '../l10n/app_localizations.dart';
 import '../models/product.dart';
+import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
-import '../services/permission_handler.dart';
+import '../widgets/error_snackbar.dart';
+import '../core/utils/validators.dart';
 
-class ProductsScreen extends StatelessWidget {
+class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
 
   @override
+  State<ProductsScreen> createState() => _ProductsScreenState();
+}
+
+class _ProductsScreenState extends State<ProductsScreen> {
+  String _searchQuery = '';
+  String _selectedCategory = 'all';
+
+  @override
   Widget build(BuildContext context) {
-    final productProvider = Provider.of<ProductProvider>(context);
-    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
+    final l10n = AppLocalizations.of(context)!;
+    final productProvider = context.watch<ProductProvider>();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
+
+    // ✅ MANEJO DE ESTADO DE CARGA
+    if (productProvider.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // ✅ MANEJO DE ERRORES
+    if (productProvider.error != null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
+              SizedBox(height: 16.h),
+              Text(
+                productProvider.error!,
+                style: TextStyle(fontSize: 16.sp),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24.h),
+              ElevatedButton.icon(
+                onPressed: () {
+                  productProvider.clearError();
+                  productProvider.loadProducts();
+                },
+                icon: const Icon(Icons.refresh),
+                label: Text(_getRetryText(l10n)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Filtrar productos
+    List<Product> filteredProducts = productProvider.products;
+    
+    if (_searchQuery.isNotEmpty) {
+      filteredProducts = productProvider.searchProducts(_searchQuery);
+    }
+    
+    if (_selectedCategory != 'all') {
+      filteredProducts = filteredProducts
+          .where((p) => p.category == _selectedCategory)
+          .toList();
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.products), // ✅ TRADUCIDO
+        title: Text(l10n.products, style: TextStyle(fontSize: 18.sp)),
         backgroundColor: const Color(0xFF2196F3),
         foregroundColor: Colors.white,
+        actions: [
+          // ✅ Filtro por categoría
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (value) {
+              setState(() {
+                _selectedCategory = value;
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'all',
+                child: Text(_getAllCategoriesText(l10n)),
+              ),
+              PopupMenuItem(
+                value: 'food',
+                child: Text(l10n.food),
+              ),
+              PopupMenuItem(
+                value: 'drinks',
+                child: Text(l10n.drinks),
+              ),
+              PopupMenuItem(
+                value: 'desserts',
+                child: Text(l10n.desserts),
+              ),
+              PopupMenuItem(
+                value: 'others',
+                child: Text(l10n.others),
+              ),
+            ],
+          ),
+        ],
       ),
-      body: productProvider.products.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
+        children: [
+          // Search Bar
+          Container(
+            padding: EdgeInsets.all(16.w),
+            color: Colors.white,
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: _getSearchProductsText(l10n),
+                hintStyle: TextStyle(fontSize: 14.sp),
+                prefixIcon: Icon(Icons.search, size: 20.sp),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, size: 20.sp),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                filled: true,
+                fillColor: Colors.grey[100],
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
+              ),
+              style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
+
+          // ✅ Chip de filtro activo
+          if (_selectedCategory != 'all')
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              color: Colors.blue[50],
+              child: Row(
                 children: [
-                  Icon(Icons.inventory_2_outlined,
-                      size: 80.sp, color: Colors.grey),
-                  SizedBox(height: 16.h),
-                  Text(
-                    l10n.noProducts, // ✅ TRADUCIDO
-                    style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+                  Chip(
+                    label: Text(_getCategoryName(_selectedCategory, l10n)),
+                    deleteIcon: Icon(Icons.close, size: 18.sp),
+                    onDeleted: () {
+                      setState(() {
+                        _selectedCategory = 'all';
+                      });
+                    },
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: EdgeInsets.all(16.w),
-              itemCount: productProvider.products.length,
-              itemBuilder: (context, index) {
-                final product = productProvider.products[index];
-                return ProductCard(product: product);
-              },
             ),
+
+          // Product List
+          Expanded(
+            child: filteredProducts.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _searchQuery.isNotEmpty || _selectedCategory != 'all'
+                              ? Icons.search_off
+                              : Icons.inventory_2_outlined,
+                          size: 80.sp,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          _searchQuery.isNotEmpty || _selectedCategory != 'all'
+                              ? _getNoProductsFoundText(l10n)
+                              : l10n.noProducts,
+                          style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : isLargeScreen
+                    ? _buildGridView(filteredProducts, screenWidth)
+                    : _buildListView(filteredProducts),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddProductDialog(context),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => const AddProductDialog(),
+          );
+        },
         backgroundColor: const Color(0xFF4CAF50),
         icon: const Icon(Icons.add),
-        label: Text(l10n.addProduct), // ✅ TRADUCIDO
+        label: Text(l10n.add),
       ),
     );
   }
 
-  void _showAddProductDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const AddProductDialog(),
+  // ✅ ListView para móviles
+  Widget _buildListView(List<Product> products) {
+    return ListView.builder(
+      padding: EdgeInsets.all(16.w),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        return ProductCard(product: products[index]);
+      },
     );
+  }
+
+  // ✅ GridView para tablets/desktop
+  Widget _buildGridView(List<Product> products, double screenWidth) {
+    final crossAxisCount = screenWidth > 1200 ? 3 : 2;
+    
+    return GridView.builder(
+      padding: EdgeInsets.all(16.w),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: 3,
+        crossAxisSpacing: 16.w,
+        mainAxisSpacing: 16.h,
+      ),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        return ProductCard(product: products[index]);
+      },
+    );
+  }
+
+  String _getAllCategoriesText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Todas las categorías';
+      case 'en': return 'All categories';
+      case 'pt': return 'Todas as categorias';
+      case 'zh': return '所有类别';
+      default: return 'All categories';
+    }
+  }
+
+  String _getSearchProductsText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Buscar productos...';
+      case 'en': return 'Search products...';
+      case 'pt': return 'Buscar produtos...';
+      case 'zh': return '搜索产品...';
+      default: return 'Search products...';
+    }
+  }
+
+  String _getNoProductsFoundText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'No se encontraron productos';
+      case 'en': return 'No products found';
+      case 'pt': return 'Nenhum produto encontrado';
+      case 'zh': return '未找到产品';
+      default: return 'No products found';
+    }
+  }
+
+  String _getRetryText(AppLocalizations l10n) {
+    switch (l10n.localeName) {
+      case 'es': return 'Reintentar';
+      case 'en': return 'Retry';
+      case 'pt': return 'Tentar novamente';
+      case 'zh': return '重试';
+      default: return 'Retry';
+    }
+  }
+
+  String _getCategoryName(String category, AppLocalizations l10n) {
+    switch (category) {
+      case 'food': return l10n.food;
+      case 'drinks': return l10n.drinks;
+      case 'desserts': return l10n.desserts;
+      case 'others': return l10n.others;
+      default: return category;
+    }
   }
 }
 
+// ✅ DIÁLOGO CON VALIDACIONES COMPLETAS
 class AddProductDialog extends StatefulWidget {
   final Product? product;
 
@@ -75,63 +316,334 @@ class AddProductDialog extends StatefulWidget {
 
 class _AddProductDialogState extends State<AddProductDialog> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _priceController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _stockController;
-  String _category = 'food'; // ✅ Usar claves en vez de texto
-  String? _imagePath;
-
-  final List<String> _categories = ['food', 'drinks', 'desserts', 'others']; // ✅ Claves
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _stockController = TextEditingController();
+  String _selectedCategory = 'food';
+  String _imagePath = '';
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.product?.name ?? '');
-    _priceController =
-        TextEditingController(text: widget.product?.price.toString() ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.product?.description ?? '');
-    _stockController =
-        TextEditingController(text: widget.product?.stock.toString() ?? '');
-    _category = widget.product?.category ?? 'food';
-    _imagePath = widget.product?.imagePath;
+    if (widget.product != null) {
+      _nameController.text = widget.product!.name;
+      _descriptionController.text = widget.product!.description;
+      _priceController.text = widget.product!.price.toString();
+      _stockController.text = widget.product!.stock.toString();
+      _selectedCategory = widget.product!.category;
+      _imagePath = widget.product!.imagePath;
+    }
   }
 
   @override
   void dispose() {
+    // ✅ DISPOSE de controllers para evitar memory leaks
     _nameController.dispose();
-    _priceController.dispose();
     _descriptionController.dispose();
+    _priceController.dispose();
     _stockController.dispose();
     super.dispose();
   }
 
-  Future<void> _showImageSourceDialog() async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800, // ✅ Optimización
+      maxHeight: 800,
+      imageQuality: 85, // ✅ Compresión
+    );
+
+    if (image != null) {
+      setState(() {
+        _imagePath = image.path;
+      });
+    }
+  }
+
+  Future<void> _saveProduct() async {
+    // ✅ Validar formulario
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final productProvider = context.read<ProductProvider>();
     
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.selectImage), // ✅ TRADUCIDO
-        content: Column(
+    final product = Product(
+      id: widget.product?.id ?? const Uuid().v4(),
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim(),
+      price: double.parse(_priceController.text),
+      stock: int.parse(_stockController.text),
+      category: _selectedCategory,
+      imagePath: _imagePath,
+    );
+
+    bool success;
+    if (widget.product == null) {
+      success = await productProvider.addProduct(product);
+    } else {
+      success = await productProvider.updateProduct(product);
+    }
+
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      if (success) {
+        Navigator.pop(context);
+        SuccessSnackBar.show(
+          context,
+          widget.product == null
+              ? _getProductAddedText()
+              : _getProductUpdatedText(),
+        );
+      } else {
+        ErrorSnackBar.show(context, productProvider.error ?? 'Error desconocido');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Container(
+        width: isLargeScreen ? 600.w : double.infinity,
+        constraints: BoxConstraints(maxHeight: 0.9.sh),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFF2196F3)),
-              title: Text(l10n.gallery), // ✅ TRADUCIDO
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
+            // Header
+            Container(
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2196F3),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.product == null ? l10n.add : l10n.edit,
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFF4CAF50)),
-              title: Text(l10n.camera), // ✅ TRADUCIDO
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
+
+            // Form
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(20.w),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ✅ NOMBRE con validación
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: l10n.name,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          prefixIcon: const Icon(Icons.label),
+                        ),
+                        validator: Validators.validateProductName,
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // ✅ DESCRIPCIÓN con validación
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: InputDecoration(
+                          labelText: l10n.description,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          prefixIcon: const Icon(Icons.description),
+                        ),
+                        validator: Validators.validateDescription,
+                        maxLines: 3,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // ✅ PRECIO con validación
+                      TextFormField(
+                        controller: _priceController,
+                        decoration: InputDecoration(
+                          labelText: l10n.price,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: Validators.validatePrice,
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // ✅ STOCK con validación
+                      TextFormField(
+                        controller: _stockController,
+                        decoration: InputDecoration(
+                          labelText: l10n.stock,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          prefixIcon: const Icon(Icons.inventory),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: Validators.validateStock,
+                      ),
+                      SizedBox(height: 16.h),
+
+                      // Categoría
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: InputDecoration(
+                          labelText: l10n.category,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          prefixIcon: const Icon(Icons.category),
+                        ),
+                        items: [
+                          DropdownMenuItem(value: 'food', child: Text(l10n.food)),
+                          DropdownMenuItem(value: 'drinks', child: Text(l10n.drinks)),
+                          DropdownMenuItem(value: 'desserts', child: Text(l10n.desserts)),
+                          DropdownMenuItem(value: 'others', child: Text(l10n.others)),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCategory = value!;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 20.h),
+
+                      // Imagen
+                      if (_imagePath.isNotEmpty)
+                        Center(
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 150.w,
+                                height: 150.w,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  image: DecorationImage(
+                                    image: FileImage(File(_imagePath)),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 5,
+                                right: 5,
+                                child: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _imagePath = '';
+                                    });
+                                  },
+                                  icon: const Icon(Icons.close),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      SizedBox(height: 16.h),
+
+                      // Botón para agregar imagen
+                      OutlinedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.image),
+                        label: Text(_imagePath.isEmpty ? l10n.addImage : l10n.changeImage),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size(double.infinity, 50.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Botones
+            Padding(
+              padding: EdgeInsets.all(20.w),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                      child: Text(l10n.cancel),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting ? null : _saveProduct,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4CAF50),
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                      child: _isSubmitting
+                          ? SizedBox(
+                              height: 20.h,
+                              width: 20.h,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(l10n.save),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -139,343 +651,25 @@ class _AddProductDialogState extends State<AddProductDialog> {
     );
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  String _getProductAddedText() {
     final l10n = AppLocalizations.of(context)!;
-    bool hasPermission = false;
-
-    if (source == ImageSource.gallery) {
-      hasPermission = await AppPermissionHandler.requestGalleryPermission(context);
-      
-      if (!hasPermission) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('⚠️ ${l10n.galleryPermissionNeeded}'), // ✅ TRADUCIDO
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-    } else if (source == ImageSource.camera) {
-      hasPermission = await AppPermissionHandler.requestCameraPermission(context);
-      
-      if (!hasPermission) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('⚠️ ${l10n.cameraPermissionNeeded}'), // ✅ TRADUCIDO
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-    }
-
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-      
-      if (pickedFile != null) {
-        setState(() {
-          _imagePath = pickedFile.path;
-        });
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✅ ${l10n.imageSelected}'), // ✅ TRADUCIDO
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      print('❌ Error al seleccionar imagen: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ ${l10n.errorSelectingImage}: $e'), // ✅ TRADUCIDO
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    switch (l10n.localeName) {
+      case 'es': return 'Producto agregado exitosamente';
+      case 'en': return 'Product added successfully';
+      case 'pt': return 'Produto adicionado com sucesso';
+      case 'zh': return '产品添加成功';
+      default: return 'Product added successfully';
     }
   }
 
-  String _getCategoryTranslation(String categoryKey, AppLocalizations l10n) {
-    switch (categoryKey) {
-      case 'food':
-        return l10n.food;
-      case 'drinks':
-        return l10n.drinks;
-      case 'desserts':
-        return l10n.desserts;
-      case 'others':
-        return l10n.others;
-      default:
-        return categoryKey;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
-    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
-    
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-      child: Container(
-        padding: EdgeInsets.all(20.w),
-        constraints: BoxConstraints(maxHeight: 600.h),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.product == null
-                          ? l10n.newProduct // ✅ TRADUCIDO
-                          : l10n.editProduct, // ✅ TRADUCIDO
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20.h),
-
-                // Image Picker
-                GestureDetector(
-                  onTap: _showImageSourceDialog,
-                  child: Container(
-                    width: double.infinity,
-                    height: 120.h,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: _imagePath != null
-                        ? Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12.r),
-                                child: Image.file(
-                                  File(_imagePath!),
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                ),
-                              ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                    onPressed: _showImageSourceDialog,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_photo_alternate,
-                                  size: 40.sp, color: Colors.grey),
-                              SizedBox(height: 8.h),
-                              Text(l10n.addImage, // ✅ TRADUCIDO
-                                  style: TextStyle(color: Colors.grey[600])),
-                              SizedBox(height: 4.h),
-                              Text(l10n.tapToSelect, // ✅ TRADUCIDO
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: 12.sp,
-                                  )),
-                            ],
-                          ),
-                  ),
-                ),
-                SizedBox(height: 16.h),
-
-                // Name
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: l10n.productName, // ✅ TRADUCIDO
-                    hintText: l10n.productNameHint, // ✅ TRADUCIDO
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? l10n.requiredField : null, // ✅ TRADUCIDO
-                ),
-                SizedBox(height: 16.h),
-
-                // Price
-                TextFormField(
-                  controller: _priceController,
-                  decoration: InputDecoration(
-                    labelText: l10n.price, // ✅ TRADUCIDO
-                    hintText: '0',
-                    prefixText: '${settingsProvider.currencySymbol} ', // ✅ DINÁMICO
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? l10n.requiredField : null, // ✅ TRADUCIDO
-                ),
-                SizedBox(height: 16.h),
-
-                // Description
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: l10n.description, // ✅ TRADUCIDO
-                    hintText: l10n.descriptionHint, // ✅ TRADUCIDO
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  maxLines: 3,
-                ),
-                SizedBox(height: 16.h),
-
-                // Category
-                DropdownButtonFormField<String>(
-                  value: _category,
-                  decoration: InputDecoration(
-                    labelText: l10n.category, // ✅ TRADUCIDO
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  items: _categories.map((cat) {
-                    return DropdownMenuItem(
-                      value: cat,
-                      child: Text(_getCategoryTranslation(cat, l10n)), // ✅ TRADUCIDO
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _category = value!;
-                    });
-                  },
-                ),
-                SizedBox(height: 16.h),
-
-                // Stock
-                TextFormField(
-                  controller: _stockController,
-                  decoration: InputDecoration(
-                    labelText: l10n.stock, // ✅ TRADUCIDO (ahora dice "Cantidad")
-                    hintText: '0',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? l10n.requiredField : null, // ✅ TRADUCIDO
-                ),
-                SizedBox(height: 24.h),
-
-                // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                        child: Text(l10n.cancel), // ✅ TRADUCIDO
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _saveProduct,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50),
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                        child: Text(l10n.save), // ✅ TRADUCIDO
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _saveProduct() {
+  String _getProductUpdatedText() {
     final l10n = AppLocalizations.of(context)!;
-    
-    if (_formKey.currentState!.validate()) {
-      final product = Product(
-        id: widget.product?.id,
-        name: _nameController.text,
-        price: double.parse(_priceController.text),
-        description: _descriptionController.text,
-        category: _category,
-        stock: int.parse(_stockController.text),
-        imagePath: _imagePath ?? '',
-      );
-
-      final productProvider =
-          Provider.of<ProductProvider>(context, listen: false);
-
-      if (widget.product == null) {
-        productProvider.addProduct(product);
-      } else {
-        productProvider.updateProduct(product);
-      }
-
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.productSavedSuccess)), // ✅ TRADUCIDO
-      );
+    switch (l10n.localeName) {
+      case 'es': return 'Producto actualizado exitosamente';
+      case 'en': return 'Product updated successfully';
+      case 'pt': return 'Produto atualizado com sucesso';
+      case 'zh': return '产品更新成功';
+      default: return 'Product updated successfully';
     }
   }
 }
