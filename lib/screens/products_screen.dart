@@ -26,7 +26,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final productProvider = context.watch<ProductProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
     
-    // Breakpoints
     final isVerySmall = screenWidth < 360;
     final isLarge = screenWidth >= 900;
 
@@ -58,7 +57,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     productProvider.reload();
                   },
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Reintentar'),
+                  label: Text(l10n.retry),
                 ),
               ],
             ),
@@ -84,14 +83,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
       body: Column(
         children: [
-          // Barra de búsqueda
           Container(
             padding: EdgeInsets.all(isLarge ? 20.w : 16.w),
             color: Colors.white,
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               decoration: InputDecoration(
-                hintText: 'Buscar productos...',
+                hintText: l10n.searchProducts,
                 hintStyle: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
                 prefixIcon: Icon(Icons.search, size: isVerySmall ? 18.sp : 20.sp),
                 suffixIcon: _searchQuery.isNotEmpty
@@ -114,7 +112,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
           ),
 
-          // Lista de productos
           Expanded(
             child: filteredProducts.isEmpty
                 ? Center(
@@ -131,7 +128,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         SizedBox(height: 16.h),
                         Text(
                           _searchQuery.isNotEmpty
-                              ? 'No se encontraron productos'
+                              ? l10n.noProductsFound
                               : l10n.noProducts,
                           style: TextStyle(
                             fontSize: isVerySmall ? 14.sp : 18.sp,
@@ -183,9 +180,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 }
-
 // =============================================================================
-// DIÁLOGO PARA AGREGAR/EDITAR PRODUCTO - SIN CATEGORÍAS
+// DIÁLOGO PARA AGREGAR/EDITAR PRODUCTO
 // =============================================================================
 
 class AddProductDialog extends StatefulWidget {
@@ -228,20 +224,23 @@ class _AddProductDialogState extends State<AddProductDialog> {
   }
 
   Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     try {
-      print('🔄 Iniciando selección de imagen...');
-      
-      // 1. Pedir permisos (ya no molesta si ya están dados)
       final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
       
       if (!hasPermission) {
-        print('⚠️ Permisos denegados');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ ${l10n.permissionsDenied}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
         return;
       }
 
-      print('✅ Permisos OK, abriendo galería...');
-
-      // 2. Abrir galería
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
@@ -250,32 +249,26 @@ class _AddProductDialogState extends State<AddProductDialog> {
         imageQuality: 85,
       );
 
-      // 3. Guardar ruta
       if (image != null) {
-        print('✅ Imagen seleccionada: ${image.path}');
-        
         if (mounted) {
           setState(() {
             _imagePath = image.path;
           });
           
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Imagen seleccionada correctamente'),
+            SnackBar(
+              content: Text('✅ ${l10n.imageSelectedSuccess}'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
+              duration: const Duration(seconds: 1),
             ),
           );
         }
-      } else {
-        print('ℹ️ Usuario canceló la selección');
       }
     } catch (e) {
-      print('❌ Error al seleccionar imagen: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: ${e.toString()}'),
+            content: Text('❌ ${l10n.error}: ${e.toString()}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -285,6 +278,8 @@ class _AddProductDialogState extends State<AddProductDialog> {
   }
 
   Future<void> _saveProduct() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -303,8 +298,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
         imagePath: _imagePath,
       );
 
-      print('🔄 Guardando producto: ${product.name}');
-
       bool success;
       if (widget.product == null) {
         success = await productProvider.addProduct(product);
@@ -321,8 +314,8 @@ class _AddProductDialogState extends State<AddProductDialog> {
             SnackBar(
               content: Text(
                 widget.product == null
-                    ? '✅ Producto agregado exitosamente'
-                    : '✅ Producto actualizado exitosamente',
+                    ? '✅ ${l10n.productAddedSuccess}'
+                    : '✅ ${l10n.productUpdatedSuccess}',
               ),
               backgroundColor: Colors.green,
             ),
@@ -330,7 +323,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(productProvider.error ?? '❌ Error desconocido'),
+              content: Text(productProvider.error ?? '❌ ${l10n.error}'),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
@@ -338,13 +331,12 @@ class _AddProductDialogState extends State<AddProductDialog> {
         }
       }
     } catch (e) {
-      print('❌ Error al guardar producto: $e');
       if (mounted) {
         setState(() => _isSubmitting = false);
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e'),
+            content: Text('❌ ${l10n.error}: $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -384,7 +376,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.product == null ? 'Agregar Producto' : 'Editar Producto',
+                      widget.product == null ? l10n.addProduct : l10n.editProduct,
                       style: TextStyle(
                         fontSize: isVerySmall ? 16.sp : (isLargeScreen ? 22.sp : 20.sp),
                         fontWeight: FontWeight.bold,
@@ -406,7 +398,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
               ),
             ),
 
-            // Form (scrolleable)
+            // Form
             Flexible(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(isLargeScreen ? 24.w : (isVerySmall ? 16.w : 20.w)),
@@ -432,10 +424,10 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'El nombre es obligatorio';
+                            return l10n.nameRequired;
                           }
                           if (value.trim().length < 2) {
-                            return 'Mínimo 2 caracteres';
+                            return l10n.minCharacters;
                           }
                           return null;
                         },
@@ -479,11 +471,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'El precio es obligatorio';
+                            return l10n.priceRequired;
                           }
                           final price = double.tryParse(value);
                           if (price == null || price <= 0) {
-                            return 'Precio inválido';
+                            return l10n.invalidPrice;
                           }
                           return null;
                         },
@@ -507,11 +499,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'El stock es obligatorio';
+                            return l10n.stockRequired;
                           }
                           final stock = int.tryParse(value);
                           if (stock == null || stock < 0) {
-                            return 'Stock inválido';
+                            return l10n.invalidStock;
                           }
                           return null;
                         },
@@ -558,7 +550,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         onPressed: _pickImage,
                         icon: Icon(Icons.image, size: isVerySmall ? 18.sp : 20.sp),
                         label: Text(
-                          _imagePath.isEmpty ? 'Agregar imagen' : 'Cambiar imagen',
+                          _imagePath.isEmpty ? l10n.addImage : l10n.changeImage,
                           style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -572,7 +564,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
               ),
             ),
 
-            // Botones de acción
+            // Botones
             Padding(
               padding: EdgeInsets.all(isLargeScreen ? 24.w : (isVerySmall ? 16.w : 20.w)),
               child: Row(

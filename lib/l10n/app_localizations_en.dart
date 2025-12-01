@@ -139,4 +139,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalRevenue => 'Total Revenue';
+
+  @override
+  String get createOrder => 'Create Order';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get searchProducts => 'Search products...';
+
+  @override
+  String get searchByCustomer => 'Search by customer or number...';
+
+  @override
+  String get customerName => 'Customer Name';
+
+  @override
+  String get customerNameRequired => 'Customer Name *';
+
+  @override
+  String get phoneOptional => 'Phone (optional)';
+
+  @override
+  String get nameRequired => 'Name is required';
+
+  @override
+  String get addProduct => 'Add Product';
+
+  @override
+  String get editProduct => 'Edit Product';
+
+  @override
+  String get minCharacters => 'Minimum 2 characters';
+
+  @override
+  String get priceRequired => 'Price is required';
+
+  @override
+  String get invalidPrice => 'Invalid price';
+
+  @override
+  String get stockRequired => 'Stock is required';
+
+  @override
+  String get invalidStock => 'Invalid stock';
+
+  @override
+  String get addToOrder => 'Add at least one product to the order';
+
+  @override
+  String get insufficientStock => 'Insufficient stock for';
+
+  @override
+  String totalItems(int count) {
+    return 'Total ($count items):';
+  }
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get orderCreatedSuccess => 'Order and invoice created successfully';
+
+  @override
+  String get orderCreatedError => 'Error creating order';
+
+  @override
+  String get noProductsAvailable => 'No products available';
+
+  @override
+  String get noProductsFound => 'No products found';
+
+  @override
+  String get productAddedSuccess => 'Product added successfully';
+
+  @override
+  String get productUpdatedSuccess => 'Product updated successfully';
+
+  @override
+  String get imageSelectedSuccess => 'Image selected successfully';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get permissionsDenied => 'Permissions denied';
+
+  @override
+  String get close => 'Close';
 }

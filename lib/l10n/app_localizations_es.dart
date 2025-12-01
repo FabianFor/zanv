@@ -139,4 +139,96 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get totalRevenue => 'Ingresos Totales';
+
+  @override
+  String get createOrder => 'Crear Pedido';
+
+  @override
+  String get darkMode => 'Modo Oscuro';
+
+  @override
+  String get theme => 'Tema';
+
+  @override
+  String get searchProducts => 'Buscar productos...';
+
+  @override
+  String get searchByCustomer => 'Buscar por cliente o número...';
+
+  @override
+  String get customerName => 'Nombre del Cliente';
+
+  @override
+  String get customerNameRequired => 'Nombre del Cliente *';
+
+  @override
+  String get phoneOptional => 'Teléfono (opcional)';
+
+  @override
+  String get nameRequired => 'El nombre es obligatorio';
+
+  @override
+  String get addProduct => 'Agregar Producto';
+
+  @override
+  String get editProduct => 'Editar Producto';
+
+  @override
+  String get minCharacters => 'Mínimo 2 caracteres';
+
+  @override
+  String get priceRequired => 'El precio es obligatorio';
+
+  @override
+  String get invalidPrice => 'Precio inválido';
+
+  @override
+  String get stockRequired => 'El stock es obligatorio';
+
+  @override
+  String get invalidStock => 'Stock inválido';
+
+  @override
+  String get addToOrder => 'Agrega al menos un producto al pedido';
+
+  @override
+  String get insufficientStock => 'Stock insuficiente para';
+
+  @override
+  String totalItems(int count) {
+    return 'Total ($count items):';
+  }
+
+  @override
+  String get clear => 'Limpiar';
+
+  @override
+  String get orderCreatedSuccess => 'Pedido y boleta creados exitosamente';
+
+  @override
+  String get orderCreatedError => 'Error al crear pedido';
+
+  @override
+  String get noProductsAvailable => 'No hay productos disponibles';
+
+  @override
+  String get noProductsFound => 'No se encontraron productos';
+
+  @override
+  String get productAddedSuccess => 'Producto agregado exitosamente';
+
+  @override
+  String get productUpdatedSuccess => 'Producto actualizado exitosamente';
+
+  @override
+  String get imageSelectedSuccess => 'Imagen seleccionada correctamente';
+
+  @override
+  String get retry => 'Reintentar';
+
+  @override
+  String get permissionsDenied => 'Permisos denegados';
+
+  @override
+  String get close => 'Cerrar';
 }

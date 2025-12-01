@@ -10,6 +10,7 @@ import '../providers/order_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/settings_provider.dart';
+import 'invoices_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -20,8 +21,6 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _searchQuery = '';
-  String _selectedStatus = 'all';
   
   // Variables para crear pedido
   final _formKey = GlobalKey<FormState>();
@@ -74,14 +73,16 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   Future<void> _createOrderAndInvoice() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     if (_cart.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Agrega al menos un producto al pedido'),
+        SnackBar(
+          content: Text('❌ ${l10n.addToOrder}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -98,7 +99,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       if (product == null || product.stock < entry.value) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Stock insuficiente para ${product?.name ?? "producto"}'),
+            content: Text('❌ ${l10n.insufficientStock} ${product?.name ?? "producto"}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -171,20 +172,23 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Pedido y boleta creados exitosamente'),
+          SnackBar(
+            content: Text('✅ ${l10n.orderCreatedSuccess}'),
             backgroundColor: Colors.green,
           ),
         );
 
-        // Cambiar a pestaña de historial
-        _tabController.animateTo(1);
+        // IR DIRECTO A BOLETAS
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const InvoicesScreen()),
+        );
       }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Error al crear pedido'),
+          SnackBar(
+            content: Text('❌ ${l10n.orderCreatedError}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -208,24 +212,24 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(icon: Icon(Icons.add_shopping_cart), text: 'Crear Pedido'),
-            Tab(icon: Icon(Icons.list), text: 'Historial'),
+          tabs: [
+            Tab(icon: const Icon(Icons.add_shopping_cart), text: l10n.createOrder),
+            Tab(icon: const Icon(Icons.receipt_long), text: l10n.invoices),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCreateOrderTab(isTablet),
-          _buildHistoryTab(isTablet, l10n),
+          _buildCreateOrderTab(isTablet, l10n),
+          const InvoicesScreen(),
         ],
       ),
     );
   }
 
   // TAB 1: CREAR PEDIDO
-  Widget _buildCreateOrderTab(bool isTablet) {
+  Widget _buildCreateOrderTab(bool isTablet, AppLocalizations l10n) {
     final productProvider = context.watch<ProductProvider>();
     final settingsProvider = context.watch<SettingsProvider>();
 
@@ -246,7 +250,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 TextFormField(
                   controller: _customerNameController,
                   decoration: InputDecoration(
-                    labelText: 'Nombre del Cliente *',
+                    labelText: l10n.customerNameRequired,
                     prefixIcon: const Icon(Icons.person),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -254,7 +258,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'El nombre es obligatorio';
+                      return l10n.nameRequired;
                     }
                     return null;
                   },
@@ -264,7 +268,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 TextFormField(
                   controller: _customerPhoneController,
                   decoration: InputDecoration(
-                    labelText: 'Teléfono (opcional)',
+                    labelText: l10n.phoneOptional,
                     prefixIcon: const Icon(Icons.phone),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -287,7 +291,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               });
             },
             decoration: InputDecoration(
-              hintText: 'Buscar productos...',
+              hintText: l10n.searchProducts,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _productSearchQuery.isNotEmpty
                   ? IconButton(
@@ -322,7 +326,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No hay productos disponibles',
+                        l10n.noProductsAvailable,
                         style: TextStyle(
                           fontSize: isTablet ? 20 : 18,
                           color: Colors.grey,
@@ -373,7 +377,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                             ),
                             const SizedBox(width: 12),
 
-                            // Info
+                            // Info - CON 3 LÍNEAS
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,7 +388,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                       fontSize: isTablet ? 17 : 16,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                    maxLines: 2,
+                                    maxLines: 3,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
@@ -398,7 +402,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Stock: ${product.stock}',
+                                    '${l10n.stock}: ${product.stock}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: product.stock <= 5
@@ -449,7 +453,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                     ? () => _addToCart(product.id)
                                     : null,
                                 icon: const Icon(Icons.add_shopping_cart, size: 18),
-                                label: const Text('Agregar'),
+                                label: Text(l10n.add),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF2196F3),
                                   foregroundColor: Colors.white,
@@ -486,7 +490,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total (${_cart.values.fold(0, (sum, qty) => sum + qty)} items):',
+                      l10n.totalItems(_cart.values.fold(0, (sum, qty) => sum + qty)),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -515,7 +519,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                           });
                         },
                         icon: const Icon(Icons.clear),
-                        label: const Text('Limpiar'),
+                        label: Text(l10n.clear),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -531,7 +535,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       child: ElevatedButton.icon(
                         onPressed: _createOrderAndInvoice,
                         icon: const Icon(Icons.check_circle),
-                        label: const Text('Crear Pedido'),
+                        label: Text(l10n.createOrder),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,
@@ -548,349 +552,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             ),
           ),
       ],
-    );
-  }
-
-  // TAB 2: HISTORIAL
-  Widget _buildHistoryTab(bool isTablet, AppLocalizations l10n) {
-    final orderProvider = context.watch<OrderProvider>();
-    final settingsProvider = context.watch<SettingsProvider>();
-
-    List<Order> filteredOrders = orderProvider.orders;
-
-    if (_searchQuery.isNotEmpty) {
-      filteredOrders = orderProvider.searchOrders(_searchQuery);
-    }
-
-    if (_selectedStatus != 'all') {
-      filteredOrders = filteredOrders
-          .where((o) => o.status == _selectedStatus)
-          .toList();
-    }
-
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Container(
-          padding: EdgeInsets.all(isTablet ? 20 : 16),
-          color: Colors.white,
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Buscar pedidos...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.filter_list),
-                onSelected: (value) {
-                  setState(() {
-                    _selectedStatus = value;
-                  });
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'all', child: Text('Todos')),
-                  const PopupMenuItem(value: 'pending', child: Text('Pendientes')),
-                  const PopupMenuItem(value: 'completed', child: Text('Completados')),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Lista de pedidos
-        Expanded(
-          child: filteredOrders.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.shopping_cart_outlined,
-                        size: isTablet ? 100 : 80,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No hay pedidos',
-                        style: TextStyle(
-                          fontSize: isTablet ? 20 : 18,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  padding: EdgeInsets.all(isTablet ? 20 : 16),
-                  itemCount: filteredOrders.length,
-                  itemBuilder: (context, index) {
-                    final order = filteredOrders[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        title: Text(
-                          'Pedido #${order.orderNumber}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2196F3),
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 8),
-                            Text(
-                              order.customerName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat('dd/MM/yyyy HH:mm').format(order.createdAt),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: order.status == 'pending'
-                                    ? Colors.orange.withOpacity(0.2)
-                                    : Colors.green.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                order.status == 'pending' ? 'Pendiente' : 'Completado',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: order.status == 'pending'
-                                      ? Colors.orange[800]
-                                      : Colors.green[800],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              settingsProvider.formatPrice(order.total),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF4CAF50),
-                              ),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _showOrderDetails(order, settingsProvider),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
-    );
-  }
-
-  void _showOrderDetails(Order order, SettingsProvider settingsProvider) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: screenHeight * 0.85,
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pedido #${order.orderNumber}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: order.status == 'pending'
-                            ? Colors.orange.withOpacity(0.2)
-                            : Colors.green.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        order.status == 'pending' ? 'Pendiente' : 'Completado',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: order.status == 'pending'
-                              ? Colors.orange[800]
-                              : Colors.green[800],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      order.customerName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (order.customerPhone.isNotEmpty)
-                      Text(
-                        order.customerPhone,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    const SizedBox(height: 8),
-                    Text(
-                      DateFormat('dd/MM/yyyy HH:mm').format(order.createdAt),
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Productos:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    ...order.items.map((item) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${item.productName} x${item.quantity}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                            Text(
-                              settingsProvider.formatPrice(item.total),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    const Divider(height: 32, thickness: 2),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total:',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          settingsProvider.formatPrice(order.total),
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF4CAF50),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (order.status == 'pending')
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      await orderProvider.updateOrderStatus(order.id, 'completed');
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('✅ Pedido completado'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Marcar como Completado'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }

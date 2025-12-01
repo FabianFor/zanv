@@ -365,6 +365,186 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingresos Totales'**
   String get totalRevenue;
+
+  /// No description provided for @createOrder.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear Pedido'**
+  String get createOrder;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo Oscuro'**
+  String get darkMode;
+
+  /// No description provided for @theme.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema'**
+  String get theme;
+
+  /// No description provided for @searchProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar productos...'**
+  String get searchProducts;
+
+  /// No description provided for @searchByCustomer.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por cliente o número...'**
+  String get searchByCustomer;
+
+  /// No description provided for @customerName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del Cliente'**
+  String get customerName;
+
+  /// No description provided for @customerNameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del Cliente *'**
+  String get customerNameRequired;
+
+  /// No description provided for @phoneOptional.
+  ///
+  /// In es, this message translates to:
+  /// **'Teléfono (opcional)'**
+  String get phoneOptional;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre es obligatorio'**
+  String get nameRequired;
+
+  /// No description provided for @addProduct.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar Producto'**
+  String get addProduct;
+
+  /// No description provided for @editProduct.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Producto'**
+  String get editProduct;
+
+  /// No description provided for @minCharacters.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 2 caracteres'**
+  String get minCharacters;
+
+  /// No description provided for @priceRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El precio es obligatorio'**
+  String get priceRequired;
+
+  /// No description provided for @invalidPrice.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio inválido'**
+  String get invalidPrice;
+
+  /// No description provided for @stockRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El stock es obligatorio'**
+  String get stockRequired;
+
+  /// No description provided for @invalidStock.
+  ///
+  /// In es, this message translates to:
+  /// **'Stock inválido'**
+  String get invalidStock;
+
+  /// No description provided for @addToOrder.
+  ///
+  /// In es, this message translates to:
+  /// **'Agrega al menos un producto al pedido'**
+  String get addToOrder;
+
+  /// No description provided for @insufficientStock.
+  ///
+  /// In es, this message translates to:
+  /// **'Stock insuficiente para'**
+  String get insufficientStock;
+
+  /// No description provided for @totalItems.
+  ///
+  /// In es, this message translates to:
+  /// **'Total ({count} items):'**
+  String totalItems(int count);
+
+  /// No description provided for @clear.
+  ///
+  /// In es, this message translates to:
+  /// **'Limpiar'**
+  String get clear;
+
+  /// No description provided for @orderCreatedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Pedido y boleta creados exitosamente'**
+  String get orderCreatedSuccess;
+
+  /// No description provided for @orderCreatedError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al crear pedido'**
+  String get orderCreatedError;
+
+  /// No description provided for @noProductsAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay productos disponibles'**
+  String get noProductsAvailable;
+
+  /// No description provided for @noProductsFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontraron productos'**
+  String get noProductsFound;
+
+  /// No description provided for @productAddedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Producto agregado exitosamente'**
+  String get productAddedSuccess;
+
+  /// No description provided for @productUpdatedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Producto actualizado exitosamente'**
+  String get productUpdatedSuccess;
+
+  /// No description provided for @imageSelectedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen seleccionada correctamente'**
+  String get imageSelectedSuccess;
+
+  /// No description provided for @retry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get retry;
+
+  /// No description provided for @permissionsDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'Permisos denegados'**
+  String get permissionsDenied;
+
+  /// No description provided for @close.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

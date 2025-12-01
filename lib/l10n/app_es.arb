@@ -43,5 +43,42 @@
   "businessManagement": "Gestión de Negocios",
   "productsRegistered": "Productos Registrados",
   "ordersPlaced": "Pedidos Realizados",
-  "totalRevenue": "Ingresos Totales"
+  "totalRevenue": "Ingresos Totales",
+  "createOrder": "Crear Pedido",
+  "darkMode": "Modo Oscuro",
+  "theme": "Tema",
+  "searchProducts": "Buscar productos...",
+  "searchByCustomer": "Buscar por cliente o número...",
+  "customerName": "Nombre del Cliente",
+  "customerNameRequired": "Nombre del Cliente *",
+  "phoneOptional": "Teléfono (opcional)",
+  "nameRequired": "El nombre es obligatorio",
+  "addProduct": "Agregar Producto",
+  "editProduct": "Editar Producto",
+  "minCharacters": "Mínimo 2 caracteres",
+  "priceRequired": "El precio es obligatorio",
+  "invalidPrice": "Precio inválido",
+  "stockRequired": "El stock es obligatorio",
+  "invalidStock": "Stock inválido",
+  "addToOrder": "Agrega al menos un producto al pedido",
+  "insufficientStock": "Stock insuficiente para",
+  "totalItems": "Total ({count} items):",
+  "@totalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clear": "Limpiar",
+  "orderCreatedSuccess": "Pedido y boleta creados exitosamente",
+  "orderCreatedError": "Error al crear pedido",
+  "noProductsAvailable": "No hay productos disponibles",
+  "noProductsFound": "No se encontraron productos",
+  "productAddedSuccess": "Producto agregado exitosamente",
+  "productUpdatedSuccess": "Producto actualizado exitosamente",
+  "imageSelectedSuccess": "Imagen seleccionada correctamente",
+  "retry": "Reintentar",
+  "permissionsDenied": "Permisos denegados",
+  "close": "Cerrar"
 }

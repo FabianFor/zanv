@@ -43,5 +43,42 @@
   "businessManagement": "业务管理",
   "productsRegistered": "注册产品",
   "ordersPlaced": "已下订单",
-  "totalRevenue": "总收入"
+  "totalRevenue": "总收入",
+  "createOrder": "创建订单",
+  "darkMode": "暗黑模式",
+  "theme": "主题",
+  "searchProducts": "搜索产品...",
+  "searchByCustomer": "按客户或号码搜索...",
+  "customerName": "客户姓名",
+  "customerNameRequired": "客户姓名 *",
+  "phoneOptional": "电话（可选）",
+  "nameRequired": "名称为必填项",
+  "addProduct": "添加产品",
+  "editProduct": "编辑产品",
+  "minCharacters": "最少2个字符",
+  "priceRequired": "价格为必填项",
+  "invalidPrice": "价格无效",
+  "stockRequired": "库存为必填项",
+  "invalidStock": "库存无效",
+  "addToOrder": "至少添加一个产品到订单",
+  "insufficientStock": "库存不足",
+  "totalItems": "总计 ({count} 项)：",
+  "@totalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clear": "清除",
+  "orderCreatedSuccess": "订单和发票创建成功",
+  "orderCreatedError": "创建订单时出错",
+  "noProductsAvailable": "没有可用产品",
+  "noProductsFound": "未找到产品",
+  "productAddedSuccess": "产品添加成功",
+  "productUpdatedSuccess": "产品更新成功",
+  "imageSelectedSuccess": "图片选择成功",
+  "retry": "重试",
+  "permissionsDenied": "权限被拒绝",
+  "close": "关闭"
 }

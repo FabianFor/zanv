@@ -139,4 +139,96 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get totalRevenue => '总收入';
+
+  @override
+  String get createOrder => '创建订单';
+
+  @override
+  String get darkMode => '暗黑模式';
+
+  @override
+  String get theme => '主题';
+
+  @override
+  String get searchProducts => '搜索产品...';
+
+  @override
+  String get searchByCustomer => '按客户或号码搜索...';
+
+  @override
+  String get customerName => '客户姓名';
+
+  @override
+  String get customerNameRequired => '客户姓名 *';
+
+  @override
+  String get phoneOptional => '电话（可选）';
+
+  @override
+  String get nameRequired => '名称为必填项';
+
+  @override
+  String get addProduct => '添加产品';
+
+  @override
+  String get editProduct => '编辑产品';
+
+  @override
+  String get minCharacters => '最少2个字符';
+
+  @override
+  String get priceRequired => '价格为必填项';
+
+  @override
+  String get invalidPrice => '价格无效';
+
+  @override
+  String get stockRequired => '库存为必填项';
+
+  @override
+  String get invalidStock => '库存无效';
+
+  @override
+  String get addToOrder => '至少添加一个产品到订单';
+
+  @override
+  String get insufficientStock => '库存不足';
+
+  @override
+  String totalItems(int count) {
+    return '总计 ($count 项)：';
+  }
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get orderCreatedSuccess => '订单和发票创建成功';
+
+  @override
+  String get orderCreatedError => '创建订单时出错';
+
+  @override
+  String get noProductsAvailable => '没有可用产品';
+
+  @override
+  String get noProductsFound => '未找到产品';
+
+  @override
+  String get productAddedSuccess => '产品添加成功';
+
+  @override
+  String get productUpdatedSuccess => '产品更新成功';
+
+  @override
+  String get imageSelectedSuccess => '图片选择成功';
+
+  @override
+  String get retry => '重试';
+
+  @override
+  String get permissionsDenied => '权限被拒绝';
+
+  @override
+  String get close => '关闭';
 }

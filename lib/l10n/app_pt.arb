@@ -43,5 +43,42 @@
   "businessManagement": "Gestão de Negócios",
   "productsRegistered": "Produtos Registrados",
   "ordersPlaced": "Pedidos Realizados",
-  "totalRevenue": "Receita Total"
+  "totalRevenue": "Receita Total",
+  "createOrder": "Criar Pedido",
+  "darkMode": "Modo Escuro",
+  "theme": "Tema",
+  "searchProducts": "Buscar produtos...",
+  "searchByCustomer": "Buscar por cliente ou número...",
+  "customerName": "Nome do Cliente",
+  "customerNameRequired": "Nome do Cliente *",
+  "phoneOptional": "Telefone (opcional)",
+  "nameRequired": "O nome é obrigatório",
+  "addProduct": "Adicionar Produto",
+  "editProduct": "Editar Produto",
+  "minCharacters": "Mínimo 2 caracteres",
+  "priceRequired": "O preço é obrigatório",
+  "invalidPrice": "Preço inválido",
+  "stockRequired": "O estoque é obrigatório",
+  "invalidStock": "Estoque inválido",
+  "addToOrder": "Adicione pelo menos um produto ao pedido",
+  "insufficientStock": "Estoque insuficiente para",
+  "totalItems": "Total ({count} itens):",
+  "@totalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clear": "Limpar",
+  "orderCreatedSuccess": "Pedido e fatura criados com sucesso",
+  "orderCreatedError": "Erro ao criar pedido",
+  "noProductsAvailable": "Sem produtos disponíveis",
+  "noProductsFound": "Nenhum produto encontrado",
+  "productAddedSuccess": "Produto adicionado com sucesso",
+  "productUpdatedSuccess": "Produto atualizado com sucesso",
+  "imageSelectedSuccess": "Imagem selecionada com sucesso",
+  "retry": "Tentar novamente",
+  "permissionsDenied": "Permissões negadas",
+  "close": "Fechar"
 }

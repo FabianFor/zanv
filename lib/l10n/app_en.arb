@@ -43,5 +43,42 @@
   "businessManagement": "Business Management",
   "productsRegistered": "Products Registered",
   "ordersPlaced": "Orders Placed",
-  "totalRevenue": "Total Revenue"
+  "totalRevenue": "Total Revenue",
+  "createOrder": "Create Order",
+  "darkMode": "Dark Mode",
+  "theme": "Theme",
+  "searchProducts": "Search products...",
+  "searchByCustomer": "Search by customer or number...",
+  "customerName": "Customer Name",
+  "customerNameRequired": "Customer Name *",
+  "phoneOptional": "Phone (optional)",
+  "nameRequired": "Name is required",
+  "addProduct": "Add Product",
+  "editProduct": "Edit Product",
+  "minCharacters": "Minimum 2 characters",
+  "priceRequired": "Price is required",
+  "invalidPrice": "Invalid price",
+  "stockRequired": "Stock is required",
+  "invalidStock": "Invalid stock",
+  "addToOrder": "Add at least one product to the order",
+  "insufficientStock": "Insufficient stock for",
+  "totalItems": "Total ({count} items):",
+  "@totalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clear": "Clear",
+  "orderCreatedSuccess": "Order and invoice created successfully",
+  "orderCreatedError": "Error creating order",
+  "noProductsAvailable": "No products available",
+  "noProductsFound": "No products found",
+  "productAddedSuccess": "Product added successfully",
+  "productUpdatedSuccess": "Product updated successfully",
+  "imageSelectedSuccess": "Image selected successfully",
+  "retry": "Retry",
+  "permissionsDenied": "Permissions denied",
+  "close": "Close"
 }
