@@ -94,7 +94,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         title: Text(
           l10n.products,
           style: TextStyle(
-            fontSize: isTablet ? 20.sp : 18.sp,
+            fontSize: 18.sp,
             fontWeight: FontWeight.w600,
           ),
           maxLines: 1,
@@ -105,7 +105,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         children: [
           // Buscador
           Container(
-            padding: EdgeInsets.all(isLarge ? 20.w : 16.w),
+            padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
             color: theme.cardBackground,
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
@@ -186,12 +186,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   )
                 : isLarge
                     ? GridView.builder(
-                        padding: EdgeInsets.all(20.w),
+                        padding: EdgeInsets.all(16.w),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: screenWidth > 1200 ? 4 : 3,
                           childAspectRatio: 3.5,
-                          crossAxisSpacing: 20.w,
-                          mainAxisSpacing: 20.h,
+                          crossAxisSpacing: 16.w,
+                          mainAxisSpacing: 16.h,
                         ),
                         itemCount: filteredProducts.length,
                         itemBuilder: (context, index) {
@@ -199,7 +199,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         },
                       )
                     : ListView.builder(
-                        padding: EdgeInsets.all(isLarge ? 20.w : 16.w),
+                        padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
                         itemCount: filteredProducts.length,
                         itemBuilder: (context, index) {
                           return ProductCard(product: filteredProducts[index]);
@@ -398,13 +398,13 @@ class _AddProductDialogState extends State<AddProductDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 40.w : 20.w, // ✅ REDUCIDO
+        horizontal: isTablet ? 40.w : 20.w,
         vertical: 20.h,
       ),
       child: Container(
         constraints: BoxConstraints(
           maxHeight: screenHeight * 0.9,
-          maxWidth: isTablet ? 500 : double.infinity, // ✅ SIN .w
+          maxWidth: isTablet ? 500 : double.infinity,
         ),
         decoration: BoxDecoration(
           color: theme.cardBackground,
@@ -413,11 +413,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ✅ HEADER CON PADDING ADECUADO
+            // HEADER
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: 20.w,
-                vertical: 16.h, // ✅ SIN ALTURA FIJA
+                vertical: isTablet ? 14.h : 16.h,
               ),
               decoration: BoxDecoration(
                 color: theme.primary,
@@ -428,14 +428,14 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   Icon(
                     widget.product == null ? Icons.add_shopping_cart : Icons.edit,
                     color: Colors.white,
-                    size: 24.sp,
+                    size: isTablet ? 22.sp : 24.sp,
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
                       widget.product == null ? l10n.addProduct : l10n.editProduct,
                       style: TextStyle(
-                        fontSize: 18.sp, // ✅ TAMAÑO FIJO
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -445,29 +445,29 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close, color: Colors.white, size: 24.sp),
+                    icon: Icon(Icons.close, color: Colors.white, size: isTablet ? 22.sp : 24.sp),
                     padding: EdgeInsets.zero,
                   ),
                 ],
               ),
             ),
 
-            // ✅ FORMULARIO SCROLLEABLE
+            // FORMULARIO SCROLLEABLE
             Flexible(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(20.w),
+                padding: EdgeInsets.all(isTablet ? 18.w : 20.w),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ✅ SECCIÓN DE IMAGEN
+                      // SECCIÓN DE IMAGEN
                       Center(
                         child: GestureDetector(
                           onTap: _pickImage,
                           child: Container(
-                            width: 120.w, // ✅ REDUCIDO
-                            height: 120.w,
+                            width: isTablet ? 100.w : 120.w,
+                            height: isTablet ? 100.w : 120.w,
                             decoration: BoxDecoration(
                               color: theme.surfaceColor,
                               borderRadius: BorderRadius.circular(16.r),
@@ -483,8 +483,8 @@ class _AddProductDialogState extends State<AddProductDialog> {
                                         borderRadius: BorderRadius.circular(14.r),
                                         child: Image.file(
                                           File(_imagePath),
-                                          width: 120.w,
-                                          height: 120.w,
+                                          width: isTablet ? 100.w : 120.w,
+                                          height: isTablet ? 100.w : 120.w,
                                           fit: BoxFit.cover,
                                         ),
                                       ),
@@ -497,7 +497,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                                             shape: BoxShape.circle,
                                           ),
                                           child: IconButton(
-                                            icon: Icon(Icons.edit, color: Colors.white, size: 18.sp),
+                                            icon: Icon(Icons.edit, color: Colors.white, size: 16.sp),
                                             onPressed: _pickImage,
                                             padding: EdgeInsets.all(4.w),
                                           ),
@@ -510,7 +510,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                                     children: [
                                       Icon(
                                         Icons.add_photo_alternate,
-                                        size: 40.sp,
+                                        size: isTablet ? 36.sp : 40.sp,
                                         color: theme.primary,
                                       ),
                                       SizedBox(height: 6.h),
@@ -527,7 +527,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: isTablet ? 16.h : 20.h),
 
                       // CAMPO NOMBRE
                       TextFormField(
@@ -659,7 +659,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: isTablet ? 16.h : 20.h),
 
                       // BOTONES
                       Row(

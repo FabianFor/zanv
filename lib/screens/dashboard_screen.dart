@@ -20,21 +20,19 @@ class DashboardScreen extends StatelessWidget {
     final businessProvider = context.watch<BusinessProvider>();
     final productProvider = context.watch<ProductProvider>();
     
-    // Responsive
+    // Responsive - REDUCIDO PARA TABLET
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
-    final horizontalPadding = isTablet ? 32.w : 20.w;
-    final verticalSpacing = isTablet ? 20.h : 16.h;
+    final horizontalPadding = isTablet ? 24.w : 20.w;
+    final verticalSpacing = isTablet ? 12.h : 16.h;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       body: Column(
         children: [
-          // ✅ HEADER COMPACTO - ALTURA FIJA 56px
+          // ✅ HEADER COMPACTO
           Container(
             width: double.infinity,
-            height: 56.h,
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             decoration: BoxDecoration(
               color: theme.primary,
               boxShadow: [
@@ -47,38 +45,38 @@ class DashboardScreen extends StatelessWidget {
             ),
             child: SafeArea(
               bottom: false,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          businessProvider.profile.businessName.isEmpty
-                              ? 'Mi Negocio'
-                              : businessProvider.profile.businessName,
-                          style: TextStyle(
-                            fontSize: isTablet ? 20.sp : 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          l10n.businessManagement,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: isTablet ? 12.h : 16.h,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      businessProvider.profile.businessName.isEmpty
+                          ? 'Mi Negocio'
+                          : businessProvider.profile.businessName,
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                    SizedBox(height: 2.h),
+                    Text(
+                      l10n.businessManagement,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -88,7 +86,7 @@ class DashboardScreen extends StatelessWidget {
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
                 horizontal: horizontalPadding,
-                vertical: isTablet ? 32.h : 24.h,
+                vertical: isTablet ? 20.h : 24.h,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,12 +95,12 @@ class DashboardScreen extends StatelessWidget {
                   Text(
                     'Accesos Rápidos',
                     style: TextStyle(
-                      fontSize: isTablet ? 20.sp : 18.sp,
+                      fontSize: isTablet ? 17.sp : 18.sp,
                       fontWeight: FontWeight.bold,
                       color: theme.textPrimary,
                     ),
                   ),
-                  SizedBox(height: isTablet ? 20.h : 16.h),
+                  SizedBox(height: isTablet ? 14.h : 16.h),
 
                   // Opciones en fila vertical
                   _QuickAccessTile(
@@ -166,7 +164,7 @@ class DashboardScreen extends StatelessWidget {
 
                   // Alerta de stock bajo
                   if (productProvider.lowStockProducts.isNotEmpty) ...[
-                    SizedBox(height: isTablet ? 40.h : 32.h),
+                    SizedBox(height: isTablet ? 28.h : 32.h),
                     _buildLowStockAlert(
                       context,
                       productProvider,
@@ -192,7 +190,7 @@ class DashboardScreen extends StatelessWidget {
     ThemeHelper theme,
   ) {
     return Container(
-      padding: EdgeInsets.all(isTablet ? 20.w : 16.w),
+      padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
       decoration: BoxDecoration(
         color: theme.errorWithOpacity(0.1),
         borderRadius: BorderRadius.circular(16.r),
@@ -209,14 +207,14 @@ class DashboardScreen extends StatelessWidget {
               Icon(
                 Icons.warning_amber_rounded,
                 color: theme.error,
-                size: isTablet ? 26.sp : 24.sp,
+                size: isTablet ? 22.sp : 24.sp,
               ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Text(
                   'Productos con stock bajo',
                   style: TextStyle(
-                    fontSize: isTablet ? 17.sp : 16.sp,
+                    fontSize: isTablet ? 15.sp : 16.sp,
                     fontWeight: FontWeight.bold,
                     color: theme.error,
                   ),
@@ -235,7 +233,7 @@ class DashboardScreen extends StatelessWidget {
                     child: Text(
                       product.name,
                       style: TextStyle(
-                        fontSize: isTablet ? 15.sp : 14.sp,
+                        fontSize: isTablet ? 13.sp : 14.sp,
                         color: theme.textPrimary,
                       ),
                       maxLines: 1,
@@ -246,7 +244,7 @@ class DashboardScreen extends StatelessWidget {
                   Text(
                     '${l10n.stock}: ${product.stock}',
                     style: TextStyle(
-                      fontSize: isTablet ? 15.sp : 14.sp,
+                      fontSize: isTablet ? 13.sp : 14.sp,
                       fontWeight: FontWeight.bold,
                       color: theme.error,
                     ),
@@ -291,8 +289,8 @@ class _QuickAccessTile extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-            vertical: isTablet ? 22.h : 18.h,
-            horizontal: isTablet ? 24.w : 18.w,
+            vertical: isTablet ? 16.h : 18.h,
+            horizontal: isTablet ? 18.w : 18.w,
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
@@ -305,8 +303,8 @@ class _QuickAccessTile extends StatelessWidget {
             children: [
               // Icono circular
               Container(
-                width: isTablet ? 50.w : 44.w,
-                height: isTablet ? 50.w : 44.w,
+                width: isTablet ? 40.w : 44.w,
+                height: isTablet ? 40.w : 44.w,
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
@@ -314,17 +312,17 @@ class _QuickAccessTile extends StatelessWidget {
                 child: Icon(
                   icon,
                   color: Colors.white,
-                  size: isTablet ? 28.sp : 24.sp,
+                  size: isTablet ? 22.sp : 24.sp,
                 ),
               ),
-              SizedBox(width: isTablet ? 20.w : 16.w),
+              SizedBox(width: isTablet ? 16.w : 16.w),
               
               // Texto
               Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: isTablet ? 18.sp : 16.sp,
+                    fontSize: isTablet ? 15.sp : 16.sp,
                     fontWeight: FontWeight.w600,
                     color: theme.textPrimary,
                   ),
@@ -335,7 +333,7 @@ class _QuickAccessTile extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 color: theme.iconColor,
-                size: isTablet ? 24.sp : 20.sp,
+                size: isTablet ? 18.sp : 20.sp,
               ),
             ],
           ),

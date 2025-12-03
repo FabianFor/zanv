@@ -25,7 +25,13 @@ class InvoicesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       appBar: AppBar(
-        title: Text(l10n.invoices),
+        title: Text(
+          l10n.invoices,
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: theme.appBarBackground,
         foregroundColor: theme.appBarForeground,
       ),
@@ -191,7 +197,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         _searchQuery.isNotEmpty || _filterDate != null
                             ? Icons.search_off
                             : Icons.receipt_long_outlined,
-                        size: 80.sp,
+                        size: isTablet ? 70.sp : 80.sp,
                         color: theme.iconColorLight,
                       ),
                       SizedBox(height: 16.h),
@@ -199,7 +205,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         _searchQuery.isNotEmpty || _filterDate != null
                             ? _getNoInvoicesFoundText(l10n)
                             : l10n.noInvoices,
-                        style: TextStyle(fontSize: 18.sp, color: theme.textSecondary),
+                        style: TextStyle(fontSize: isTablet ? 16.sp : 18.sp, color: theme.textSecondary),
                       ),
                       if (_searchQuery.isNotEmpty || _filterDate != null) ...[
                         SizedBox(height: 8.h),
@@ -238,7 +244,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         onTap: () => _showInvoiceDetails(context, invoice),
                         borderRadius: BorderRadius.circular(12.r),
                         child: Padding(
-                          padding: EdgeInsets.all(16.w),
+                          padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -248,7 +254,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                   Text(
                                     'Boleta #${invoice.invoiceNumber}',
                                     style: TextStyle(
-                                      fontSize: 18.sp,
+                                      fontSize: isTablet ? 16.sp : 18.sp,
                                       fontWeight: FontWeight.bold,
                                       color: theme.primary,
                                     ),
@@ -256,7 +262,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                   Text(
                                     settingsProvider.formatPrice(invoice.total),
                                     style: TextStyle(
-                                      fontSize: 18.sp,
+                                      fontSize: isTablet ? 16.sp : 18.sp,
                                       fontWeight: FontWeight.bold,
                                       color: theme.success,
                                     ),
@@ -292,7 +298,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                     child: Text(
                                       invoice.customerName,
                                       style: TextStyle(
-                                        fontSize: 16.sp,
+                                        fontSize: isTablet ? 15.sp : 16.sp,
                                         fontWeight: FontWeight.w500,
                                         color: theme.textPrimary,
                                       ),
@@ -405,14 +411,14 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
             SizedBox(height: 20.h),
 
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: isTablet ? 24.w : 20.w),
+              padding: EdgeInsets.symmetric(horizontal: isTablet ? 20.w : 20.w),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Boleta #${invoice.invoiceNumber}',
                     style: TextStyle(
-                      fontSize: isTablet ? 24.sp : 20.sp,
+                      fontSize: isTablet ? 18.sp : 20.sp,
                       fontWeight: FontWeight.bold,
                       color: theme.textPrimary,
                     ),
@@ -429,7 +435,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: isTablet ? 24.w : 20.w),
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 20.w : 20.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -448,7 +454,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     SizedBox(height: 16.h),
 
                     Container(
-                      padding: EdgeInsets.all(16.w),
+                      padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
                       decoration: BoxDecoration(
                         color: theme.surfaceColor,
                         borderRadius: BorderRadius.circular(12.r),
@@ -464,7 +470,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                 child: Text(
                                   invoice.customerName,
                                   style: TextStyle(
-                                    fontSize: 18.sp,
+                                    fontSize: isTablet ? 16.sp : 18.sp,
                                     fontWeight: FontWeight.bold,
                                     color: theme.textPrimary,
                                   ),
@@ -493,7 +499,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     Text(
                       'Productos:',
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: isTablet ? 16.sp : 18.sp,
                         fontWeight: FontWeight.bold,
                         color: theme.textPrimary,
                       ),
@@ -503,7 +509,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     ...invoice.items.map<Widget>((item) {
                       return Container(
                         margin: EdgeInsets.only(bottom: 12.h),
-                        padding: EdgeInsets.all(12.w),
+                        padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
                         decoration: BoxDecoration(
                           color: theme.surfaceColor,
                           borderRadius: BorderRadius.circular(8.r),
@@ -519,7 +525,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                   Text(
                                     item.productName,
                                     style: TextStyle(
-                                      fontSize: 16.sp,
+                                      fontSize: isTablet ? 15.sp : 16.sp,
                                       fontWeight: FontWeight.w600,
                                       color: theme.textPrimary,
                                     ),
@@ -538,7 +544,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                             Text(
                               settingsProvider.formatPrice(item.total),
                               style: TextStyle(
-                                fontSize: 16.sp,
+                                fontSize: isTablet ? 15.sp : 16.sp,
                                 fontWeight: FontWeight.bold,
                                 color: theme.success,
                               ),
@@ -558,7 +564,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         Text(
                           'Total:',
                           style: TextStyle(
-                            fontSize: 20.sp,
+                            fontSize: isTablet ? 18.sp : 20.sp,
                             fontWeight: FontWeight.bold,
                             color: theme.textPrimary,
                           ),
@@ -566,7 +572,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         Text(
                           settingsProvider.formatPrice(invoice.total),
                           style: TextStyle(
-                            fontSize: 24.sp,
+                            fontSize: isTablet ? 22.sp : 24.sp,
                             fontWeight: FontWeight.bold,
                             color: theme.success,
                           ),
@@ -581,7 +587,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
 
             SafeArea(
               child: Padding(
-                padding: EdgeInsets.all(isTablet ? 24.w : 20.w),
+                padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
                 child: Row(
                   children: [
                     Expanded(

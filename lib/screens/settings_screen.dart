@@ -6,8 +6,10 @@ import '../core/utils/theme_helper.dart';
 import '../providers/settings_provider.dart';
 import 'profile_screen.dart';
 
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +23,17 @@ class SettingsScreen extends StatelessWidget {
     
     final double maxWidth = isLargeTablet ? 900 : (isTablet ? 700 : double.infinity);
 
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       appBar: AppBar(
-        title: Text(l10n.settings),
+        title: Text(
+          l10n.settings,
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: theme.appBarBackground,
         foregroundColor: theme.appBarForeground,
       ),
@@ -32,7 +41,7 @@ class SettingsScreen extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: ListView(
-            padding: EdgeInsets.all(isTablet ? 24.w : 16.w),
+            padding: EdgeInsets.all(isTablet ? 20.w : 16.w),
             children: [
               // MODO OSCURO
               _buildSettingCard(
@@ -50,7 +59,8 @@ class SettingsScreen extends StatelessWidget {
                 isTablet: isTablet,
               ),
               
-              SizedBox(height: isTablet ? 20.h : 16.h),
+              SizedBox(height: isTablet ? 14.h : 16.h),
+
 
               // PERFIL DEL NEGOCIO
               _buildSettingCard(
@@ -68,7 +78,9 @@ class SettingsScreen extends StatelessWidget {
                 isTablet: isTablet,
               ),
 
-              SizedBox(height: isTablet ? 20.h : 16.h),
+
+              SizedBox(height: isTablet ? 14.h : 16.h),
+
 
               // IDIOMA
               _buildSettingCard(
@@ -83,7 +95,9 @@ class SettingsScreen extends StatelessWidget {
                 isTablet: isTablet,
               ),
 
-              SizedBox(height: isTablet ? 20.h : 16.h),
+
+              SizedBox(height: isTablet ? 14.h : 16.h),
+
 
               // MONEDA
               _buildSettingCard(
@@ -98,7 +112,9 @@ class SettingsScreen extends StatelessWidget {
                 isTablet: isTablet,
               ),
 
-              SizedBox(height: isTablet ? 48.h : 32.h),
+
+              SizedBox(height: isTablet ? 36.h : 32.h),
+
 
               // INFO DE LA APP
               Center(
@@ -107,7 +123,7 @@ class SettingsScreen extends StatelessWidget {
                     Text(
                       'MiNegocio',
                       style: TextStyle(
-                        fontSize: isTablet ? 22.sp : 18.sp,
+                        fontSize: isTablet ? 18.sp : 18.sp,
                         fontWeight: FontWeight.bold,
                         color: theme.textSecondary,
                       ),
@@ -116,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
                     Text(
                       'Versión 1.0.0',
                       style: TextStyle(
-                        fontSize: isTablet ? 16.sp : 14.sp,
+                        fontSize: isTablet ? 14.sp : 14.sp,
                         color: theme.textHint,
                       ),
                     ),
@@ -130,6 +146,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+
   Widget _buildSettingCard({
     required BuildContext context,
     required ThemeHelper theme,
@@ -141,10 +158,11 @@ class SettingsScreen extends StatelessWidget {
     VoidCallback? onTap,
     required bool isTablet,
   }) {
-    final fontSize = isTablet ? 18.0.sp : 16.0.sp;
-    final subtitleSize = isTablet ? 15.0.sp : 13.0.sp;
-    final iconSize = isTablet ? 32.0.sp : 28.0.sp;
-    final padding = isTablet ? 20.0.w : 16.0.w;
+    final fontSize = isTablet ? 16.0.sp : 16.0.sp;
+    final subtitleSize = isTablet ? 13.0.sp : 13.0.sp;
+    final iconSize = isTablet ? 26.0.sp : 28.0.sp;
+    final padding = isTablet ? 16.0.w : 16.0.w;
+
 
     return Card(
       elevation: theme.isDark ? 4 : 2,
@@ -159,12 +177,12 @@ class SettingsScreen extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: padding,
-            vertical: padding * 0.75,
+            vertical: isTablet ? padding * 0.65 : padding * 0.75,
           ),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(isTablet ? 14.w : 12.w),
+                padding: EdgeInsets.all(isTablet ? 11.w : 12.w),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12.r),
@@ -175,7 +193,7 @@ class SettingsScreen extends StatelessWidget {
                   size: iconSize,
                 ),
               ),
-              SizedBox(width: isTablet ? 20.w : 16.w),
+              SizedBox(width: isTablet ? 16.w : 16.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,10 +226,12 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+
 void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
   final l10n = AppLocalizations.of(context)!;
   final settingsProvider = context.read<SettingsProvider>();
   final screenHeight = MediaQuery.of(context).size.height;
+
 
   showDialog(
     context: context,
@@ -229,27 +249,27 @@ void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme)
           children: [
             // Header
             Container(
-              padding: EdgeInsets.all(isTablet ? 24.w : 20.w),
+              padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
               decoration: BoxDecoration(
                 color: theme.primary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.language, color: Colors.white, size: isTablet ? 28.sp : 24.sp),
-                  SizedBox(width: isTablet ? 16.w : 12.w),
+                  Icon(Icons.language, color: Colors.white, size: isTablet ? 24.sp : 24.sp),
+                  SizedBox(width: isTablet ? 14.w : 12.w),
                   Expanded(
                     child: Text(
                       l10n.selectLanguage,
                       style: TextStyle(
-                        fontSize: isTablet ? 22.sp : 20.sp,
+                        fontSize: isTablet ? 19.sp : 20.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.white, size: isTablet ? 26.sp : 24.sp),
+                    icon: Icon(Icons.close, color: Colors.white, size: isTablet ? 23.sp : 24.sp),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -268,17 +288,17 @@ void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme)
                   
                   return ListTile(
                     contentPadding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 28.w : 24.w,
-                      vertical: isTablet ? 12.h : 8.h,
+                      horizontal: isTablet ? 24.w : 24.w,
+                      vertical: isTablet ? 10.h : 8.h,
                     ),
                     leading: Text(
                       entry.value['flag']!,
-                      style: TextStyle(fontSize: isTablet ? 32.sp : 28.sp),
+                      style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
                     ),
                     title: Text(
                       entry.value['name']!,
                       style: TextStyle(
-                        fontSize: isTablet ? 18.sp : 16.sp,
+                        fontSize: isTablet ? 16.sp : 16.sp,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         color: theme.textPrimary,
                       ),
@@ -287,7 +307,7 @@ void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme)
                         ? Icon(
                             Icons.check_circle,
                             color: theme.primary,
-                            size: isTablet ? 28.sp : 24.sp,
+                            size: isTablet ? 24.sp : 24.sp,
                           )
                         : null,
                     selected: isSelected,
@@ -309,10 +329,12 @@ void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme)
 }
 
 
+
 void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
   final l10n = AppLocalizations.of(context)!;
   final settingsProvider = context.read<SettingsProvider>();
   final screenHeight = MediaQuery.of(context).size.height;
+
 
   showDialog(
     context: context,
@@ -322,7 +344,7 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
       insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: isTablet ? 600.w : 450.w,
+          maxWidth: isTablet ? 550.w : 450.w,
           maxHeight: screenHeight * 0.8,
         ),
         child: Column(
@@ -330,27 +352,27 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
           children: [
             // Header
             Container(
-              padding: EdgeInsets.all(isTablet ? 24.w : 20.w),
+              padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
               decoration: BoxDecoration(
                 color: const Color(0xFF9C27B0),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.attach_money, color: Colors.white, size: isTablet ? 28.sp : 24.sp),
-                  SizedBox(width: isTablet ? 16.w : 12.w),
+                  Icon(Icons.attach_money, color: Colors.white, size: isTablet ? 24.sp : 24.sp),
+                  SizedBox(width: isTablet ? 14.w : 12.w),
                   Expanded(
                     child: Text(
                       l10n.selectCurrency,
                       style: TextStyle(
-                        fontSize: isTablet ? 22.sp : 20.sp,
+                        fontSize: isTablet ? 19.sp : 20.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.white, size: isTablet ? 26.sp : 24.sp),
+                    icon: Icon(Icons.close, color: Colors.white, size: isTablet ? 23.sp : 24.sp),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -369,17 +391,17 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
                   
                   return ListTile(
                     contentPadding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 28.w : 24.w,
-                      vertical: isTablet ? 12.h : 8.h,
+                      horizontal: isTablet ? 24.w : 24.w,
+                      vertical: isTablet ? 10.h : 8.h,
                     ),
                     leading: Text(
                       entry.value['flag']!,
-                      style: TextStyle(fontSize: isTablet ? 32.sp : 28.sp),
+                      style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
                     ),
                     title: Text(
                       entry.value['name']!,
                       style: TextStyle(
-                        fontSize: isTablet ? 18.sp : 16.sp,
+                        fontSize: isTablet ? 16.sp : 16.sp,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         color: theme.textPrimary,
                       ),
@@ -387,7 +409,7 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
                     subtitle: Text(
                       entry.value['symbol']!,
                       style: TextStyle(
-                        fontSize: isTablet ? 16.sp : 14.sp,
+                        fontSize: isTablet ? 14.sp : 14.sp,
                         color: theme.textSecondary,
                       ),
                     ),
@@ -395,7 +417,7 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
                         ? Icon(
                             Icons.check_circle,
                             color: const Color(0xFF9C27B0),
-                            size: isTablet ? 28.sp : 24.sp,
+                            size: isTablet ? 24.sp : 24.sp,
                           )
                         : null,
                     selected: isSelected,
@@ -416,6 +438,7 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
   );
 }
 
+
   String _getDarkModeText(AppLocalizations l10n) {
     switch (l10n.localeName) {
       case 'es': return 'Modo oscuro';
@@ -426,6 +449,7 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
     }
   }
 
+
   String _getDarkModeSubtitleText(AppLocalizations l10n) {
     switch (l10n.localeName) {
       case 'es': return 'Activa el tema oscuro';
@@ -435,6 +459,7 @@ void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme)
       default: return 'Activate dark theme';
     }
   }
+
 
   String _getBusinessProfileSubtitleText(AppLocalizations l10n) {
     switch (l10n.localeName) {

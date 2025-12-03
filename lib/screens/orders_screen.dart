@@ -71,10 +71,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     return total;
   }
 
-  // ✅ DIÁLOGO PARA PEDIR DATOS DEL CLIENTE AL FINALIZAR
   Future<void> _showCustomerDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
+    final isTablet = MediaQuery.of(context).size.width > 600;
     
     return showDialog(
       context: context,
@@ -86,7 +86,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           backgroundColor: theme.cardBackground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
           child: Padding(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.all(isTablet ? 18.w : 20.w),
             child: Form(
               key: formKey,
               child: Column(
@@ -96,13 +96,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   Text(
                     'Datos del Cliente',
                     style: TextStyle(
-                      fontSize: 20.sp,
+                      fontSize: isTablet ? 18.sp : 20.sp,
                       fontWeight: FontWeight.bold,
                       color: theme.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: isTablet ? 16.h : 20.h),
                   
                   TextFormField(
                     controller: _customerNameController,
@@ -155,7 +155,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                     ),
                     keyboardType: TextInputType.phone,
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: isTablet ? 20.h : 24.h),
                   
                   Row(
                     children: [
@@ -323,7 +323,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       appBar: AppBar(
-        title: Text(l10n.orders),
+        title: Text(
+          l10n.orders,
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: theme.appBarBackground,
         foregroundColor: theme.appBarForeground,
         bottom: TabBar(
@@ -341,13 +347,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         controller: _tabController,
         children: [
           _buildCreateOrderTab(isTablet, l10n, theme),
-          const InvoicesScreenContent(), // ✅ Cambiar aquí
+          const InvoicesScreenContent(),
         ],
       ),
     );
   }
 
-  // ✅ SIN FORMULARIO ARRIBA - MÁS ESPACIO PARA PRODUCTOS
   Widget _buildCreateOrderTab(bool isTablet, AppLocalizations l10n, ThemeHelper theme) {
     final productProvider = context.watch<ProductProvider>();
     final settingsProvider = context.watch<SettingsProvider>();
@@ -398,7 +403,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         ),
 
-        // ✅ BOTÓN VER CARRITO (solo visible si hay items)
+        // Botón ver carrito
         if (_cart.isNotEmpty)
           Container(
             margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -419,18 +424,18 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         if (_cart.isNotEmpty) SizedBox(height: 12.h),
 
-        // ✅ LISTA DE PRODUCTOS (MÁS ESPACIO)
+        // Lista de productos
         Expanded(
           child: filteredProducts.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.inventory_2_outlined, size: 80.sp, color: theme.iconColorLight),
+                      Icon(Icons.inventory_2_outlined, size: isTablet ? 70.sp : 80.sp, color: theme.iconColorLight),
                       SizedBox(height: 16.h),
                       Text(
                         l10n.noProductsAvailable,
-                        style: TextStyle(fontSize: 18.sp, color: theme.textSecondary),
+                        style: TextStyle(fontSize: isTablet ? 16.sp : 18.sp, color: theme.textSecondary),
                       ),
                     ],
                   ),
@@ -447,13 +452,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       color: theme.cardBackground,
                       elevation: theme.isDark ? 4 : 2,
                       child: Padding(
-                        padding: EdgeInsets.all(12.w),
+                        padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
                         child: Row(
                           children: [
                             // Imagen
                             Container(
-                              width: 70.w,
-                              height: 70.w,
+                              width: isTablet ? 60.w : 70.w,
+                              height: isTablet ? 60.w : 70.w,
                               decoration: BoxDecoration(
                                 color: theme.surfaceColor,
                                 borderRadius: BorderRadius.circular(8.r),
@@ -481,7 +486,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   Text(
                                     product.name,
                                     style: TextStyle(
-                                      fontSize: 16.sp,
+                                      fontSize: isTablet ? 15.sp : 16.sp,
                                       fontWeight: FontWeight.bold,
                                       color: theme.textPrimary,
                                     ),
@@ -492,7 +497,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   Text(
                                     settingsProvider.formatPrice(product.price),
                                     style: TextStyle(
-                                      fontSize: 16.sp,
+                                      fontSize: isTablet ? 15.sp : 16.sp,
                                       fontWeight: FontWeight.bold,
                                       color: theme.success,
                                     ),
@@ -578,7 +583,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                     Text(
                       l10n.totalItems(_cart.values.fold(0, (sum, qty) => sum + qty)),
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: isTablet ? 16.sp : 18.sp,
                         fontWeight: FontWeight.bold,
                         color: theme.textPrimary,
                       ),
@@ -586,7 +591,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                     Text(
                       settingsProvider.formatPrice(_calculateTotal(productProvider)),
                       style: TextStyle(
-                        fontSize: 24.sp,
+                        fontSize: isTablet ? 22.sp : 24.sp,
                         fontWeight: FontWeight.bold,
                         color: theme.success,
                       ),
@@ -637,8 +642,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     );
   }
 
-  // Vista previa del carrito
   void _showCartPreview(ProductProvider productProvider, SettingsProvider settingsProvider, AppLocalizations l10n, ThemeHelper theme) {
+    final isTablet = MediaQuery.of(context).size.width > 600;
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -670,7 +676,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   Text(
                     l10n.cart,
                     style: TextStyle(
-                      fontSize: 20.sp,
+                      fontSize: isTablet ? 18.sp : 20.sp,
                       fontWeight: FontWeight.bold,
                       color: theme.textPrimary,
                     ),
@@ -710,7 +716,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                 Text(
                                   product.name,
                                   style: TextStyle(
-                                    fontSize: 16.sp,
+                                    fontSize: isTablet ? 15.sp : 16.sp,
                                     fontWeight: FontWeight.bold,
                                     color: theme.textPrimary,
                                   ),
@@ -728,7 +734,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                           Text(
                             settingsProvider.formatPrice(product.price * quantity),
                             style: TextStyle(
-                              fontSize: 16.sp,
+                              fontSize: isTablet ? 15.sp : 16.sp,
                               fontWeight: FontWeight.bold,
                               color: theme.success,
                             ),
@@ -753,7 +759,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   Text(
                     'Total:',
                     style: TextStyle(
-                      fontSize: 20.sp,
+                      fontSize: isTablet ? 18.sp : 20.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -761,7 +767,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   Text(
                     settingsProvider.formatPrice(_calculateTotal(productProvider)),
                     style: TextStyle(
-                      fontSize: 24.sp,
+                      fontSize: isTablet ? 22.sp : 24.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
