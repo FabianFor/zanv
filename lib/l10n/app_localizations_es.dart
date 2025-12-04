@@ -503,4 +503,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get phoneMinLength => 'El teléfono debe tener al menos 7 dígitos';
+
+  @override
+  String get downloadFormat => 'Formato de descarga';
+
+  @override
+  String get downloadFormatImage => 'Imagen (PNG)';
+
+  @override
+  String get downloadFormatPdf => 'Documento (PDF)';
 }

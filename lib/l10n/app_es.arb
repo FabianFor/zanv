@@ -232,5 +232,17 @@
   "customerNameMinLength": "El nombre debe tener al menos 2 caracteres",
   "customerNameMaxLength": "El nombre es demasiado largo",
   "phoneNumberInvalid": "Número de teléfono inválido",
-  "phoneMinLength": "El teléfono debe tener al menos 7 dígitos"
+  "phoneMinLength": "El teléfono debe tener al menos 7 dígitos",
+  "downloadFormat": "Formato de descarga",
+  "@downloadFormat": {
+    "description": "Título de la sección de formato de descarga"
+  },
+  "downloadFormatImage": "Imagen (PNG)",
+  "@downloadFormatImage": {
+    "description": "Opción para descargar como imagen"
+  },
+  "downloadFormatPdf": "Documento (PDF)",
+  "@downloadFormatPdf": {
+    "description": "Opción para descargar como PDF"
+  }
 }

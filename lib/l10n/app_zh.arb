@@ -232,5 +232,17 @@
   "customerNameMinLength": "姓名至少需要2个字符",
   "customerNameMaxLength": "姓名过长",
   "phoneNumberInvalid": "无效的电话号码",
-  "phoneMinLength": "电话至少需要7位数字"
+  "phoneMinLength": "电话至少需要7位数字",
+  "downloadFormat": "下载格式",
+  "@downloadFormat": {
+    "description": "下载格式部分标题"
+  },
+  "downloadFormatImage": "图片 (PNG)",
+  "@downloadFormatImage": {
+    "description": "选择下载为图片"
+  },
+  "downloadFormatPdf": "文档 (PDF)",
+  "@downloadFormatPdf": {
+    "description": "选择下载为PDF"
+  }
 }

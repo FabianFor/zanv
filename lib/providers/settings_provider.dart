@@ -3,34 +3,39 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider with ChangeNotifier {
   // Configuración de moneda
-  String _currencyCode = 'PEN';
-  String _currencySymbol = 'S/';
+  String _currencyCode = 'USD'; // ✅ DEFAULT USD
+  String _currencySymbol = '\$'; // ✅ DEFAULT $
   
   // Configuración de idioma
-  Locale _locale = const Locale('es');
+  Locale _locale = const Locale('en'); // ✅ DEFAULT INGLÉS
   
-  // ✅ NUEVO: Configuración de tema
+  // Configuración de tema
   ThemeMode _themeMode = ThemeMode.light;
+  
+  // Configuración de formato de descarga
+  String _downloadFormat = 'image';
 
   String get currencyCode => _currencyCode;
   String get currencySymbol => _currencySymbol;
   Locale get locale => _locale;
-  ThemeMode get themeMode => _themeMode; // ✅ NUEVO
+  ThemeMode get themeMode => _themeMode;
+  String get downloadFormat => _downloadFormat;
   
-  bool get isDarkMode => _themeMode == ThemeMode.dark; // ✅ NUEVO
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
 
+  // ✅ MONEDAS SIN NOMBRES (se traducen dinámicamente)
   static const Map<String, Map<String, String>> supportedCurrencies = {
-    'PEN': {'name': 'Sol Peruano', 'symbol': 'S/', 'flag': '🇵🇪'},
-    'USD': {'name': 'Dólar Estadounidense', 'symbol': '\$', 'flag': '🇺🇸'},
-    'EUR': {'name': 'Euro', 'symbol': '€', 'flag': '🇪🇺'},
-    'CLP': {'name': 'Peso Chileno', 'symbol': '\$', 'flag': '🇨🇱'},
-    'ARS': {'name': 'Peso Argentino', 'symbol': '\$', 'flag': '🇦🇷'},
-    'BOB': {'name': 'Boliviano', 'symbol': 'Bs.', 'flag': '🇧🇴'},
-    'BRL': {'name': 'Real Brasileño', 'symbol': 'R\$', 'flag': '🇧🇷'},
-    'MXN': {'name': 'Peso Mexicano', 'symbol': '\$', 'flag': '🇲🇽'},
-    'COP': {'name': 'Peso Colombiano', 'symbol': '\$', 'flag': '🇨🇴'},
-    'CNY': {'name': 'Yuan Chino', 'symbol': '¥', 'flag': '🇨🇳'},
-    'JPY': {'name': 'Yen Japonés', 'symbol': '¥', 'flag': '🇯🇵'},
+    'PEN': {'symbol': 'S/', 'flag': '🇵🇪'},
+    'USD': {'symbol': '\$', 'flag': '🇺🇸'},
+    'EUR': {'symbol': '€', 'flag': '🇪🇺'},
+    'CLP': {'symbol': '\$', 'flag': '🇨🇱'},
+    'ARS': {'symbol': '\$', 'flag': '🇦🇷'},
+    'BOB': {'symbol': 'Bs.', 'flag': '🇧🇴'},
+    'BRL': {'symbol': 'R\$', 'flag': '🇧🇷'},
+    'MXN': {'symbol': '\$', 'flag': '🇲🇽'},
+    'COP': {'symbol': '\$', 'flag': '🇨🇴'},
+    'CNY': {'symbol': '¥', 'flag': '🇨🇳'},
+    'JPY': {'symbol': '¥', 'flag': '🇯🇵'},
   };
 
   static const Map<String, Map<String, String>> supportedLanguages = {
@@ -43,18 +48,19 @@ class SettingsProvider with ChangeNotifier {
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     
-    _currencyCode = prefs.getString('currency_code') ?? 'PEN';
-    _currencySymbol = prefs.getString('currency_symbol') ?? 'S/';
+    _currencyCode = prefs.getString('currency_code') ?? 'USD';
+    _currencySymbol = prefs.getString('currency_symbol') ?? '\$';
     
-    final languageCode = prefs.getString('language_code') ?? 'es';
+    final languageCode = prefs.getString('language_code') ?? 'en';
     _locale = Locale(languageCode);
     
-    // ✅ NUEVO: Cargar preferencia de tema
     final isDark = prefs.getBool('is_dark_mode') ?? false;
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     
+    _downloadFormat = prefs.getString('download_format') ?? 'image';
+    
     notifyListeners();
-    print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}, Dark: $isDark');
+    print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}, Dark: $isDark, Format: $_downloadFormat');
   }
 
   Future<void> setCurrency(String code) async {
@@ -89,7 +95,6 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Idioma cambiado a: $languageCode');
   }
 
-  // ✅ NUEVO: Cambiar tema
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
 
@@ -100,10 +105,24 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Tema cambiado a: ${mode == ThemeMode.dark ? "Oscuro" : "Claro"}');
   }
 
-  // ✅ NUEVO: Toggle dark mode
   Future<void> toggleDarkMode() async {
     final newMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     await setThemeMode(newMode);
+  }
+
+  Future<void> setDownloadFormat(String format) async {
+    if (format != 'image' && format != 'pdf') {
+      print('❌ Formato no soportado: $format');
+      return;
+    }
+
+    _downloadFormat = format;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('download_format', format);
+
+    notifyListeners();
+    print('✅ Formato de descarga cambiado a: $format');
   }
 
   String formatPrice(double price) {
@@ -120,8 +139,82 @@ class SettingsProvider with ChangeNotifier {
     }
   }
 
+  // ✅ MÉTODO PARA OBTENER NOMBRE DE MONEDA TRADUCIDO
+  String getCurrencyName(String languageCode) {
+    final names = {
+      'PEN': {
+        'es': 'Sol Peruano',
+        'en': 'Peruvian Sol',
+        'pt': 'Sol Peruano',
+        'zh': '秘鲁索尔',
+      },
+      'USD': {
+        'es': 'Dólar Estadounidense',
+        'en': 'US Dollar',
+        'pt': 'Dólar Americano',
+        'zh': '美元',
+      },
+      'EUR': {
+        'es': 'Euro',
+        'en': 'Euro',
+        'pt': 'Euro',
+        'zh': '欧元',
+      },
+      'CLP': {
+        'es': 'Peso Chileno',
+        'en': 'Chilean Peso',
+        'pt': 'Peso Chileno',
+        'zh': '智利比索',
+      },
+      'ARS': {
+        'es': 'Peso Argentino',
+        'en': 'Argentine Peso',
+        'pt': 'Peso Argentino',
+        'zh': '阿根廷比索',
+      },
+      'BOB': {
+        'es': 'Boliviano',
+        'en': 'Bolivian Boliviano',
+        'pt': 'Boliviano',
+        'zh': '玻利维亚诺',
+      },
+      'BRL': {
+        'es': 'Real Brasileño',
+        'en': 'Brazilian Real',
+        'pt': 'Real Brasileiro',
+        'zh': '巴西雷亚尔',
+      },
+      'MXN': {
+        'es': 'Peso Mexicano',
+        'en': 'Mexican Peso',
+        'pt': 'Peso Mexicano',
+        'zh': '墨西哥比索',
+      },
+      'COP': {
+        'es': 'Peso Colombiano',
+        'en': 'Colombian Peso',
+        'pt': 'Peso Colombiano',
+        'zh': '哥伦比亚比索',
+      },
+      'CNY': {
+        'es': 'Yuan Chino',
+        'en': 'Chinese Yuan',
+        'pt': 'Yuan Chinês',
+        'zh': '人民币',
+      },
+      'JPY': {
+        'es': 'Yen Japonés',
+        'en': 'Japanese Yen',
+        'pt': 'Iene Japonês',
+        'zh': '日元',
+      },
+    };
+
+    return names[_currencyCode]?[languageCode] ?? 'Unknown';
+  }
+
   String get currentCurrencyName {
-    return supportedCurrencies[_currencyCode]?['name'] ?? 'Desconocida';
+    return getCurrencyName(_locale.languageCode);
   }
 
   String get currentCurrencyFlag {

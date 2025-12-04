@@ -10,6 +10,7 @@ import '../providers/business_provider.dart';
 import '../providers/settings_provider.dart';
 import '../models/business_profile.dart';
 import '../services/invoice_image_generator.dart';
+import '../services/invoice_pdf_generator.dart'; // ✅ NUEVO IMPORT
 import '../services/permission_handler.dart';
 import '../services/gallery_saver.dart';
 
@@ -47,12 +48,10 @@ class InvoicesScreenContent extends StatefulWidget {
 }
 
 class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
-  // ✅ AGREGAR CONTROLLER
   final _searchController = TextEditingController();
   String _searchQuery = '';
   DateTime? _filterDate;
 
-  // ✅ AGREGAR dispose
   @override
   void dispose() {
     _searchController.dispose();
@@ -90,7 +89,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
             children: [
               Expanded(
                 child: TextField(
-                  controller: _searchController, // ✅ AGREGADO
+                  controller: _searchController,
                   onChanged: (value) {
                     setState(() {
                       _searchQuery = value;
@@ -107,7 +106,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                             onPressed: () {
                               setState(() {
                                 _searchQuery = '';
-                                _searchController.clear(); // ✅ AGREGADO
+                                _searchController.clear();
                               });
                             },
                           )
@@ -221,7 +220,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                           onPressed: () {
                             setState(() {
                               _searchQuery = '';
-                              _searchController.clear(); // ✅ AGREGADO
+                              _searchController.clear();
                               _filterDate = null;
                             });
                           },
@@ -239,7 +238,6 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
               : ListView.builder(
                   padding: EdgeInsets.all(16.w),
                   itemCount: filteredInvoices.length,
-                  // ✅ OPTIMIZACIONES
                   cacheExtent: 500,
                   addAutomaticKeepAlives: false,
                   addRepaintBoundaries: true,
@@ -730,6 +728,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     );
   }
 
+  // ✅ MÉTODO MODIFICADO PARA COMPARTIR
   Future<void> _handleShareInvoice(
     BuildContext context,
     dynamic invoice,
@@ -767,23 +766,40 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     );
 
     try {
-      final imagePath = await InvoiceImageGenerator.generateImage(
-        invoice: invoice,
-        businessProfile: businessProvider.profile ?? BusinessProfile(
-          name: '',
-          address: '',
-          phone: '',
-          email: '',
-          logoPath: '',
-        ),
-        context: context,
-        settingsProvider: settingsProvider,
-      );
+      String filePath;
+      
+      // ✅ VERIFICAR FORMATO CONFIGURADO
+      if (settingsProvider.downloadFormat == 'pdf') {
+        filePath = await InvoicePdfGenerator.generatePdf(
+          invoice: invoice,
+          businessProfile: businessProvider.profile ?? BusinessProfile(
+            name: '',
+            address: '',
+            phone: '',
+            email: '',
+            logoPath: '',
+          ),
+          settingsProvider: settingsProvider,
+        );
+      } else {
+        filePath = await InvoiceImageGenerator.generateImage(
+          invoice: invoice,
+          businessProfile: businessProvider.profile ?? BusinessProfile(
+            name: '',
+            address: '',
+            phone: '',
+            email: '',
+            logoPath: '',
+          ),
+          context: context,
+          settingsProvider: settingsProvider,
+        );
+      }
 
       if (context.mounted) Navigator.pop(context);
 
       await Share.shareXFiles(
-        [XFile(imagePath)],
+        [XFile(filePath)],
         text: '${l10n.receipt} #${invoice.invoiceNumber}',
       );
     } catch (e) {
@@ -799,6 +815,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     }
   }
 
+  // ✅ MÉTODO MODIFICADO PARA DESCARGAR
   Future<void> _handleDownloadInvoice(
     BuildContext context,
     dynamic invoice,
@@ -836,21 +853,38 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     );
 
     try {
-      final tempImagePath = await InvoiceImageGenerator.generateImage(
-        invoice: invoice,
-        businessProfile: businessProvider.profile ?? BusinessProfile(
-          name: '',
-          address: '',
-          phone: '',
-          email: '',
-          logoPath: '',
-        ),
-        context: context,
-        settingsProvider: settingsProvider,
-      );
+      String filePath;
+      
+      // ✅ VERIFICAR FORMATO CONFIGURADO
+      if (settingsProvider.downloadFormat == 'pdf') {
+        filePath = await InvoicePdfGenerator.generatePdf(
+          invoice: invoice,
+          businessProfile: businessProvider.profile ?? BusinessProfile(
+            name: '',
+            address: '',
+            phone: '',
+            email: '',
+            logoPath: '',
+          ),
+          settingsProvider: settingsProvider,
+        );
+      } else {
+        filePath = await InvoiceImageGenerator.generateImage(
+          invoice: invoice,
+          businessProfile: businessProvider.profile ?? BusinessProfile(
+            name: '',
+            address: '',
+            phone: '',
+            email: '',
+            logoPath: '',
+          ),
+          context: context,
+          settingsProvider: settingsProvider,
+        );
+      }
 
       final savedPath = await GallerySaver.saveInvoiceToGallery(
-        tempImagePath: tempImagePath,
+        tempImagePath: filePath,
         invoiceNumber: invoice.invoiceNumber,
       );
 

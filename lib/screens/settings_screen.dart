@@ -76,14 +76,14 @@ class SettingsScreen extends StatelessWidget {
 
               SizedBox(height: isTablet ? 14.h : 16.h),
 
-              // IDIOMA
+              // IDIOMA (SIN BANDERA EN LA CARD)
               _buildSettingCard(
                 context: context,
                 theme: theme,
                 icon: Icons.language,
                 iconColor: theme.success,
                 title: l10n.language,
-                subtitle: '${settingsProvider.currentLanguageFlag} ${settingsProvider.currentLanguageName}',
+                subtitle: settingsProvider.currentLanguageName,
                 trailing: Icon(Icons.chevron_right, color: theme.iconColor),
                 onTap: () => _showLanguageDialog(context, isTablet, theme),
                 isTablet: isTablet,
@@ -91,7 +91,7 @@ class SettingsScreen extends StatelessWidget {
 
               SizedBox(height: isTablet ? 14.h : 16.h),
 
-              // MONEDA
+              // MONEDA (CON BANDERA EN LA CARD)
               _buildSettingCard(
                 context: context,
                 theme: theme,
@@ -101,6 +101,23 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: '${settingsProvider.currentCurrencyFlag} ${settingsProvider.currentCurrencyName}',
                 trailing: Icon(Icons.chevron_right, color: theme.iconColor),
                 onTap: () => _showCurrencyDialog(context, isTablet, theme),
+                isTablet: isTablet,
+              ),
+
+              SizedBox(height: isTablet ? 14.h : 16.h),
+
+              // FORMATO DE DESCARGA
+              _buildSettingCard(
+                context: context,
+                theme: theme,
+                icon: Icons.download,
+                iconColor: const Color(0xFFFF6B6B),
+                title: l10n.downloadFormat,
+                subtitle: settingsProvider.downloadFormat == 'pdf' 
+                    ? '📄 ${l10n.downloadFormatPdf}' 
+                    : '🖼️ ${l10n.downloadFormatImage}',
+                trailing: Icon(Icons.chevron_right, color: theme.iconColor),
+                onTap: () => _showDownloadFormatDialog(context, isTablet, theme),
                 isTablet: isTablet,
               ),
 
@@ -214,6 +231,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ✅ DIÁLOGO DE IDIOMA (SIN BANDERAS)
   void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -262,7 +280,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               
-              // Lista de idiomas
+              // Lista de idiomas (SIN BANDERAS)
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -276,10 +294,6 @@ class SettingsScreen extends StatelessWidget {
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: isTablet ? 24.w : 24.w,
                         vertical: isTablet ? 10.h : 8.h,
-                      ),
-                      leading: Text(
-                        entry.value['flag']!,
-                        style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
                       ),
                       title: Text(
                         entry.value['name']!,
@@ -314,6 +328,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ✅ DIÁLOGO DE MONEDA (CON BANDERAS Y NOMBRES TRADUCIDOS)
   void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -362,7 +377,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               
-              // Lista de monedas
+              // Lista de monedas (CON BANDERAS Y TRADUCIDAS)
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -370,7 +385,8 @@ class SettingsScreen extends StatelessWidget {
                   itemCount: SettingsProvider.supportedCurrencies.length,
                   itemBuilder: (context, index) {
                     final entry = SettingsProvider.supportedCurrencies.entries.elementAt(index);
-                    final isSelected = settingsProvider.currencyCode == entry.key;
+                    final currencyCode = entry.key;
+                    final isSelected = settingsProvider.currencyCode == currencyCode;
                     
                     return ListTile(
                       contentPadding: EdgeInsets.symmetric(
@@ -382,7 +398,7 @@ class SettingsScreen extends StatelessWidget {
                         style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
                       ),
                       title: Text(
-                        entry.value['name']!,
+                        settingsProvider.getCurrencyName(settingsProvider.locale.languageCode),
                         style: TextStyle(
                           fontSize: isTablet ? 16.sp : 16.sp,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -390,7 +406,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        entry.value['symbol']!,
+                        '$currencyCode - ${entry.value['symbol']!}',
                         style: TextStyle(
                           fontSize: isTablet ? 14.sp : 14.sp,
                           color: theme.textSecondary,
@@ -407,11 +423,144 @@ class SettingsScreen extends StatelessWidget {
                       selectedTileColor: const Color(0xFF9C27B0).withOpacity(0.1),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                       onTap: () {
-                        settingsProvider.setCurrency(entry.key);
+                        settingsProvider.setCurrency(currencyCode);
                         Navigator.pop(context);
                       },
                     );
                   },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ✅ DIÁLOGO PARA FORMATO DE DESCARGA
+  void _showDownloadFormatDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
+    final l10n = AppLocalizations.of(context)!;
+    final settingsProvider = context.read<SettingsProvider>();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: theme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: isTablet ? 450.w : 380.w,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B6B),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.download, color: Colors.white, size: isTablet ? 24.sp : 24.sp),
+                    SizedBox(width: isTablet ? 14.w : 12.w),
+                    Expanded(
+                      child: Text(
+                        l10n.downloadFormat,
+                        style: TextStyle(
+                          fontSize: isTablet ? 19.sp : 20.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: Colors.white, size: isTablet ? 23.sp : 24.sp),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Opciones de formato
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.h),
+                child: Column(
+                  children: [
+                    // Opción Imagen
+                    ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 24.w : 24.w,
+                        vertical: isTablet ? 10.h : 8.h,
+                      ),
+                      leading: Text(
+                        '🖼️',
+                        style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
+                      ),
+                      title: Text(
+                        l10n.downloadFormatImage,
+                        style: TextStyle(
+                          fontSize: isTablet ? 16.sp : 16.sp,
+                          fontWeight: settingsProvider.downloadFormat == 'image' 
+                              ? FontWeight.bold 
+                              : FontWeight.normal,
+                          color: theme.textPrimary,
+                        ),
+                      ),
+                      trailing: settingsProvider.downloadFormat == 'image' 
+                          ? Icon(
+                              Icons.check_circle,
+                              color: const Color(0xFFFF6B6B),
+                              size: isTablet ? 24.sp : 24.sp,
+                            )
+                          : null,
+                      selected: settingsProvider.downloadFormat == 'image',
+                      selectedTileColor: const Color(0xFFFF6B6B).withOpacity(0.1),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                      onTap: () {
+                        settingsProvider.setDownloadFormat('image');
+                        Navigator.pop(context);
+                      },
+                    ),
+                    
+                    // Opción PDF
+                    ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 24.w : 24.w,
+                        vertical: isTablet ? 10.h : 8.h,
+                      ),
+                      leading: Text(
+                        '📄',
+                        style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
+                      ),
+                      title: Text(
+                        l10n.downloadFormatPdf,
+                        style: TextStyle(
+                          fontSize: isTablet ? 16.sp : 16.sp,
+                          fontWeight: settingsProvider.downloadFormat == 'pdf' 
+                              ? FontWeight.bold 
+                              : FontWeight.normal,
+                          color: theme.textPrimary,
+                        ),
+                      ),
+                      trailing: settingsProvider.downloadFormat == 'pdf' 
+                          ? Icon(
+                              Icons.check_circle,
+                              color: const Color(0xFFFF6B6B),
+                              size: isTablet ? 24.sp : 24.sp,
+                            )
+                          : null,
+                      selected: settingsProvider.downloadFormat == 'pdf',
+                      selectedTileColor: const Color(0xFFFF6B6B).withOpacity(0.1),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                      onTap: () {
+                        settingsProvider.setDownloadFormat('pdf');
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],

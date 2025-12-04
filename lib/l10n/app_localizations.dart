@@ -1037,6 +1037,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El teléfono debe tener al menos 7 dígitos'**
   String get phoneMinLength;
+
+  /// Título de la sección de formato de descarga
+  ///
+  /// In es, this message translates to:
+  /// **'Formato de descarga'**
+  String get downloadFormat;
+
+  /// Opción para descargar como imagen
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen (PNG)'**
+  String get downloadFormatImage;
+
+  /// Opción para descargar como PDF
+  ///
+  /// In es, this message translates to:
+  /// **'Documento (PDF)'**
+  String get downloadFormatPdf;
 }
 
 class _AppLocalizationsDelegate

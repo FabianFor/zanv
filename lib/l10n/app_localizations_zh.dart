@@ -498,4 +498,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get phoneMinLength => '电话至少需要7位数字';
+
+  @override
+  String get downloadFormat => '下载格式';
+
+  @override
+  String get downloadFormatImage => '图片 (PNG)';
+
+  @override
+  String get downloadFormatPdf => '文档 (PDF)';
 }
