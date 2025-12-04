@@ -138,8 +138,8 @@ class InvoiceContent extends StatelessWidget {
               // ✅ CORREGIDO: Usar businessProfile.logoPath
               if (businessProfile.logoPath.isNotEmpty)
                 Container(
-                  width: 70,
-                  height: 70,
+                  width: 80,
+                  height: 80,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),

@@ -37,11 +37,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => SettingsProvider()..loadSettings()),
-        ChangeNotifierProvider(create: (_) => BusinessProvider()..loadProfile()), // ✅ CORREGIDO
-        ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider(create: (_) => InvoiceProvider()),
+        // ✅ Settings primero (otros dependen de esto)
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider()..loadSettings(),
+        ),
+        
+        // ✅ Business profile
+        ChangeNotifierProvider(
+          create: (_) => BusinessProvider()..loadProfile(),
+        ),
+        
+        // ✅✅ INICIALIZACIÓN INMEDIATA DE DATOS
+        ChangeNotifierProvider(
+          create: (_) => ProductProvider()..loadProducts(), // ← Carga al iniciar
+        ),
+        ChangeNotifierProvider(
+          create: (_) => OrderProvider()..loadOrders(), // ← Carga al iniciar
+        ),
+        ChangeNotifierProvider(
+          create: (_) => InvoiceProvider()..loadInvoices(), // ← Carga al iniciar
+        ),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
@@ -69,7 +84,8 @@ class MyApp extends StatelessWidget {
                   Locale('pt'),
                   Locale('zh'),
                 ],
-                home: child,
+                // ✅ SPLASH SCREEN mientras carga
+                home: _AppInitializer(child: child!),
               );
             },
             child: const DashboardScreen(),
@@ -77,5 +93,43 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+// ✅ NUEVO: Widget que espera a que se carguen los datos
+class _AppInitializer extends StatelessWidget {
+  final Widget child;
+
+  const _AppInitializer({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final productProvider = context.watch<ProductProvider>();
+    final orderProvider = context.watch<OrderProvider>();
+    final invoiceProvider = context.watch<InvoiceProvider>();
+    
+    final isLoading = productProvider.isLoading || 
+                     orderProvider.isLoading || 
+                     invoiceProvider.isLoading;
+
+    if (isLoading) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Cargando datos...',
+                style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return child;
   }
 }

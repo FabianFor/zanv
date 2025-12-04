@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -5,8 +6,9 @@ import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../providers/business_provider.dart';
 import '../providers/product_provider.dart';
-import '../providers/order_provider.dart';
-import '../providers/invoice_provider.dart';
+// ❌ ELIMINADOS - No se usan en este archivo
+// import '../providers/order_provider.dart';
+// import '../providers/invoice_provider.dart';
 import 'products_screen.dart';
 import 'orders_screen.dart';
 import 'invoices_screen.dart';
@@ -20,23 +22,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _loadAllData();
-  }
-
-  Future<void> _loadAllData() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.wait([
-        context.read<ProductProvider>().loadProducts(),
-        context.read<OrderProvider>().loadOrders(),
-        context.read<InvoiceProvider>().loadInvoices(),
-        context.read<BusinessProvider>().loadProfile(),
-      ]);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -53,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: theme.scaffoldBackground,
       body: Column(
         children: [
-          // ✅ HEADER COMPACTO CON TEMA ADAPTABLE
+          // ✅✅ HEADER MEJORADO CON FOTO Y NOMBRE MÁS GRANDE
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -71,33 +56,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: horizontalPadding,
-                  vertical: isTablet ? 12.h : 16.h,
+                  vertical: isTablet ? 16.h : 20.h,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      // ✅ CORREGIDO: Manejo seguro de null
-                      (businessProvider.profile?.businessName?.isEmpty ?? true)
-                          ? l10n.businessName
-                          : businessProvider.profile!.businessName,
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: theme.appBarForeground,
+                    // ✅ FOTO DEL NEGOCIO (si existe)
+                    if (businessProvider.profile?.logoPath != null &&
+                        businessProvider.profile!.logoPath!.isNotEmpty)
+                      Container(
+                        width: isTablet ? 50.w : 56.w,
+                        height: isTablet ? 50.w : 56.w,
+                        margin: EdgeInsets.only(right: 16.w),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: theme.appBarForeground.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: Image.file(
+                            File(businessProvider.profile!.logoPath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: theme.primary.withOpacity(0.2),
+                                child: Icon(
+                                  Icons.business,
+                                  color: theme.appBarForeground,
+                                  size: isTablet ? 24.sp : 28.sp,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      )
+                    else
+                      // ✅ ÍCONO POR DEFECTO
+                      Container(
+                        width: isTablet ? 50.w : 56.w,
+                        height: isTablet ? 50.w : 56.w,
+                        margin: EdgeInsets.only(right: 16.w),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.primary.withOpacity(0.2),
+                          border: Border.all(
+                            color: theme.appBarForeground.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.business,
+                          color: theme.appBarForeground,
+                          size: isTablet ? 24.sp : 28.sp,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      l10n.businessManagement,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: theme.appBarForeground.withOpacity(0.9),
+
+                    // ✅ NOMBRE DEL NEGOCIO MÁS GRANDE (sin descripción)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            (businessProvider.profile?.businessName?.isEmpty ?? true)
+                                ? l10n.businessName
+                                : businessProvider.profile!.businessName,
+                            style: TextStyle(
+                              fontSize: isTablet ? 22.sp : 24.sp, // ✅ MÁS GRANDE
+                              fontWeight: FontWeight.bold,
+                              color: theme.appBarForeground,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
