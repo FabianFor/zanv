@@ -82,6 +82,78 @@
   "permissionsDenied": "Permisos denegados",
   "close": "Cerrar",
   "cart": "Carrito",
-  "viewCart": "Ver Carrito"
+  "viewCart": "Ver Carrito",
+  "quickAccess": "Accesos Rápidos",
+  "lowStockProducts": "Productos con stock bajo",
+  "tapToChangeLogo": "Toca para cambiar el logo",
+  "businessNameRequired": "El nombre del negocio es obligatorio",
+  "invalidEmail": "Ingrese un email válido",
+  "profileUpdated": "Perfil actualizado correctamente",
+  "logoSelected": "Logo seleccionado correctamente",
+  "needPermissions": "Necesitas dar permisos para elegir una imagen",
+  "imageSelectionError": "Error al seleccionar imagen",
+  "darkModeSubtitle": "Activa el tema oscuro",
+  "businessProfileSubtitle": "Edita la información de tu negocio",
+  "version": "Versión",
+  "filterByDate": "Filtrar por fecha",
+  "results": "{count} resultado(s)",
+  "@results": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noInvoicesFound": "No se encontraron boletas",
+  "clearFilters": "Limpiar filtros",
+  "productsCount": "{count} producto(s)",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteInvoice": "Eliminar boleta",
+  "deleteInvoiceConfirm": "¿Estás seguro de eliminar la Boleta #{number}?\n\nEsta acción no se puede deshacer.",
+  "@deleteInvoiceConfirm": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "invoiceDeleted": "Boleta eliminada",
+  "needPermissionsToShare": "Se necesitan permisos para compartir",
+  "needPermissionsToDownload": "Se necesitan permisos para descargar",
+  "savedToGallery": "Guardado en galería",
+  "customerData": "Datos del Cliente",
+  "nameField": "Nombre *",
+  "nameRequiredField": "Nombre requerido",
+  "phoneField": "Teléfono (opcional)",
+  "confirm": "Confirmar",
+  "units": "unidades",
+  "deleteProduct": "Eliminar producto",
+  "deleteProductConfirm": "¿Estás seguro de eliminar este producto?",
+  "productDeleted": "Producto eliminado exitosamente",
+  "permissionsNeeded": "Permisos necesarios",
+  "permissionsMessage": "Esta app necesita acceso a tus fotos para agregar imágenes a los productos.\n\nVe a:\nConfiguración → Apps → MiNegocio → Permisos → Fotos y multimedia",
+  "openSettings": "Abrir Configuración",
+  "needPermissionToSelectImage": "Necesitas dar permiso para seleccionar imágenes",
+  "trySelectAnyway": "Intenta seleccionar la imagen de todos modos",
+  "invoiceNumber": "Boleta #{number}",
+  "@invoiceNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "businessNameLabel": "Nombre de empresa",
+  "addressLabel": "Dirección",
+  "phoneLabel": "Teléfono",
+  "emailLabel": "Correo",
+  "productList": "Lista de productos",
+  "unitPrice": "Unitario",
+  "totalPrice": "Total"
 }
-

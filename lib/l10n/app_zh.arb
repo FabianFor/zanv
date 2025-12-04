@@ -82,6 +82,78 @@
   "permissionsDenied": "权限被拒绝",
   "close": "关闭",
   "cart": "购物车",
-  "viewCart": "查看购物车"
-
+  "viewCart": "查看购物车",
+  "quickAccess": "快速访问",
+  "lowStockProducts": "低库存产品",
+  "tapToChangeLogo": "点击更改徽标",
+  "businessNameRequired": "企业名称为必填项",
+  "invalidEmail": "请输入有效的电子邮件",
+  "profileUpdated": "个人资料已成功更新",
+  "logoSelected": "徽标已成功选择",
+  "needPermissions": "您需要授予权限才能选择图片",
+  "imageSelectionError": "选择图片时出错",
+  "darkModeSubtitle": "激活深色主题",
+  "businessProfileSubtitle": "编辑您的企业信息",
+  "version": "版本",
+  "filterByDate": "按日期筛选",
+  "results": "{count} 结果",
+  "@results": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noInvoicesFound": "未找到发票",
+  "clearFilters": "清除筛选器",
+  "productsCount": "{count} 产品",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteInvoice": "删除发票",
+  "deleteInvoiceConfirm": "您确定要删除发票 #{number} 吗？\n\n此操作无法撤消。",
+  "@deleteInvoiceConfirm": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "invoiceDeleted": "发票已删除",
+  "needPermissionsToShare": "需要权限才能分享",
+  "needPermissionsToDownload": "需要权限才能下载",
+  "savedToGallery": "已保存到图库",
+  "customerData": "客户数据",
+  "nameField": "姓名 *",
+  "nameRequiredField": "姓名为必填项",
+  "phoneField": "电话（可选）",
+  "confirm": "确认",
+  "units": "件",
+  "deleteProduct": "删除产品",
+  "deleteProductConfirm": "您确定要删除此产品吗？",
+  "productDeleted": "产品已成功删除",
+  "permissionsNeeded": "需要权限",
+  "permissionsMessage": "此应用需要访问您的照片才能向产品添加图片。\n\n前往：\n设置 → 应用 → MiNegocio → 权限 → 照片和媒体",
+  "openSettings": "打开设置",
+  "needPermissionToSelectImage": "您需要授予权限才能选择图片",
+  "trySelectAnyway": "无论如何尝试选择图片",
+  "invoiceNumber": "发票 #{number}",
+  "@invoiceNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "businessNameLabel": "企业名称",
+  "addressLabel": "地址",
+  "phoneLabel": "电话",
+  "emailLabel": "电子邮件",
+  "productList": "产品列表",
+  "unitPrice": "单价",
+  "totalPrice": "总计"
 }

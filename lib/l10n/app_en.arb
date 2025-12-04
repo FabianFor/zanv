@@ -82,6 +82,78 @@
   "permissionsDenied": "Permissions denied",
   "close": "Close",
   "cart": "Cart",
-  "viewCart": "View Cart"
-
+  "viewCart": "View Cart",
+  "quickAccess": "Quick Access",
+  "lowStockProducts": "Low stock products",
+  "tapToChangeLogo": "Tap to change logo",
+  "businessNameRequired": "Business name is required",
+  "invalidEmail": "Enter a valid email",
+  "profileUpdated": "Profile updated successfully",
+  "logoSelected": "Logo selected successfully",
+  "needPermissions": "You need to grant permissions to choose an image",
+  "imageSelectionError": "Error selecting image",
+  "darkModeSubtitle": "Activate dark theme",
+  "businessProfileSubtitle": "Edit your business information",
+  "version": "Version",
+  "filterByDate": "Filter by date",
+  "results": "{count} result(s)",
+  "@results": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noInvoicesFound": "No invoices found",
+  "clearFilters": "Clear filters",
+  "productsCount": "{count} product(s)",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteInvoice": "Delete invoice",
+  "deleteInvoiceConfirm": "Are you sure you want to delete Invoice #{number}?\n\nThis action cannot be undone.",
+  "@deleteInvoiceConfirm": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "invoiceDeleted": "Invoice deleted",
+  "needPermissionsToShare": "Permissions needed to share",
+  "needPermissionsToDownload": "Permissions needed to download",
+  "savedToGallery": "Saved to gallery",
+  "customerData": "Customer Data",
+  "nameField": "Name *",
+  "nameRequiredField": "Name required",
+  "phoneField": "Phone (optional)",
+  "confirm": "Confirm",
+  "units": "units",
+  "deleteProduct": "Delete product",
+  "deleteProductConfirm": "Are you sure you want to delete this product?",
+  "productDeleted": "Product deleted successfully",
+  "permissionsNeeded": "Permissions needed",
+  "permissionsMessage": "This app needs access to your photos to add images to products.\n\nGo to:\nSettings → Apps → MiNegocio → Permissions → Photos and media",
+  "openSettings": "Open Settings",
+  "needPermissionToSelectImage": "You need to grant permission to select images",
+  "trySelectAnyway": "Try selecting the image anyway",
+  "invoiceNumber": "Invoice #{number}",
+  "@invoiceNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "businessNameLabel": "Business name",
+  "addressLabel": "Address",
+  "phoneLabel": "Phone",
+  "emailLabel": "Email",
+  "productList": "Product list",
+  "unitPrice": "Unit price",
+  "totalPrice": "Total"
 }

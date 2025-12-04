@@ -82,6 +82,78 @@
   "permissionsDenied": "Permissões negadas",
   "close": "Fechar",
   "cart": "Carrinho",
-  "viewCart": "Ver Carrinho"
-
+  "viewCart": "Ver Carrinho",
+  "quickAccess": "Acesso Rápido",
+  "lowStockProducts": "Produtos com estoque baixo",
+  "tapToChangeLogo": "Toque para mudar o logotipo",
+  "businessNameRequired": "O nome da empresa é obrigatório",
+  "invalidEmail": "Digite um e-mail válido",
+  "profileUpdated": "Perfil atualizado com sucesso",
+  "logoSelected": "Logotipo selecionado com sucesso",
+  "needPermissions": "Você precisa conceder permissões para escolher uma imagem",
+  "imageSelectionError": "Erro ao selecionar imagem",
+  "darkModeSubtitle": "Ativar tema escuro",
+  "businessProfileSubtitle": "Editar informações do seu negócio",
+  "version": "Versão",
+  "filterByDate": "Filtrar por data",
+  "results": "{count} resultado(s)",
+  "@results": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noInvoicesFound": "Nenhuma nota fiscal encontrada",
+  "clearFilters": "Limpar filtros",
+  "productsCount": "{count} produto(s)",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteInvoice": "Excluir fatura",
+  "deleteInvoiceConfirm": "Tem certeza de que deseja excluir a Fatura #{number}?\n\nEsta ação não pode ser desfeita.",
+  "@deleteInvoiceConfirm": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "invoiceDeleted": "Fatura excluída",
+  "needPermissionsToShare": "Permissões necessárias para compartilhar",
+  "needPermissionsToDownload": "Permissões necessárias para baixar",
+  "savedToGallery": "Salvo na galeria",
+  "customerData": "Dados do Cliente",
+  "nameField": "Nome *",
+  "nameRequiredField": "Nome obrigatório",
+  "phoneField": "Telefone (opcional)",
+  "confirm": "Confirmar",
+  "units": "unidades",
+  "deleteProduct": "Excluir produto",
+  "deleteProductConfirm": "Tem certeza de que deseja excluir este produto?",
+  "productDeleted": "Produto excluído com sucesso",
+  "permissionsNeeded": "Permissões necessárias",
+  "permissionsMessage": "Este aplicativo precisa de acesso às suas fotos para adicionar imagens aos produtos.\n\nVá para:\nConfigurações → Aplicativos → MiNegocio → Permissões → Fotos e mídia",
+  "openSettings": "Abrir Configurações",
+  "needPermissionToSelectImage": "Você precisa conceder permissão para selecionar imagens",
+  "trySelectAnyway": "Tente selecionar a imagem de qualquer forma",
+  "invoiceNumber": "Fatura #{number}",
+  "@invoiceNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "businessNameLabel": "Nome da empresa",
+  "addressLabel": "Endereço",
+  "phoneLabel": "Telefone",
+  "emailLabel": "E-mail",
+  "productList": "Lista de produtos",
+  "unitPrice": "Preço unitário",
+  "totalPrice": "Total"
 }
