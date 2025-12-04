@@ -19,7 +19,16 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
+  // ✅ AGREGADO: Controller para el TextField
+  final _searchController = TextEditingController();
   String _searchQuery = '';
+
+  // ✅ AGREGADO: dispose para limpiar el controller
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,11 +112,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
       body: Column(
         children: [
-          // Buscador
+          // ✅ BUSCADOR ARREGLADO
           Container(
             padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
             color: theme.cardBackground,
             child: TextField(
+              controller: _searchController, // ✅ AGREGADO
               onChanged: (value) => setState(() => _searchQuery = value),
               style: TextStyle(
                 fontSize: isVerySmall ? 12.sp : 14.sp,
@@ -131,7 +141,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           size: isVerySmall ? 18.sp : 20.sp,
                           color: theme.iconColor,
                         ),
-                        onPressed: () => setState(() => _searchQuery = ''),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = '';
+                            _searchController.clear(); // ✅ AGREGADO
+                          });
+                        },
                       )
                     : null,
                 border: OutlineInputBorder(
@@ -201,6 +216,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     : ListView.builder(
                         padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
                         itemCount: filteredProducts.length,
+                        // ✅✅ OPTIMIZACIONES DE LISTVIEW ✅✅
+                        cacheExtent: 500,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
+                        physics: const BouncingScrollPhysics(),
+                        // ✅✅ FIN OPTIMIZACIONES ✅✅
                         itemBuilder: (context, index) {
                           return ProductCard(product: filteredProducts[index]);
                         },

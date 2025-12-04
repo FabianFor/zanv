@@ -47,8 +47,17 @@ class InvoicesScreenContent extends StatefulWidget {
 }
 
 class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
+  // ✅ AGREGAR CONTROLLER
+  final _searchController = TextEditingController();
   String _searchQuery = '';
   DateTime? _filterDate;
+
+  // ✅ AGREGAR dispose
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +90,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
             children: [
               Expanded(
                 child: TextField(
+                  controller: _searchController, // ✅ AGREGADO
                   onChanged: (value) {
                     setState(() {
                       _searchQuery = value;
@@ -97,6 +107,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                             onPressed: () {
                               setState(() {
                                 _searchQuery = '';
+                                _searchController.clear(); // ✅ AGREGADO
                               });
                             },
                           )
@@ -210,6 +221,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                           onPressed: () {
                             setState(() {
                               _searchQuery = '';
+                              _searchController.clear(); // ✅ AGREGADO
                               _filterDate = null;
                             });
                           },
@@ -227,6 +239,11 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
               : ListView.builder(
                   padding: EdgeInsets.all(16.w),
                   itemCount: filteredInvoices.length,
+                  // ✅ OPTIMIZACIONES
+                  cacheExtent: 500,
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: true,
+                  physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
                     final invoice = filteredInvoices[index];
                     return Card(

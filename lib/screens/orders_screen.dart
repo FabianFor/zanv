@@ -27,6 +27,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   
   final _customerNameController = TextEditingController();
   final _customerPhoneController = TextEditingController();
+  final _productSearchController = TextEditingController(); // ✅ AGREGADO
   final Map<String, int> _cart = {};
   String _productSearchQuery = '';
   Timer? _debounce;
@@ -42,6 +43,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     _tabController.dispose();
     _customerNameController.dispose();
     _customerPhoneController.dispose();
+    _productSearchController.dispose(); // ✅ AGREGADO
     _debounce?.cancel();
     super.dispose();
   }
@@ -51,7 +53,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     
     _debounce = Timer(
-      const Duration(milliseconds: 300), // ✅ Reducido para mejor respuesta
+      const Duration(milliseconds: 300),
       () {
         if (mounted) {
           setState(() {
@@ -348,6 +350,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             _customerNameController.clear();
             _customerPhoneController.clear();
             _productSearchQuery = '';
+            _productSearchController.clear(); // ✅ AGREGADO
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -433,7 +436,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     );
   }
 
-  // ✅✅✅ MÉTODO COMPLETO OPTIMIZADO _buildCreateOrderTab ✅✅✅
   Widget _buildCreateOrderTab() {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
@@ -449,11 +451,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
     return Column(
       children: [
-        // ✅ CAMPO DE BÚSQUEDA OPTIMIZADO
+        // ✅ CAMPO DE BÚSQUEDA CON FIX
         Padding(
           padding: EdgeInsets.all(16.w),
           child: TextField(
-            onChanged: _onSearchChanged, // ✅ Usa método con debounce
+            controller: _productSearchController, // ✅ AGREGADO
+            onChanged: _onSearchChanged,
             style: TextStyle(color: theme.textPrimary, fontSize: 14.sp),
             decoration: InputDecoration(
               hintText: l10n.searchProducts,
@@ -465,6 +468,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       onPressed: () {
                         setState(() {
                           _productSearchQuery = '';
+                          _productSearchController.clear(); // ✅ AGREGADO
                         });
                       },
                     )
@@ -506,7 +510,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         if (_cart.isNotEmpty) SizedBox(height: 12.h),
 
-        // ✅✅✅ LISTVIEW OPTIMIZADO DE PRODUCTOS ✅✅✅
+        // ✅ LISTVIEW OPTIMIZADO DE PRODUCTOS
         Expanded(
           child: filteredProducts.isEmpty
               ? Center(
@@ -533,10 +537,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   itemCount: filteredProducts.length,
                   // ✅ OPTIMIZACIONES DE RENDIMIENTO
-                  cacheExtent: 500, // Precarga 500px fuera de pantalla
-                  addAutomaticKeepAlives: false, // No mantiene items fuera de pantalla
-                  addRepaintBoundaries: true, // Optimiza repintado
-                  physics: const BouncingScrollPhysics(), // Scroll más fluido
+                  cacheExtent: 500,
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: true,
+                  physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
                     final product = filteredProducts[index];
                     final inCart = _cart[product.id] ?? 0;
@@ -549,7 +553,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
                         child: Row(
                           children: [
-                            // ✅ IMAGEN OPTIMIZADA CON CACHE
+                            // ✅ IMAGEN OPTIMIZADA
                             Container(
                               width: isTablet ? 60.w : 70.w,
                               height: isTablet ? 60.w : 70.w,
@@ -563,8 +567,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                       child: Image.file(
                                         File(product.imagePath),
                                         fit: BoxFit.cover,
-                                        cacheWidth: 210, // ✅ Optimiza memoria
-                                        cacheHeight: 210, // ✅ Optimiza memoria
+                                        cacheWidth: 210,
+                                        cacheHeight: 210,
                                         errorBuilder: (context, error, stackTrace) {
                                           return Icon(
                                             Icons.broken_image, 
@@ -582,7 +586,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                             ),
                             SizedBox(width: 12.w),
 
-                            // ✅ INFORMACIÓN DEL PRODUCTO
+                            // INFORMACIÓN DEL PRODUCTO
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -619,7 +623,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                               ),
                             ),
 
-                            // ✅ CONTROLES DE CANTIDAD
+                            // CONTROLES DE CANTIDAD
                             if (inCart > 0)
                               Container(
                                 decoration: BoxDecoration(
@@ -685,7 +689,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 ),
         ),
 
-        // ✅ BARRA DE TOTAL Y BOTONES
+        // BARRA DE TOTAL Y BOTONES
         if (_cart.isNotEmpty)
           Container(
             padding: EdgeInsets.all(16.w),
@@ -767,7 +771,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     );
   }
 
-  // ✅ MÉTODO OPTIMIZADO PARA PREVIEW DEL CARRITO
   void _showCartPreview(
     ProductProvider productProvider, 
     SettingsProvider settingsProvider, 

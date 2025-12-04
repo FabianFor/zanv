@@ -10,10 +10,18 @@ class InvoiceProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _isInitialized = false;
+  
+  // ✅ CACHE DE BÚSQUEDA
+  String _lastSearchQuery = '';
+  List<Invoice> _lastSearchResults = [];
+  
+  // ✅ LÍMITE EN MEMORIA
+  static const int _memoryLimit = 100;
 
   List<Invoice> get invoices => _invoices;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get totalInvoices => _box?.length ?? 0;
 
   double get totalRevenue {
     return _invoices.fold(0.0, (sum, invoice) => sum + invoice.total);
@@ -27,8 +35,6 @@ class InvoiceProvider with ChangeNotifier {
             invoice.createdAt.month == now.month)
         .fold(0.0, (sum, invoice) => sum + invoice.total);
   }
-
-  int get totalInvoices => _invoices.length;
 
   @override
   void dispose() {
@@ -45,10 +51,19 @@ class InvoiceProvider with ChangeNotifier {
 
     try {
       _box = await Hive.openBox<Invoice>('invoices');
-      _invoices = _box!.values.toList();
+      
+      // ✅ LAZY LOADING
+      final allKeys = _box!.keys.toList();
+      final limitedKeys = allKeys.take(_memoryLimit).toList();
+      _invoices = limitedKeys.map((key) => _box!.get(key)!).toList();
+      
+      // ✅ ORDENAR POR FECHA
+      _invoices.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
       _isInitialized = true;
     } catch (e) {
       _error = 'Error al cargar facturas: $e';
+      _invoices = [];
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -59,28 +74,29 @@ class InvoiceProvider with ChangeNotifier {
     if (invoice.customerName.trim().isEmpty ||
         invoice.customerName.trim().length < ValidationLimits.minCustomerNameLength) {
       _error = 'El nombre del cliente debe tener al menos ${ValidationLimits.minCustomerNameLength} caracteres';
-      notifyListeners();
       return false;
     }
 
     if (invoice.items.isEmpty) {
       _error = 'La factura debe tener al menos un producto';
-      notifyListeners();
       return false;
     }
 
     if (invoice.total <= 0) {
       _error = 'El total debe ser mayor a 0';
-      notifyListeners();
       return false;
     }
 
     try {
-      // Guardar en Hive
       await _box!.put(invoice.id, invoice);
       
-      // Insertar al inicio
+      if (_invoices.length >= _memoryLimit) {
+        _invoices.removeLast();
+      }
       _invoices.insert(0, invoice);
+      
+      _lastSearchQuery = '';
+      _lastSearchResults = [];
       
       _error = null;
       notifyListeners();
@@ -94,18 +110,11 @@ class InvoiceProvider with ChangeNotifier {
 
   Future<void> deleteInvoice(String invoiceId) async {
     try {
-      final index = _invoices.indexWhere((inv) => inv.id == invoiceId);
-      if (index == -1) {
-        _error = 'Factura no encontrada';
-        notifyListeners();
-        return;
-      }
-
-      // Eliminar de Hive
       await _box!.delete(invoiceId);
+      _invoices.removeWhere((inv) => inv.id == invoiceId);
       
-      // Eliminar de memoria
-      _invoices.removeAt(index);
+      _lastSearchQuery = '';
+      _lastSearchResults = [];
       
       _error = null;
       notifyListeners();
@@ -115,19 +124,36 @@ class InvoiceProvider with ChangeNotifier {
     }
   }
 
-  // ✅ BÚSQUEDA POR NOMBRE, NÚMERO Y TELÉFONO
   List<Invoice> searchInvoices(String query) {
     if (query.isEmpty) return _invoices;
     
+    if (query == _lastSearchQuery) {
+      return _lastSearchResults;
+    }
+    
     final lowerQuery = query.toLowerCase();
-    return _invoices.where((invoice) {
+    
+    final memoryResults = _invoices.where((invoice) {
       return invoice.customerName.toLowerCase().contains(lowerQuery) ||
              invoice.invoiceNumber.toString().contains(query) ||
              invoice.customerPhone.contains(query);
     }).toList();
+    
+    if (memoryResults.length < 5 && _box != null) {
+      _lastSearchResults = _box!.values.where((invoice) {
+        return invoice.customerName.toLowerCase().contains(lowerQuery) ||
+               invoice.invoiceNumber.toString().contains(query) ||
+               invoice.customerPhone.contains(query);
+      }).toList();
+      _lastSearchResults.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    } else {
+      _lastSearchResults = memoryResults;
+    }
+    
+    _lastSearchQuery = query;
+    return _lastSearchResults;
   }
 
-  // ✅ BÚSQUEDA POR ID (instantánea)
   Invoice? getInvoiceById(String id) {
     return _box?.get(id);
   }
@@ -141,6 +167,12 @@ class InvoiceProvider with ChangeNotifier {
 
   void clearError() {
     _error = null;
-    notifyListeners();
+  }
+
+  Future<void> reload() async {
+    _isInitialized = false;
+    _lastSearchQuery = '';
+    _lastSearchResults = [];
+    await loadInvoices();
   }
 }
