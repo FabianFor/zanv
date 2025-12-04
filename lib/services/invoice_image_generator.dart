@@ -10,9 +10,11 @@ import '../models/business_profile.dart';
 import '../providers/settings_provider.dart';
 import '../core/utils/app_logger.dart';
 
+
 /// ✅ FUNCIONA 100% OFFLINE - No requiere internet
 class InvoiceImageGenerator {
   static final GlobalKey _globalKey = GlobalKey();
+
 
   static Future<String> generateImage({
     required Invoice invoice,
@@ -20,10 +22,10 @@ class InvoiceImageGenerator {
     required BuildContext context,
     required SettingsProvider settingsProvider,
   }) async {
-    OverlayEntry? overlayEntry; // ✅ Variable nullable para cleanup
+    OverlayEntry? overlayEntry;
     
     try {
-      AppLogger.info('📸 Generando boleta minimalista...');
+      AppLogger.info('📸 Generando boleta...');
       
       final overlay = Overlay.of(context);
       
@@ -36,11 +38,18 @@ class InvoiceImageGenerator {
             child: Material(
               child: Container(
                 width: 600,
-                color: const Color(0xFFF5F3EE),
-                child: MinimalistInvoiceWidget(
-                  invoice: invoice,
-                  businessProfile: businessProfile,
-                  settingsProvider: settingsProvider,
+                color: Colors.grey[200],
+                child: Center(
+                  child: Container(
+                    width: 450,
+                    padding: const EdgeInsets.all(24),
+                    color: Colors.white,
+                    child: InvoiceContent(
+                      invoice: invoice,
+                      businessProfile: businessProfile,
+                      settingsProvider: settingsProvider,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -48,15 +57,16 @@ class InvoiceImageGenerator {
         ),
       );
 
+
       overlay.insert(overlayEntry);
       
-      // Esperar a que se renderice
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // ✅ VALIDACIÓN: Verificar que el context existe
+
       if (_globalKey.currentContext == null) {
         throw Exception('No se pudo obtener el contexto del RepaintBoundary');
       }
+
 
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -64,7 +74,6 @@ class InvoiceImageGenerator {
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       
-      // ✅ VALIDACIÓN: Verificar que se obtuvo data
       if (byteData == null) {
         throw Exception('No se pudo convertir la imagen a bytes');
       }
@@ -72,9 +81,10 @@ class InvoiceImageGenerator {
       Uint8List pngBytes = byteData.buffer.asUint8List();
       AppLogger.success('Imagen capturada: ${pngBytes.length} bytes');
 
-      // ✅ CLEANUP: Remover overlay en finally
+
       overlayEntry.remove();
       overlayEntry = null;
+
 
       final directory = await getTemporaryDirectory();
       final tempPath = '${directory.path}/temp_invoice_${invoice.invoiceNumber}_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -82,10 +92,10 @@ class InvoiceImageGenerator {
       final file = File(tempPath);
       await file.writeAsBytes(pngBytes);
       
-      // ✅ VALIDACIÓN: Verificar que se guardó
       if (!await file.exists()) {
         throw Exception('No se pudo guardar la imagen temporal');
       }
+
 
       AppLogger.success('Imagen guardada: $tempPath');
       return tempPath;
@@ -94,7 +104,6 @@ class InvoiceImageGenerator {
       AppLogger.error('Error crítico al generar imagen', e, stackTrace);
       rethrow;
     } finally {
-      // ✅ CLEANUP GARANTIZADO: Remover overlay si existe
       try {
         overlayEntry?.remove();
       } catch (e) {
@@ -104,304 +113,265 @@ class InvoiceImageGenerator {
   }
 }
 
-class MinimalistInvoiceWidget extends StatelessWidget {
+
+class InvoiceContent extends StatelessWidget {
   final Invoice invoice;
   final BusinessProfile businessProfile;
   final SettingsProvider settingsProvider;
 
-  const MinimalistInvoiceWidget({
+
+  const InvoiceContent({
     super.key,
     required this.invoice,
     required this.businessProfile,
     required this.settingsProvider,
   });
 
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 600,
-      color: const Color(0xFFF5F3EE),
-      padding: const EdgeInsets.all(50),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        
+        // Logo centrado (SIN texto "Logo de negocio")
+        Center(
+          child: Column(
             children: [
-              Text(
-                'N° ${invoice.invoiceNumber.toString().padLeft(7, '0')}',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
-                  letterSpacing: 1,
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (businessProfile.logoPath.isNotEmpty)
-                    Container(
-                      width: 100,
-                      height: 100,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(businessProfile.logoPath),
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.transparent,
-                              child: const Icon(
-                                Icons.store,
-                                size: 60,
-                                color: Color(0xFF4A7C8C),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+              if (businessProfile.logoPath.isNotEmpty)
+                Container(
+                  width: 70,
+                  height: 70,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(businessProfile.logoPath),
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.business, 
+                          size: 70,
+                          color: Colors.black,
+                        );
+                      },
                     ),
-                  Text(
-                    businessProfile.businessName.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4A7C8C),
-                      letterSpacing: 1.5,
-                    ),
-                    textAlign: TextAlign.right,
                   ),
-                  const SizedBox(height: 8),
-                  if (businessProfile.email.isNotEmpty)
-                    Text(
-                      businessProfile.email,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF5C5C5C),
-                      ),
-                    ),
-                  if (businessProfile.address.isNotEmpty)
-                    Text(
-                      businessProfile.address,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF5C5C5C),
-                      ),
-                      textAlign: TextAlign.right,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  if (businessProfile.phone.isNotEmpty)
-                    Text(
-                      businessProfile.phone,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF5C5C5C),
-                      ),
-                    ),
-                ],
-              ),
+                )
+              else
+                Container(
+                  width: 70,
+                  height: 70,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: const Icon(
+                    Icons.business, 
+                    size: 70,
+                    color: Colors.black,
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 40),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: const BoxDecoration(
-              color: Color(0xFFE8E8E8),
-              border: Border(
-                top: BorderSide(color: Color(0xFF2C2C2C), width: 1.5),
-                bottom: BorderSide(color: Color(0xFF2C2C2C), width: 1.5),
+        ),
+        
+        const SizedBox(height: 30),
+        
+        // Nombre de empresa
+        Text(
+          businessProfile.businessName.isNotEmpty 
+              ? businessProfile.businessName 
+              : "Nombre de empresa",
+          style: const TextStyle(
+            fontSize: 32, 
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Dirección con icono
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.location_on, size: 16, color: Colors.black87),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                businessProfile.address.isNotEmpty 
+                    ? businessProfile.address 
+                    : "Dirección",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
               ),
             ),
-            child: const Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Text(
-                      'Lista de productos',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C2C2C),
-                      ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        
+        // Teléfono con icono
+        Row(
+          children: [
+            const Icon(Icons.phone, size: 16, color: Colors.black87),
+            const SizedBox(width: 8),
+            Text(
+              businessProfile.phone.isNotEmpty 
+                  ? businessProfile.phone 
+                  : "Teléfono",
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        
+        // Correo con icono
+        Row(
+          children: [
+            const Icon(Icons.email, size: 16, color: Colors.black87),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                businessProfile.email.isNotEmpty 
+                    ? businessProfile.email 
+                    : "Correo",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 30),
+        
+        // Tabla de productos con header integrado
+        Table(
+          border: TableBorder.all(color: Colors.grey[400]!, width: 1),
+          columnWidths: const {
+            0: FlexColumnWidth(3),
+            1: FlexColumnWidth(1.2),
+            2: FlexColumnWidth(1.2),
+          },
+          children: [
+            // Header de tabla (con "Lista de productos", "Unitario", "Total")
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey[300]),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    "Lista de productos",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 16,
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: 80,
+                Padding(
+                  padding: EdgeInsets.all(12),
                   child: Text(
-                    'Unitario',
+                    "Unitario",
                     style: TextStyle(
-                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C2C2C),
+                      color: Colors.black,
+                      fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(width: 20),
-                SizedBox(
-                  width: 80,
+                Padding(
+                  padding: EdgeInsets.all(12),
                   child: Text(
-                    'Total',
+                    "Total",
                     style: TextStyle(
-                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C2C2C),
+                      color: Colors.black,
+                      fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          ...invoice.items.map((item) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF2C2C2C),
-                            height: 1.4,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: item.productName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '\n${item.quantity}x',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF666666),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      settingsProvider.formatPrice(item.price),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF666666),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      settingsProvider.formatPrice(item.total),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2C2C2C),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            decoration: const BoxDecoration(
-              color: Color(0xFFE8E8E8),
-              border: Border(
-                top: BorderSide(color: Color(0xFF2C2C2C), width: 2),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            
+            // Filas de productos
+            ...invoice.items.map((item) => TableRow(
               children: [
-                const Text(
-                  'Total',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2C2C),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    item.productName,
+                    style: const TextStyle(
+                      color: ui.Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 14,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 40),
-                Text(
-                  settingsProvider.formatPrice(invoice.total),
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2C2C),
-                    letterSpacing: 0.5,
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    settingsProvider.formatPrice(item.price),
+                    style: const TextStyle(
+                      color: ui.Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    settingsProvider.formatPrice(item.total),
+                    style: const TextStyle(
+                      color: ui.Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
+            )),
+          ],
+        ),
+        
+        const SizedBox(height: 20),
+        
+        // Total
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          color: Colors.grey[300],
+          child: Text(
+            "Total: ${settingsProvider.formatPrice(invoice.total)}",
+            style: const TextStyle(
+              fontSize: 24, 
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(height: 40),
-          Center(
-            child: Text(
-              _getThankYouMessage(settingsProvider.locale.languageCode),
-              style: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF5C5C5C),
-                fontStyle: FontStyle.italic,
-              ),
+        ),
+        
+        const SizedBox(height: 20),
+        
+        // Fecha y hora
+        Center(
+          child: Text(
+            DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.black54,
             ),
           ),
-          const SizedBox(height: 20),
-          Center(
-            child: Text(
-              DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF8C8C8C),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
-  }
-
-  String _getThankYouMessage(String languageCode) {
-    switch (languageCode) {
-      case 'es':
-        return 'Gracias por su preferencia.';
-      case 'en':
-        return 'Thank you for your preference.';
-      case 'pt':
-        return 'Obrigado pela sua preferência.';
-      case 'zh':
-        return '感谢您的惠顾。';
-      default:
-        return 'Thank you for your preference.';
-    }
   }
 }
