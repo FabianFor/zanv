@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order.dart';
+import '../core/constants/validation_limits.dart';
 
 class OrderProvider with ChangeNotifier {
   List<Order> _orders = [];
@@ -14,15 +15,12 @@ class OrderProvider with ChangeNotifier {
   String? get error => _error;
   int get totalOrders => _orders.length;
 
-  // ✅ Órdenes pendientes
   List<Order> get pendingOrders =>
       _orders.where((o) => o.status == 'pending').toList();
 
-  // ✅ Órdenes completadas
   List<Order> get completedOrders =>
       _orders.where((o) => o.status == 'completed').toList();
 
-  // ✅ Total de ventas
   double get totalSales {
     return _orders
         .where((o) => o.status == 'completed')
@@ -30,10 +28,7 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> loadOrders() async {
-    if (_isInitialized) {
-      print('✅ Órdenes ya en caché');
-      return;
-    }
+    if (_isInitialized) return;
 
     _isLoading = true;
     _error = null;
@@ -46,15 +41,13 @@ class OrderProvider with ChangeNotifier {
       if (ordersJson != null) {
         final List<dynamic> decodedList = json.decode(ordersJson);
         _orders = decodedList.map((item) => Order.fromJson(item)).toList();
-        print('✅ ${_orders.length} órdenes cargadas');
       } else {
         _orders = [];
       }
 
       _isInitialized = true;
     } catch (e) {
-      _error = 'Error al cargar órdenes: $e';
-      print('❌ $_error');
+      _error = 'Error al cargar órdenes';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -68,18 +61,16 @@ class OrderProvider with ChangeNotifier {
         _orders.map((order) => order.toJson()).toList(),
       );
       await prefs.setString('orders', encodedData);
-      print('✅ Órdenes guardadas');
     } catch (e) {
-      print('❌ Error al guardar órdenes: $e');
-      _error = 'Error al guardar: $e';
+      _error = 'Error al guardar órdenes';
       notifyListeners();
     }
   }
 
-  // ✅ VALIDACIÓN al agregar orden
   Future<bool> addOrder(Order order) async {
-    if (order.customerName.trim().isEmpty) {
-      _error = 'El nombre del cliente no puede estar vacío';
+    if (order.customerName.trim().isEmpty || 
+        order.customerName.trim().length < ValidationLimits.minCustomerNameLength) {
+      _error = 'El nombre del cliente debe tener al menos ${ValidationLimits.minCustomerNameLength} caracteres';
       notifyListeners();
       return false;
     }
@@ -97,13 +88,13 @@ class OrderProvider with ChangeNotifier {
     }
 
     try {
-      _orders.insert(0, order); // ✅ Insertar al inicio (más reciente primero)
+      _orders.insert(0, order);
       await _saveOrders();
       _error = null;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = 'Error al agregar orden: $e';
+      _error = 'Error al agregar orden';
       notifyListeners();
       return false;
     }
@@ -131,7 +122,7 @@ class OrderProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
-      _error = 'Error al actualizar estado: $e';
+      _error = 'Error al actualizar estado';
       notifyListeners();
       return false;
     }
@@ -144,12 +135,11 @@ class OrderProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
     } catch (e) {
-      _error = 'Error al eliminar orden: $e';
+      _error = 'Error al eliminar orden';
       notifyListeners();
     }
   }
 
-  // ✅ Buscar órdenes
   List<Order> searchOrders(String query) {
     if (query.isEmpty) return _orders;
     

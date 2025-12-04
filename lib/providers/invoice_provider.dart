@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/invoice.dart';
+import '../core/constants/validation_limits.dart';
 
 class InvoiceProvider with ChangeNotifier {
   List<Invoice> _invoices = [];
@@ -13,12 +14,10 @@ class InvoiceProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // ✅ Total de ingresos
   double get totalRevenue {
     return _invoices.fold(0.0, (sum, invoice) => sum + invoice.total);
   }
 
-  // ✅ Ingresos del mes actual
   double get monthlyRevenue {
     final now = DateTime.now();
     return _invoices
@@ -28,14 +27,10 @@ class InvoiceProvider with ChangeNotifier {
         .fold(0.0, (sum, invoice) => sum + invoice.total);
   }
 
-  // ✅ Total de facturas
   int get totalInvoices => _invoices.length;
 
   Future<void> loadInvoices() async {
-    if (_isInitialized) {
-      print('✅ Facturas ya en caché');
-      return;
-    }
+    if (_isInitialized) return;
 
     _isLoading = true;
     _error = null;
@@ -48,15 +43,13 @@ class InvoiceProvider with ChangeNotifier {
       if (invoicesJson != null) {
         final List<dynamic> decodedList = json.decode(invoicesJson);
         _invoices = decodedList.map((item) => Invoice.fromJson(item)).toList();
-        print('✅ ${_invoices.length} facturas cargadas');
       } else {
         _invoices = [];
       }
 
       _isInitialized = true;
     } catch (e) {
-      _error = 'Error al cargar facturas: $e';
-      print('❌ $_error');
+      _error = 'Error al cargar facturas';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -70,18 +63,16 @@ class InvoiceProvider with ChangeNotifier {
         _invoices.map((invoice) => invoice.toJson()).toList(),
       );
       await prefs.setString('invoices', encodedData);
-      print('✅ Facturas guardadas');
     } catch (e) {
-      print('❌ Error al guardar facturas: $e');
-      _error = 'Error al guardar: $e';
+      _error = 'Error al guardar facturas';
       notifyListeners();
     }
   }
 
-  // ✅ VALIDACIÓN al agregar factura
   Future<bool> addInvoice(Invoice invoice) async {
-    if (invoice.customerName.trim().isEmpty) {
-      _error = 'El nombre del cliente no puede estar vacío';
+    if (invoice.customerName.trim().isEmpty ||
+        invoice.customerName.trim().length < ValidationLimits.minCustomerNameLength) {
+      _error = 'El nombre del cliente debe tener al menos ${ValidationLimits.minCustomerNameLength} caracteres';
       notifyListeners();
       return false;
     }
@@ -99,13 +90,13 @@ class InvoiceProvider with ChangeNotifier {
     }
 
     try {
-      _invoices.insert(0, invoice); // Más reciente primero
+      _invoices.insert(0, invoice);
       await _saveInvoices();
       _error = null;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = 'Error al agregar factura: $e';
+      _error = 'Error al agregar factura';
       notifyListeners();
       return false;
     }
@@ -118,12 +109,11 @@ class InvoiceProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
     } catch (e) {
-      _error = 'Error al eliminar factura: $e';
+      _error = 'Error al eliminar factura';
       notifyListeners();
     }
   }
 
-  // ✅ Buscar facturas
   List<Invoice> searchInvoices(String query) {
     if (query.isEmpty) return _invoices;
     
@@ -135,7 +125,6 @@ class InvoiceProvider with ChangeNotifier {
     }).toList();
   }
 
-  // ✅ Filtrar por rango de fechas
   List<Invoice> getInvoicesByDateRange(DateTime start, DateTime end) {
     return _invoices.where((invoice) {
       return invoice.createdAt.isAfter(start) &&

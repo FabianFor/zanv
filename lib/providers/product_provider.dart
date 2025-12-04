@@ -3,15 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product.dart';
-import '../core/utils/app_logger.dart';
+import '../core/constants/validation_limits.dart';
 
 class ProductProvider with ChangeNotifier {
   List<Product> _products = [];
   bool _isLoading = false;
   String? _error;
   bool _isInitialized = false;
-  
-  // ✅ CORREGIDO: Usar Completer en lugar de busy-wait
   Completer<bool>? _saveCompleter;
 
   List<Product> get products => _products;
@@ -22,11 +20,15 @@ class ProductProvider with ChangeNotifier {
   List<Product> get lowStockProducts => 
       _products.where((p) => p.stock <= 5).toList();
 
+  @override
+  void dispose() {
+    _saveCompleter?.complete(false);
+    _saveCompleter = null;
+    super.dispose();
+  }
+
   Future<void> loadProducts() async {
-    if (_isInitialized) {
-      AppLogger.info('Productos ya en caché');
-      return;
-    }
+    if (_isInitialized) return;
 
     _isLoading = true;
     _error = null;
@@ -41,16 +43,13 @@ class ProductProvider with ChangeNotifier {
         _products = decodedList
             .map((item) => Product.fromJson(item as Map<String, dynamic>))
             .toList();
-        AppLogger.success('${_products.length} productos cargados');
       } else {
         _products = [];
-        AppLogger.info('No hay productos guardados');
       }
 
       _isInitialized = true;
-    } catch (e, stackTrace) {
+    } catch (e) {
       _error = 'Error al cargar productos';
-      AppLogger.error(_error!, e, stackTrace);
       _products = [];
     } finally {
       _isLoading = false;
@@ -59,9 +58,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<bool> _saveProducts() async {
-    // ✅ CORREGIDO: Usar Completer para evitar race conditions
     if (_saveCompleter != null && !_saveCompleter!.isCompleted) {
-      AppLogger.info('Esperando guardado anterior');
       return await _saveCompleter!.future;
     }
 
@@ -74,18 +71,9 @@ class ProductProvider with ChangeNotifier {
       );
       
       final bool saved = await prefs.setString('products', encodedData);
-      
-      if (saved) {
-        AppLogger.success('Productos guardados');
-        _saveCompleter!.complete(true);
-        return true;
-      } else {
-        AppLogger.error('Error al guardar productos');
-        _saveCompleter!.complete(false);
-        return false;
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error('Error crítico al guardar', e, stackTrace);
+      _saveCompleter!.complete(saved);
+      return saved;
+    } catch (e) {
       _error = 'Error al guardar productos';
       _saveCompleter!.complete(false);
       notifyListeners();
@@ -93,39 +81,53 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> addProduct(Product product) async {
-    // ✅ VALIDACIONES con sanitización
-    final sanitizedName = _sanitizeInput(product.name.trim());
-    if (sanitizedName.isEmpty) {
+  bool _validateProductName(String name) {
+    final sanitized = _sanitizeInput(name.trim());
+    if (sanitized.isEmpty) {
       _error = 'El nombre del producto no puede estar vacío';
-      notifyListeners();
       return false;
     }
-
-    if (sanitizedName.length > 100) {
-      _error = 'El nombre es demasiado largo (máx. 100 caracteres)';
-      notifyListeners();
+    if (sanitized.length > ValidationLimits.maxProductNameLength) {
+      _error = 'El nombre es demasiado largo (máx. ${ValidationLimits.maxProductNameLength} caracteres)';
       return false;
     }
+    return true;
+  }
 
-    if (product.price <= 0 || product.price > 999999999) {
+  bool _validateProductPrice(double price) {
+    if (price <= 0 || price > ValidationLimits.maxProductPrice) {
       _error = 'Precio inválido';
+      return false;
+    }
+    return true;
+  }
+
+  bool _validateProductStock(int stock) {
+    if (stock < 0 || stock > ValidationLimits.maxProductStock) {
+      _error = 'Stock inválido';
+      return false;
+    }
+    return true;
+  }
+
+  Future<bool> addProduct(Product product) async {
+    if (!_validateProductName(product.name)) {
       notifyListeners();
       return false;
     }
-
-    if (product.stock < 0 || product.stock > 999999) {
-      _error = 'Stock inválido';
+    if (!_validateProductPrice(product.price)) {
+      notifyListeners();
+      return false;
+    }
+    if (!_validateProductStock(product.stock)) {
       notifyListeners();
       return false;
     }
 
     try {
-      AppLogger.info('Agregando producto');
-      
       final sanitizedProduct = Product(
         id: product.id,
-        name: sanitizedName,
+        name: _sanitizeInput(product.name.trim()),
         description: _sanitizeInput(product.description.trim()),
         price: product.price,
         stock: product.stock,
@@ -133,53 +135,37 @@ class ProductProvider with ChangeNotifier {
       );
       
       _products.add(sanitizedProduct);
-      notifyListeners();
       
       final bool saved = await _saveProducts();
       
       if (saved) {
         _error = null;
-        AppLogger.success('Producto agregado');
+        notifyListeners();
         return true;
       } else {
         _products.removeLast();
         _error = 'No se pudo guardar el producto';
         notifyListeners();
-        AppLogger.error('Rollback: producto no guardado');
         return false;
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       _products.removeLast();
       _error = 'Error al agregar producto';
-      AppLogger.error(_error!, e, stackTrace);
       notifyListeners();
       return false;
     }
   }
 
   Future<bool> updateProduct(Product updatedProduct) async {
-    // ✅ VALIDACIONES con sanitización
-    final sanitizedName = _sanitizeInput(updatedProduct.name.trim());
-    if (sanitizedName.isEmpty) {
-      _error = 'El nombre del producto no puede estar vacío';
+    if (!_validateProductName(updatedProduct.name)) {
       notifyListeners();
       return false;
     }
-
-    if (sanitizedName.length > 100) {
-      _error = 'El nombre es demasiado largo';
+    if (!_validateProductPrice(updatedProduct.price)) {
       notifyListeners();
       return false;
     }
-
-    if (updatedProduct.price <= 0 || updatedProduct.price > 999999999) {
-      _error = 'Precio inválido';
-      notifyListeners();
-      return false;
-    }
-
-    if (updatedProduct.stock < 0 || updatedProduct.stock > 999999) {
-      _error = 'Stock inválido';
+    if (!_validateProductStock(updatedProduct.stock)) {
       notifyListeners();
       return false;
     }
@@ -196,7 +182,7 @@ class ProductProvider with ChangeNotifier {
       
       final sanitizedProduct = Product(
         id: updatedProduct.id,
-        name: sanitizedName,
+        name: _sanitizeInput(updatedProduct.name.trim()),
         description: _sanitizeInput(updatedProduct.description.trim()),
         price: updatedProduct.price,
         stock: updatedProduct.stock,
@@ -204,24 +190,21 @@ class ProductProvider with ChangeNotifier {
       );
       
       _products[index] = sanitizedProduct;
-      notifyListeners();
       
       final bool saved = await _saveProducts();
       
       if (saved) {
         _error = null;
-        AppLogger.success('Producto actualizado');
+        notifyListeners();
         return true;
       } else {
         _products[index] = oldProduct;
         _error = 'No se pudo guardar la actualización';
         notifyListeners();
-        AppLogger.error('Rollback: actualización no guardada');
         return false;
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       _error = 'Error al actualizar producto';
-      AppLogger.error(_error!, e, stackTrace);
       notifyListeners();
       return false;
     }
@@ -237,29 +220,25 @@ class ProductProvider with ChangeNotifier {
       }
 
       final removed = _products.removeAt(index);
-      notifyListeners();
       
       final bool saved = await _saveProducts();
       
       if (saved) {
         _error = null;
-        AppLogger.success('Producto eliminado');
+        notifyListeners();
       } else {
         _products.insert(index, removed);
         _error = 'No se pudo eliminar el producto';
         notifyListeners();
-        AppLogger.error('Rollback: producto no eliminado');
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       _error = 'Error al eliminar producto';
-      AppLogger.error(_error!, e, stackTrace);
       notifyListeners();
     }
   }
 
   Future<bool> updateStock(String productId, int newStock) async {
-    if (newStock < 0 || newStock > 999999) {
-      _error = 'Stock inválido';
+    if (!_validateProductStock(newStock)) {
       notifyListeners();
       return false;
     }
@@ -275,23 +254,20 @@ class ProductProvider with ChangeNotifier {
       final oldStock = _products[index].stock;
       
       _products[index] = _products[index].copyWith(stock: newStock);
-      notifyListeners();
       
       final bool saved = await _saveProducts();
       
       if (saved) {
         _error = null;
-        AppLogger.success('Stock actualizado');
+        notifyListeners();
         return true;
       } else {
         _products[index] = _products[index].copyWith(stock: oldStock);
         notifyListeners();
-        AppLogger.error('Rollback: stock no actualizado');
         return false;
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       _error = 'Error al actualizar stock';
-      AppLogger.error(_error!, e, stackTrace);
       notifyListeners();
       return false;
     }
@@ -311,7 +287,6 @@ class ProductProvider with ChangeNotifier {
     try {
       return _products.firstWhere((p) => p.id == id);
     } catch (e) {
-      AppLogger.warning('Producto no encontrado');
       return null;
     }
   }
@@ -326,13 +301,10 @@ class ProductProvider with ChangeNotifier {
     await loadProducts();
   }
 
-  // ✅ SANITIZACIÓN DE INPUTS
   String _sanitizeInput(String input) {
-    // Remover caracteres de control
     input = input.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
-    // Limitar longitud
-    if (input.length > 500) {
-      input = input.substring(0, 500);
+    if (input.length > ValidationLimits.maxInputLength) {
+      input = input.substring(0, ValidationLimits.maxInputLength);
     }
     return input;
   }

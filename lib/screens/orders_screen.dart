@@ -1,11 +1,12 @@
 import 'dart:io';
-import 'dart:async'; // ← NUEVO para debounce
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
+import '../core/constants/validation_limits.dart';
 import '../models/order.dart';
 import '../models/invoice.dart';
 import '../providers/order_provider.dart';
@@ -28,7 +29,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   final _customerPhoneController = TextEditingController();
   final Map<String, int> _cart = {};
   String _productSearchQuery = '';
-  Timer? _debounce; // ← NUEVO: Para debounce en búsqueda
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -41,7 +42,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     _tabController.dispose();
     _customerNameController.dispose();
     _customerPhoneController.dispose();
-    _debounce?.cancel(); // ← NUEVO: Cancelar timer
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -83,7 +84,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        final formKey = GlobalKey<FormState>(); // ✅ NUEVO GlobalKey cada vez
+        final formKey = GlobalKey<FormState>();
         
         return Dialog(
           backgroundColor: theme.cardBackground,
@@ -131,17 +132,16 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       if (value == null || value.trim().isEmpty) {
                         return l10n.nameRequiredField;
                       }
-                      // ✅ NUEVO: Validación de longitud
-                      if (value.trim().length < 2) {
-                        return 'El nombre debe tener al menos 2 caracteres';
+                      if (value.trim().length < ValidationLimits.minCustomerNameLength) {
+                        return 'El nombre debe tener al menos ${ValidationLimits.minCustomerNameLength} caracteres';
                       }
-                      if (value.trim().length > 100) {
+                      if (value.trim().length > ValidationLimits.maxCustomerNameLength) {
                         return 'El nombre es demasiado largo';
                       }
                       return null;
                     },
                     textCapitalization: TextCapitalization.words,
-                    maxLength: 100, // ✅ NUEVO: Límite de caracteres
+                    maxLength: ValidationLimits.maxCustomerNameLength,
                   ),
                   SizedBox(height: 16.h),
                   
@@ -165,10 +165,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       fillColor: theme.inputFillColor,
                     ),
                     keyboardType: TextInputType.phone,
-                    maxLength: 20, // ✅ NUEVO: Límite de caracteres
+                    maxLength: ValidationLimits.maxPhoneLength,
                     validator: (value) {
-                      // ✅ NUEVO: Validación opcional pero consistente
-                      if (value != null && value.isNotEmpty && value.length < 7) {
+                      if (value != null && value.isNotEmpty && value.length < ValidationLimits.minPhoneLength) {
                         return 'Número de teléfono inválido';
                       }
                       return null;
@@ -222,7 +221,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   Future<void> _createOrderAndInvoice() async {
     final l10n = AppLocalizations.of(context)!;
     
-    // ✅ MEJOR: Validación temprana
     if (_cart.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -235,12 +233,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       return;
     }
 
-    // ✅ NUEVO: Mostrar loading
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => Center(
+        builder: (context) => const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -251,12 +248,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       final orderProvider = context.read<OrderProvider>();
       final invoiceProvider = context.read<InvoiceProvider>();
 
-      // ✅ MEJOR: Validar stock antes de crear orden
       for (var entry in _cart.entries) {
         final product = productProvider.getProductById(entry.key);
         if (product == null || product.stock < entry.value) {
           if (mounted) {
-            Navigator.pop(context); // Cerrar loading
+            Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('❌ ${l10n.insufficientStock} ${product?.name ?? "producto"}'),
@@ -268,11 +264,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         }
       }
 
-      // ✅ MEJOR: Crear items con validación
       final items = <OrderItem>[];
       for (var entry in _cart.entries) {
         final product = productProvider.getProductById(entry.key);
-        if (product == null) continue; // Skip si el producto fue eliminado
+        if (product == null) continue;
         
         items.add(OrderItem(
           productId: product.id,
@@ -310,12 +305,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         total: total,
       );
 
-      // ✅ MEJOR: Crear orden y boleta
       final orderSuccess = await orderProvider.addOrder(order);
       final invoiceSuccess = await invoiceProvider.addInvoice(invoice);
 
       if (orderSuccess && invoiceSuccess) {
-        // ✅ MEJOR: Actualizar stock
         for (var entry in _cart.entries) {
           final product = productProvider.getProductById(entry.key);
           if (product != null) {
@@ -327,7 +320,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         }
 
         if (mounted) {
-          Navigator.pop(context); // Cerrar loading
+          Navigator.pop(context);
           
           setState(() {
             _cart.clear();
@@ -357,25 +350,24 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         }
       } else {
         if (mounted) {
-          Navigator.pop(context); // Cerrar loading
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('❌ ${l10n.orderCreatedError}'),
               backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
             ),
           );
         }
       }
     } catch (e) {
-      // ✅ NUEVO: Manejo de errores
       if (mounted) {
-        Navigator.pop(context); // Cerrar loading
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Error inesperado: ${e.toString()}'),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 4),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -432,14 +424,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
     return Column(
       children: [
-        // ✅ MEJORADO: Buscador con debounce
         Padding(
           padding: EdgeInsets.all(16.w),
           child: TextField(
             onChanged: (value) {
-              // ✅ NUEVO: Debounce de 300ms
               if (_debounce?.isActive ?? false) _debounce!.cancel();
-              _debounce = Timer(const Duration(milliseconds: 300), () {
+              _debounce = Timer(Duration(milliseconds: ValidationLimits.debounceMilliseconds), () {
                 setState(() {
                   _productSearchQuery = value;
                 });
@@ -476,7 +466,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         ),
 
-        // Botón ver carrito
         if (_cart.isNotEmpty)
           Container(
             margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -497,7 +486,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         if (_cart.isNotEmpty) SizedBox(height: 12.h),
 
-        // Lista de productos
         Expanded(
           child: filteredProducts.isEmpty
               ? Center(
@@ -528,7 +516,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
                         child: Row(
                           children: [
-                            // ✅ OPTIMIZADO: Imagen con cacheWidth
                             Container(
                               width: isTablet ? 60.w : 70.w,
                               height: isTablet ? 60.w : 70.w,
@@ -542,7 +529,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                       child: Image.file(
                                         File(product.imagePath),
                                         fit: BoxFit.cover,
-                                        cacheWidth: 210, // ✅ NUEVO: 70w × 3 para pantallas HD
+                                        cacheWidth: 210,
                                         errorBuilder: (context, error, stackTrace) {
                                           return Icon(Icons.broken_image, size: 30.sp, color: theme.iconColorLight);
                                         },
@@ -552,7 +539,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                             ),
                             SizedBox(width: 12.w),
 
-                            // Info del producto
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,7 +573,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                               ),
                             ),
 
-                            // Botones de agregar/quitar
                             if (inCart > 0)
                               Container(
                                 decoration: BoxDecoration(
@@ -641,7 +626,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 ),
         ),
 
-        // Panel inferior (resumen + botones)
         if (_cart.isNotEmpty)
           Container(
             padding: EdgeInsets.all(16.w),

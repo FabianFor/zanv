@@ -37,7 +37,6 @@ class ProductCard extends StatelessWidget {
           padding: EdgeInsets.all(isVerySmall ? 10.w : 12.w),
           child: Row(
             children: [
-              // Imagen del producto
               Hero(
                 tag: 'product_${product.id}',
                 child: Container(
@@ -72,7 +71,6 @@ class ProductCard extends StatelessWidget {
               ),
               SizedBox(width: isVerySmall ? 12.w : 16.w),
 
-              // Información del producto
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +101,6 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
 
-              // Precio y acciones
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -209,6 +206,7 @@ class ProductCard extends StatelessWidget {
                               child: Image.file(
                                 File(product.imagePath),
                                 fit: BoxFit.cover,
+                                cacheWidth: 600,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Icon(
                                     Icons.broken_image,
