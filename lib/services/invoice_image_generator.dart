@@ -11,9 +11,10 @@ import '../providers/settings_provider.dart';
 import '../core/utils/app_logger.dart';
 import '../l10n/app_localizations.dart';
 
-/// ✅ FUNCIONA 100% OFFLINE - No requiere internet
+
 class InvoiceImageGenerator {
   static final GlobalKey _globalKey = GlobalKey();
+
 
   static Future<String> generateImage({
     required Invoice invoice,
@@ -36,20 +37,14 @@ class InvoiceImageGenerator {
             key: _globalKey,
             child: Material(
               child: Container(
-                width: 600,
-                color: Colors.grey[200],
-                child: Center(
-                  child: Container(
-                    width: 450,
-                    padding: const EdgeInsets.all(24),
-                    color: Colors.white,
-                    child: InvoiceContent(
-                      invoice: invoice,
-                      businessProfile: businessProfile,
-                      settingsProvider: settingsProvider,
-                      context: context,
-                    ),
-                  ),
+                width: 500,
+                padding: const EdgeInsets.all(20),
+                color: Colors.white,
+                child: InvoiceContent(
+                  invoice: invoice,
+                  businessProfile: businessProfile,
+                  settingsProvider: settingsProvider,
+                  context: context,
                 ),
               ),
             ),
@@ -57,13 +52,16 @@ class InvoiceImageGenerator {
         ),
       );
 
+
       overlay.insert(overlayEntry);
       
       await Future.delayed(const Duration(milliseconds: 500));
 
+
       if (_globalKey.currentContext == null) {
         throw Exception('No se pudo obtener el contexto del RepaintBoundary');
       }
+
 
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -78,8 +76,10 @@ class InvoiceImageGenerator {
       Uint8List pngBytes = byteData.buffer.asUint8List();
       AppLogger.success('Imagen capturada: ${pngBytes.length} bytes');
 
+
       overlayEntry.remove();
       overlayEntry = null;
+
 
       final directory = await getTemporaryDirectory();
       final tempPath = '${directory.path}/temp_invoice_${invoice.invoiceNumber}_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -90,6 +90,7 @@ class InvoiceImageGenerator {
       if (!await file.exists()) {
         throw Exception('No se pudo guardar la imagen temporal');
       }
+
 
       AppLogger.success('Imagen guardada: $tempPath');
       return tempPath;
@@ -107,11 +108,13 @@ class InvoiceImageGenerator {
   }
 }
 
+
 class InvoiceContent extends StatelessWidget {
   final Invoice invoice;
   final BusinessProfile businessProfile;
   final SettingsProvider settingsProvider;
   final BuildContext context;
+
 
   const InvoiceContent({
     super.key,
@@ -120,6 +123,7 @@ class InvoiceContent extends StatelessWidget {
     required this.settingsProvider,
     required this.context,
   });
+
 
   @override
   Widget build(BuildContext ctx) {
@@ -131,11 +135,9 @@ class InvoiceContent extends StatelessWidget {
       children: [
         const SizedBox(height: 20),
         
-        // Logo centrado
         Center(
           child: Column(
             children: [
-              // ✅ CORREGIDO: Usar businessProfile.logoPath
               if (businessProfile.logoPath.isNotEmpty)
                 Container(
                   width: 80,
@@ -173,7 +175,6 @@ class InvoiceContent extends StatelessWidget {
         
         const SizedBox(height: 30),
         
-        // ✅ CORREGIDO: Usar businessProfile.name
         Text(
           businessProfile.name.isNotEmpty 
               ? businessProfile.name 
@@ -187,7 +188,6 @@ class InvoiceContent extends StatelessWidget {
         
         const SizedBox(height: 12),
         
-        // ✅ CORREGIDO: Usar businessProfile.address
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -208,7 +208,6 @@ class InvoiceContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         
-        // ✅ CORREGIDO: Usar businessProfile.phone
         Row(
           children: [
             const Icon(Icons.phone, size: 16, color: Colors.black87),
@@ -226,7 +225,6 @@ class InvoiceContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         
-        // ✅ CORREGIDO: Usar businessProfile.email
         Row(
           children: [
             const Icon(Icons.email, size: 16, color: Colors.black87),
@@ -247,16 +245,15 @@ class InvoiceContent extends StatelessWidget {
         
         const SizedBox(height: 30),
         
-        // Tabla de productos con header integrado
         Table(
           border: TableBorder.all(color: Colors.grey[400]!, width: 1),
           columnWidths: const {
             0: FlexColumnWidth(3),
-            1: FlexColumnWidth(1.2),
-            2: FlexColumnWidth(1.2),
+            1: FlexColumnWidth(0.9),
+            2: FlexColumnWidth(1.3),
+            3: FlexColumnWidth(1.3),
           },
           children: [
-            // Header de tabla
             TableRow(
               decoration: BoxDecoration(color: Colors.grey[300]),
               children: [
@@ -269,6 +266,18 @@ class InvoiceContent extends StatelessWidget {
                       color: Colors.black,
                       fontSize: 16,
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    'Cantidad',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
                 Padding(
@@ -298,7 +307,6 @@ class InvoiceContent extends StatelessWidget {
               ],
             ),
             
-            // Filas de productos
             ...invoice.items.map((item) => TableRow(
               children: [
                 Padding(
@@ -309,6 +317,18 @@ class InvoiceContent extends StatelessWidget {
                       color: Colors.black,
                       fontSize: 14,
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    '${item.quantity}',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
                 Padding(
@@ -340,7 +360,6 @@ class InvoiceContent extends StatelessWidget {
         
         const SizedBox(height: 20),
         
-        // Total
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -357,7 +376,6 @@ class InvoiceContent extends StatelessWidget {
         
         const SizedBox(height: 20),
         
-        // Fecha y hora
         Center(
           child: Text(
             DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
