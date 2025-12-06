@@ -29,7 +29,7 @@ dependencies:
   # Images
   image_picker: ^1.1.2
 
-  # Sharing (versión estable para proyectos existentes)
+  # Sharing
   share_plus: ^7.2.1
 
   # Permissions
@@ -50,12 +50,11 @@ dependencies:
 
   # PDF & File handling
   pdf: ^3.10.4
-
-  # ⚠️ open_file está roto → reemplazo oficial
   open_filex: ^4.5.0
-
-  # printing compatible con share_plus 7.x
   printing: ^5.11.1
+  
+  # ✅ NUEVA: Para seleccionar archivos JSON
+  file_picker: ^6.1.1
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +80,6 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   generate: true
-
+  
   assets:
     - assets/icon/

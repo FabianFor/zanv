@@ -518,4 +518,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get downloadFormatPdf => 'Documento (PDF)';
+
+  @override
+  String get loginTitle => 'MiNegocio';
+
+  @override
+  String get loginSubtitle => 'Sistema de Gestión';
+
+  @override
+  String get loginAsEmployee => 'Entrar como Empleado';
+
+  @override
+  String get loginAsAdmin => 'Entrar como Admin';
+
+  @override
+  String get administrator => 'Administrador';
+
+  @override
+  String get password => 'Contraseña';
+
+  @override
+  String get verifying => 'Verificando...';
+
+  @override
+  String get defaultPassword => 'Contraseña por defecto: 1234';
+
+  @override
+  String get pleaseEnterPassword => 'Por favor ingresa la contraseña';
+
+  @override
+  String get incorrectPassword => 'Contraseña incorrecta';
+
+  @override
+  String get loadingData => 'Cargando datos...';
+
+  @override
+  String get exportProducts => 'Exportar Productos';
+
+  @override
+  String get importProducts => 'Importar Productos';
+
+  @override
+  String get exportFullBackup => 'Exportar Todo';
+
+  @override
+  String get importFullBackup => 'Importar Todo';
+
+  @override
+  String get exportSuccess => 'Exportado exitosamente';
+
+  @override
+  String get importSuccess => 'Importado exitosamente';
+
+  @override
+  String get exportError => 'Error al exportar';
+
+  @override
+  String get importError => 'Error al importar';
+
+  @override
+  String get fileNotSelected => 'No se seleccionó archivo';
+
+  @override
+  String get logout => 'Cerrar Sesión';
 }

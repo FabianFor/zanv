@@ -1067,6 +1067,132 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Documento (PDF)'**
   String get downloadFormatPdf;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'MiNegocio'**
+  String get loginTitle;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sistema de Gestión'**
+  String get loginSubtitle;
+
+  /// No description provided for @loginAsEmployee.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar como Empleado'**
+  String get loginAsEmployee;
+
+  /// No description provided for @loginAsAdmin.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar como Admin'**
+  String get loginAsAdmin;
+
+  /// No description provided for @administrator.
+  ///
+  /// In es, this message translates to:
+  /// **'Administrador'**
+  String get administrator;
+
+  /// No description provided for @password.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get password;
+
+  /// No description provided for @verifying.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificando...'**
+  String get verifying;
+
+  /// No description provided for @defaultPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña por defecto: 1234'**
+  String get defaultPassword;
+
+  /// No description provided for @pleaseEnterPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor ingresa la contraseña'**
+  String get pleaseEnterPassword;
+
+  /// No description provided for @incorrectPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña incorrecta'**
+  String get incorrectPassword;
+
+  /// No description provided for @loadingData.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando datos...'**
+  String get loadingData;
+
+  /// No description provided for @exportProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar Productos'**
+  String get exportProducts;
+
+  /// No description provided for @importProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar Productos'**
+  String get importProducts;
+
+  /// No description provided for @exportFullBackup.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar Todo'**
+  String get exportFullBackup;
+
+  /// No description provided for @importFullBackup.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar Todo'**
+  String get importFullBackup;
+
+  /// No description provided for @exportSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportado exitosamente'**
+  String get exportSuccess;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Importado exitosamente'**
+  String get importSuccess;
+
+  /// No description provided for @exportError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al exportar'**
+  String get exportError;
+
+  /// No description provided for @importError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al importar'**
+  String get importError;
+
+  /// No description provided for @fileNotSelected.
+  ///
+  /// In es, this message translates to:
+  /// **'No se seleccionó archivo'**
+  String get fileNotSelected;
+
+  /// No description provided for @logout.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar Sesión'**
+  String get logout;
 }
 
 class _AppLocalizationsDelegate

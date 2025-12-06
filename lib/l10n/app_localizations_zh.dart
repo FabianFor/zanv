@@ -513,4 +513,67 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get downloadFormatPdf => '文档（PDF）';
+
+  @override
+  String get loginTitle => '我的业务';
+
+  @override
+  String get loginSubtitle => '管理系统';
+
+  @override
+  String get loginAsEmployee => '作为员工登录';
+
+  @override
+  String get loginAsAdmin => '作为管理员登录';
+
+  @override
+  String get administrator => '管理员';
+
+  @override
+  String get password => '密码';
+
+  @override
+  String get verifying => '验证中...';
+
+  @override
+  String get defaultPassword => '默认密码：1234';
+
+  @override
+  String get pleaseEnterPassword => '请输入密码';
+
+  @override
+  String get incorrectPassword => '密码错误';
+
+  @override
+  String get loadingData => '加载数据中...';
+
+  @override
+  String get exportProducts => '导出产品';
+
+  @override
+  String get importProducts => '导入产品';
+
+  @override
+  String get exportFullBackup => '导出全部';
+
+  @override
+  String get importFullBackup => '导入全部';
+
+  @override
+  String get exportSuccess => '导出成功';
+
+  @override
+  String get importSuccess => '导入成功';
+
+  @override
+  String get exportError => '导出错误';
+
+  @override
+  String get importError => '导入错误';
+
+  @override
+  String get fileNotSelected => '未选择文件';
+
+  @override
+  String get logout => '登出';
 }

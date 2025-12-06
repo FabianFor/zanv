@@ -247,4 +247,28 @@
   "@downloadFormatPdf": {
     "description": "Opção para baixar como PDF"
   }
+    ,
+  "loginTitle": "MeuNegócio",
+  "loginSubtitle": "Sistema de Gestão",
+  "loginAsEmployee": "Entrar como Funcionário",
+  "loginAsAdmin": "Entrar como Admin",
+  "administrator": "Administrador",
+  "password": "Senha",
+  "verifying": "Verificando...",
+  "defaultPassword": "Senha padrão: 1234",
+  "pleaseEnterPassword": "Por favor, insira a senha",
+  "incorrectPassword": "Senha incorreta",
+  "loadingData": "Carregando dados...",
+  "exportProducts": "Exportar Produtos",
+  "importProducts": "Importar Produtos",
+  "exportFullBackup": "Exportar Tudo",
+  "importFullBackup": "Importar Tudo",
+  "exportSuccess": "Exportado com sucesso",
+  "importSuccess": "Importado com sucesso",
+  "exportError": "Erro ao exportar",
+  "importError": "Erro ao importar",
+  "fileNotSelected": "Nenhum arquivo selecionado",
+  "logout": "Sair"
+
 }
+

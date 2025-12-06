@@ -5,11 +5,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'providers/auth_provider.dart';
 import 'providers/business_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/invoice_provider.dart';
 import 'providers/settings_provider.dart';
+import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/product.dart';
 import 'models/order.dart';
@@ -37,25 +39,30 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // ✅ Settings primero (otros dependen de esto)
+        // Auth provider (primero)
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
+        
+        // Settings provider
         ChangeNotifierProvider(
           create: (_) => SettingsProvider()..loadSettings(),
         ),
         
-        // ✅ Business profile
+        // Business profile
         ChangeNotifierProvider(
           create: (_) => BusinessProvider()..loadProfile(),
         ),
         
-        // ✅✅ INICIALIZACIÓN INMEDIATA DE DATOS
+        // Data providers
         ChangeNotifierProvider(
-          create: (_) => ProductProvider()..loadProducts(), // ← Carga al iniciar
+          create: (_) => ProductProvider()..loadProducts(),
         ),
         ChangeNotifierProvider(
-          create: (_) => OrderProvider()..loadOrders(), // ← Carga al iniciar
+          create: (_) => OrderProvider()..loadOrders(),
         ),
         ChangeNotifierProvider(
-          create: (_) => InvoiceProvider()..loadInvoices(), // ← Carga al iniciar
+          create: (_) => InvoiceProvider()..loadInvoices(),
         ),
       ],
       child: Consumer<SettingsProvider>(
@@ -84,11 +91,10 @@ class MyApp extends StatelessWidget {
                   Locale('pt'),
                   Locale('zh'),
                 ],
-                // ✅ SPLASH SCREEN mientras carga
                 home: _AppInitializer(child: child!),
               );
             },
-            child: const DashboardScreen(),
+            child: const LoginScreen(),
           );
         },
       ),
@@ -96,7 +102,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ✅ NUEVO: Widget que espera a que se carguen los datos
 class _AppInitializer extends StatelessWidget {
   final Widget child;
 
@@ -104,6 +109,7 @@ class _AppInitializer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
     final productProvider = context.watch<ProductProvider>();
     final orderProvider = context.watch<OrderProvider>();
     final invoiceProvider = context.watch<InvoiceProvider>();
@@ -121,8 +127,8 @@ class _AppInitializer extends StatelessWidget {
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
-                'Cargando datos...',
-                style: TextStyle(fontSize: 16),
+                AppLocalizations.of(context)!.loadingData,
+                style: const TextStyle(fontSize: 16),
               ),
             ],
           ),
@@ -130,6 +136,12 @@ class _AppInitializer extends StatelessWidget {
       );
     }
 
-    return child;
+    // Si no está autenticado, muestra login
+    if (!authProvider.isAuthenticated) {
+      return child;
+    }
+
+    // Si está autenticado, muestra dashboard
+    return const DashboardScreen();
   }
 }

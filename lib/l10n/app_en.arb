@@ -247,4 +247,27 @@
   "@downloadFormatPdf": {
     "description": "Option to download as PDF"
   }
+    ,
+  "loginTitle": "MyBusiness",
+  "loginSubtitle": "Management System",
+  "loginAsEmployee": "Enter as Employee",
+  "loginAsAdmin": "Enter as Admin",
+  "administrator": "Administrator",
+  "password": "Password",
+  "verifying": "Verifying...",
+  "defaultPassword": "Default password: 1234",
+  "pleaseEnterPassword": "Please enter the password",
+  "incorrectPassword": "Incorrect password",
+  "loadingData": "Loading data...",
+  "exportProducts": "Export Products",
+  "importProducts": "Import Products",
+  "exportFullBackup": "Export All",
+  "importFullBackup": "Import All",
+  "exportSuccess": "Exported successfully",
+  "importSuccess": "Imported successfully",
+  "exportError": "Export error",
+  "importError": "Import error",
+  "fileNotSelected": "No file selected",
+  "logout": "Logout"
+
 }

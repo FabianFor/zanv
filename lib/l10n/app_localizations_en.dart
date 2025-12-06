@@ -517,4 +517,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get downloadFormatPdf => 'Document (PDF)';
+
+  @override
+  String get loginTitle => 'MyBusiness';
+
+  @override
+  String get loginSubtitle => 'Management System';
+
+  @override
+  String get loginAsEmployee => 'Enter as Employee';
+
+  @override
+  String get loginAsAdmin => 'Enter as Admin';
+
+  @override
+  String get administrator => 'Administrator';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get verifying => 'Verifying...';
+
+  @override
+  String get defaultPassword => 'Default password: 1234';
+
+  @override
+  String get pleaseEnterPassword => 'Please enter the password';
+
+  @override
+  String get incorrectPassword => 'Incorrect password';
+
+  @override
+  String get loadingData => 'Loading data...';
+
+  @override
+  String get exportProducts => 'Export Products';
+
+  @override
+  String get importProducts => 'Import Products';
+
+  @override
+  String get exportFullBackup => 'Export All';
+
+  @override
+  String get importFullBackup => 'Import All';
+
+  @override
+  String get exportSuccess => 'Exported successfully';
+
+  @override
+  String get importSuccess => 'Imported successfully';
+
+  @override
+  String get exportError => 'Export error';
+
+  @override
+  String get importError => 'Import error';
+
+  @override
+  String get fileNotSelected => 'No file selected';
+
+  @override
+  String get logout => 'Logout';
 }

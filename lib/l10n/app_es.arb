@@ -247,4 +247,27 @@
   "@downloadFormatPdf": {
     "description": "Opción para descargar como PDF"
   }
+    ,
+  "loginTitle": "MiNegocio",
+  "loginSubtitle": "Sistema de Gestión",
+  "loginAsEmployee": "Entrar como Empleado",
+  "loginAsAdmin": "Entrar como Admin",
+  "administrator": "Administrador",
+  "password": "Contraseña",
+  "verifying": "Verificando...",
+  "defaultPassword": "Contraseña por defecto: 1234",
+  "pleaseEnterPassword": "Por favor ingresa la contraseña",
+  "incorrectPassword": "Contraseña incorrecta",
+  "loadingData": "Cargando datos...",
+  "exportProducts": "Exportar Productos",
+  "importProducts": "Importar Productos",
+  "exportFullBackup": "Exportar Todo",
+  "importFullBackup": "Importar Todo",
+  "exportSuccess": "Exportado exitosamente",
+  "importSuccess": "Importado exitosamente",
+  "exportError": "Error al exportar",
+  "importError": "Error al importar",
+  "fileNotSelected": "No se seleccionó archivo",
+  "logout": "Cerrar Sesión"
+
 }
