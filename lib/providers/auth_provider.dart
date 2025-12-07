@@ -17,24 +17,35 @@ class AuthProvider extends ChangeNotifier {
   // Inicializar el provider y crear admin por defecto
   Future<void> initialize() async {
     try {
+      debugPrint('🔧 Inicializando AuthProvider...');
+      
       _usersBox = await Hive.openBox<User>('users');
       
       debugPrint('📦 Users box abierto. Usuarios: ${_usersBox!.length}');
       
       // Si no hay usuarios, crear admin por defecto
       if (_usersBox!.isEmpty) {
+        debugPrint('📝 Box vacío, creando admin por defecto...');
         await _crearAdminPorDefecto();
       }
       
+      debugPrint('✅ AuthProvider inicializado correctamente');
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Error al inicializar AuthProvider: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
   // Crear admin por defecto (primera vez)
   Future<void> _crearAdminPorDefecto() async {
     try {
+      // ✅ Verificar que el box esté disponible
+      if (_usersBox == null) {
+        debugPrint('❌ Error: _usersBox es null');
+        return;
+      }
+      
       final adminPorDefecto = User(
         id: 'admin_${DateTime.now().millisecondsSinceEpoch}',
         nombre: 'Administrador',
@@ -45,30 +56,52 @@ class AuthProvider extends ChangeNotifier {
 
       await _usersBox!.put(adminPorDefecto.id, adminPorDefecto);
       debugPrint('✅ Admin por defecto creado: ${adminPorDefecto.id}');
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Error al crear admin por defecto: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
   // Verificar si admin tiene contraseña configurada
   bool adminTieneContrasena() {
-    final admin = _obtenerAdmin();
-    final tieneContrasena = admin?.contrasena != null && admin!.contrasena!.isNotEmpty;
-    debugPrint('🔍 Admin tiene contraseña: $tieneContrasena');
-    return tieneContrasena;
+    try {
+      final admin = _obtenerAdmin();
+      
+      // Si no hay admin, significa que es primera vez
+      if (admin == null) {
+        debugPrint('🔍 No hay admin, es primera configuración');
+        return false;
+      }
+      
+      final tieneContrasena = admin.contrasena != null && admin.contrasena!.isNotEmpty;
+      debugPrint('🔍 Admin tiene contraseña: $tieneContrasena');
+      return tieneContrasena;
+    } catch (e) {
+      debugPrint('⚠️ Error verificando contraseña: $e');
+      return false; // Asumir que no tiene contraseña si hay error
+    }
   }
 
   // Obtener el usuario admin
   User? _obtenerAdmin() {
     try {
-      final usuarios = _usersBox?.values.toList() ?? [];
+      if (_usersBox == null || _usersBox!.isEmpty) {
+        debugPrint('📋 Box vacío o nulo');
+        return null;
+      }
+      
+      final usuarios = _usersBox!.values.toList();
       debugPrint('📋 Total usuarios en box: ${usuarios.length}');
       
-      final admin = usuarios.firstWhere((u) => u.rol == RolUsuario.admin);
+      final admin = usuarios.firstWhere(
+        (u) => u.rol == RolUsuario.admin,
+        orElse: () => throw StateError('No admin found'),
+      );
+      
       debugPrint('👤 Admin encontrado: ${admin.id}, Contraseña: ${admin.contrasena != null ? "Configurada" : "No configurada"}');
       return admin;
     } catch (e) {
-      debugPrint('❌ No se encontró admin: $e');
+      debugPrint('⚠️ No se encontró admin (esto es normal la primera vez): $e');
       return null;
     }
   }
@@ -78,10 +111,29 @@ class AuthProvider extends ChangeNotifier {
     try {
       debugPrint('🔐 Iniciando configuración de contraseña...');
       
-      final admin = _obtenerAdmin();
-      if (admin == null) {
-        debugPrint('❌ No se encontró el admin');
+      // ✅ FIX: Verificar que el box esté inicializado
+      if (_usersBox == null) {
+        debugPrint('⚠️ Box no inicializado, inicializando...');
+        await initialize();
+      }
+      
+      if (_usersBox == null) {
+        debugPrint('❌ Error crítico: No se pudo inicializar el box');
         return false;
+      }
+      
+      // ✅ FIX: Si no hay admin, crearlo primero
+      User? admin = _obtenerAdmin();
+      
+      if (admin == null) {
+        debugPrint('📝 Admin no encontrado, creando uno nuevo...');
+        await _crearAdminPorDefecto();
+        admin = _obtenerAdmin();
+        
+        if (admin == null) {
+          debugPrint('❌ Error crítico: No se pudo crear admin');
+          return false;
+        }
       }
 
       final contrasenaHash = _hashContrasena(contrasena);
@@ -105,8 +157,9 @@ class AuthProvider extends ChangeNotifier {
       
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Error al configurar contraseña: $e');
+      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }

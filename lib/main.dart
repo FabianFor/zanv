@@ -25,6 +25,20 @@ void main() async {
   debugPrint('🚀 Inicializando Hive...');
   await Hive.initFlutter();
   
+  // 🔥 COMENTADO - Ya no borra los datos cada vez que abres la app
+  /*
+  try {
+    await Hive.deleteBoxFromDisk('users');
+    await Hive.deleteBoxFromDisk('products');
+    await Hive.deleteBoxFromDisk('orders');
+    await Hive.deleteBoxFromDisk('invoices');
+    await Hive.deleteBoxFromDisk('business_profile');
+    debugPrint('✅ Boxes antiguos borrados correctamente');
+  } catch (e) {
+    debugPrint('⚠️ Error borrando boxes (puede ser normal si no existen): $e');
+  }
+  */
+  
   // Registrar TODOS los adaptadores
   Hive.registerAdapter(ProductAdapter());
   Hive.registerAdapter(OrderAdapter());
@@ -32,7 +46,7 @@ void main() async {
   Hive.registerAdapter(InvoiceAdapter());
   Hive.registerAdapter(BusinessProfileAdapter());
   Hive.registerAdapter(UserAdapter());
-  Hive.registerAdapter(RolUsuarioAdapter()); // ⚠️ ESTE FALTABA
+  Hive.registerAdapter(RolUsuarioAdapter());
   
   debugPrint('✅ Adaptadores registrados');
   
