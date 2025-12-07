@@ -2,52 +2,86 @@ import 'package:hive/hive.dart';
 
 part 'user.g.dart';
 
-@HiveType(typeId: 3)
+@HiveType(typeId: 5)
 class User extends HiveObject {
   @HiveField(0)
-  final String id;
+  String id;
 
   @HiveField(1)
-  final String username;
+  String nombre;
 
   @HiveField(2)
-  final String password;
+  RolUsuario rol;
 
   @HiveField(3)
-  final String role;
+  String? contrasena; // Solo para admin
 
   @HiveField(4)
-  final DateTime createdAt;
+  DateTime fechaCreacion;
+
+  @HiveField(5)
+  DateTime? ultimoAcceso;
 
   User({
     required this.id,
-    required this.username,
-    required this.password,
-    required this.role,
-    required this.createdAt,
+    required this.nombre,
+    required this.rol,
+    this.contrasena,
+    required this.fechaCreacion,
+    this.ultimoAcceso,
   });
 
-  bool get isAdmin => role == 'admin';
-  bool get isEmployee => role == 'employee';
+  // Métodos de ayuda
+  bool get esAdmin => rol == RolUsuario.admin;
+  bool get esUsuario => rol == RolUsuario.usuario;
 
+  // Copiar con modificaciones
   User copyWith({
-    String? id,
-    String? username,
-    String? password,
-    String? role,
-    DateTime? createdAt,
+    String? nombre,
+    RolUsuario? rol,
+    String? contrasena,
+    DateTime? ultimoAcceso,
   }) {
     return User(
-      id: id ?? this.id,
-      username: username ?? this.username,
-      password: password ?? this.password,
-      role: role ?? this.role,
-      createdAt: createdAt ?? this.createdAt,
+      id: id,
+      nombre: nombre ?? this.nombre,
+      rol: rol ?? this.rol,
+      contrasena: contrasena ?? this.contrasena,
+      fechaCreacion: fechaCreacion,
+      ultimoAcceso: ultimoAcceso ?? this.ultimoAcceso,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nombre': nombre,
+      'rol': rol.toString(),
+      'fechaCreacion': fechaCreacion.toIso8601String(),
+      'ultimoAcceso': ultimoAcceso?.toIso8601String(),
+    };
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      nombre: json['nombre'],
+      rol: RolUsuario.values.firstWhere(
+        (e) => e.toString() == json['rol'],
+      ),
+      fechaCreacion: DateTime.parse(json['fechaCreacion']),
+      ultimoAcceso: json['ultimoAcceso'] != null
+          ? DateTime.parse(json['ultimoAcceso'])
+          : null,
     );
   }
 }
 
-enum UserRole {
+@HiveType(typeId: 6)
+enum RolUsuario {
+  @HiveField(0)
   admin,
-  employee,
+
+  @HiveField(1)
+  usuario,
 }

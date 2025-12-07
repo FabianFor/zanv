@@ -17,7 +17,7 @@ import 'models/product.dart';
 import 'models/order.dart';
 import 'models/invoice.dart';
 import 'models/business_profile.dart';
-import 'models/user.dart'; // ✅ NUEVO
+import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +29,7 @@ void main() async {
   Hive.registerAdapter(OrderItemAdapter());
   Hive.registerAdapter(InvoiceAdapter());
   Hive.registerAdapter(BusinessProfileAdapter());
-  Hive.registerAdapter(UserAdapter()); // ✅ NUEVO - AGREGAR ESTA LÍNEA
+  Hive.registerAdapter(UserAdapter());
   
   runApp(const MyApp());
 }
@@ -41,9 +41,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Auth provider (primero) - ✅ INICIALIZA USUARIOS
+        // Auth provider (primero)
         ChangeNotifierProvider(
-          create: (_) => AuthProvider()..initialize(), // ✅ AGREGADO ..initialize()
+          create: (_) => AuthProvider()..initialize(),
         ),
         
         // Settings provider
@@ -93,10 +93,9 @@ class MyApp extends StatelessWidget {
                   Locale('pt'),
                   Locale('zh'),
                 ],
-                home: _AppInitializer(child: child!),
+                home: const _AppInitializer(),
               );
             },
-            child: const LoginScreen(),
           );
         },
       ),
@@ -104,23 +103,36 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class _AppInitializer extends StatelessWidget {
-  final Widget child;
+class _AppInitializer extends StatefulWidget {
+  const _AppInitializer();
 
-  const _AppInitializer({required this.child});
+  @override
+  State<_AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<_AppInitializer> {
+  bool _isInitializing = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Esperar a que todos los providers terminen de cargar
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    if (mounted) {
+      setState(() {
+        _isInitializing = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final productProvider = context.watch<ProductProvider>();
-    final orderProvider = context.watch<OrderProvider>();
-    final invoiceProvider = context.watch<InvoiceProvider>();
-    
-    final isLoading = productProvider.isLoading || 
-                     orderProvider.isLoading || 
-                     invoiceProvider.isLoading;
-
-    if (isLoading) {
+    if (_isInitializing) {
       return Scaffold(
         body: Center(
           child: Column(
@@ -129,7 +141,7 @@ class _AppInitializer extends StatelessWidget {
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
-                AppLocalizations.of(context)!.loadingData,
+                AppLocalizations.of(context)?.loadingData ?? 'Loading...',
                 style: const TextStyle(fontSize: 16),
               ),
             ],
@@ -138,12 +150,13 @@ class _AppInitializer extends StatelessWidget {
       );
     }
 
-    // Si no está autenticado, muestra login
-    if (!authProvider.isAuthenticated) {
-      return child;
+    // Una vez inicializado, verificar autenticación
+    final authProvider = context.watch<AuthProvider>();
+    
+    if (authProvider.isAuthenticated) {
+      return const DashboardScreen();
+    } else {
+      return const LoginScreen();
     }
-
-    // Si está autenticado, muestra dashboard
-    return const DashboardScreen();
   }
 }

@@ -55,7 +55,7 @@ dependencies:
   
   # ✅ NUEVA: Para seleccionar archivos JSON
   file_picker: ^8.0.3
-
+crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -64,7 +64,7 @@ dev_dependencies:
 
   # Hive code generation
   hive_generator: ^2.0.1
-  build_runner: ^2.4.9
+  build_runner: ^2.5.4
 
   # App Icon Generator
   flutter_launcher_icons: ^0.13.1

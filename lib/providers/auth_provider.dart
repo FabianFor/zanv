@@ -1,143 +1,184 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
-class AuthProvider with ChangeNotifier {
-  Box<User>? _box;
-  User? _currentUser;
-  bool _isInitialized = false;
-  
-  // Contraseña por defecto del admin
-  static const String _defaultAdminPassword = 'admin123';
+class AuthProvider extends ChangeNotifier {
+  User? _usuarioActual;
+  bool _isAuthenticated = false;
+  Box<User>? _usersBox;
 
-  User? get currentUser => _currentUser;
-  bool get isAuthenticated => _currentUser != null;
-  bool get isAdmin => _currentUser?.isAdmin ?? false;
-  bool get isEmployee => _currentUser?.isEmployee ?? false;
+  User? get usuarioActual => _usuarioActual;
+  bool get isAuthenticated => _isAuthenticated;
+  bool get esAdmin => _usuarioActual?.esAdmin ?? false;
+  bool get esUsuario => _usuarioActual?.esUsuario ?? false;
 
-  // Inicializar
+  // Inicializar el provider y crear admin por defecto
   Future<void> initialize() async {
-    if (_isInitialized) return;
-
     try {
-      _box = await Hive.openBox<User>('users');
+      _usersBox = await Hive.openBox<User>('users');
       
-      // Crear admin inicial si no existe
-      if (_box!.isEmpty) {
-        await _createInitialAdmin();
+      // Si no hay usuarios, crear admin por defecto
+      if (_usersBox!.isEmpty) {
+        await _crearAdminPorDefecto();
       }
       
-      _isInitialized = true;
       notifyListeners();
-      print('✅ AuthProvider inicializado');
     } catch (e) {
-      print('❌ Error inicializando: $e');
-      _isInitialized = true;
-      notifyListeners();
+      debugPrint('Error al inicializar AuthProvider: $e');
     }
   }
 
-  // Crear admin por defecto
-  Future<void> _createInitialAdmin() async {
-    final admin = User(
-      id: 'admin_1',
-      username: 'admin',
-      password: _defaultAdminPassword,
-      role: 'admin',
-      createdAt: DateTime.now(),
+  // Crear admin por defecto (primera vez)
+  Future<void> _crearAdminPorDefecto() async {
+    final adminPorDefecto = User(
+      id: 'admin_${DateTime.now().millisecondsSinceEpoch}',
+      nombre: 'Administrador',
+      rol: RolUsuario.admin,
+      contrasena: null, // Sin contraseña inicialmente
+      fechaCreacion: DateTime.now(),
     );
-    await _box!.put(admin.id, admin);
-    print('✅ Admin creado: admin / $_defaultAdminPassword');
+
+    await _usersBox!.put(adminPorDefecto.id, adminPorDefecto);
+    debugPrint('Admin por defecto creado');
   }
 
-  // Login como empleado (sin contraseña)
-  void loginAsEmployee() {
-    _currentUser = User(
-      id: 'employee_temp',
-      username: 'Empleado',
-      password: '',
-      role: 'employee',
-      createdAt: DateTime.now(),
-    );
-    notifyListeners();
-    print('✅ Login como empleado');
+  // Verificar si admin tiene contraseña configurada
+  bool adminTieneContrasena() {
+    final admin = _obtenerAdmin();
+    return admin?.contrasena != null && admin!.contrasena!.isNotEmpty;
   }
 
-  // Login como admin (con contraseña)
-  bool loginAsAdmin(String password) {
-    if (password == _defaultAdminPassword) {
-      _currentUser = User(
-        id: 'admin_1',
-        username: 'Administrador',
-        password: _defaultAdminPassword,
-        role: 'admin',
-        createdAt: DateTime.now(),
-      );
-      notifyListeners();
-      print('✅ Login como admin');
-      return true;
-    }
-    print('❌ Contraseña incorrecta');
-    return false;
-  }
-
-  // Logout
-  void logout() {
-    _currentUser = null;
-    notifyListeners();
-    print('👋 Logout');
-  }
-
-  // Verificar si puede eliminar
-  bool canDelete() => isAdmin;
-
-  // Verificar contraseña de admin (para confirmaciones)
-  Future<bool> verifyAdminPassword(String password) async {
-    return password == _defaultAdminPassword;
-  }
-
-  // Login con usuario y contraseña (para futuro)
-  Future<bool> login(String username, String password) async {
+  // Obtener el usuario admin
+  User? _obtenerAdmin() {
+    final usuarios = _usersBox?.values.toList() ?? [];
     try {
-      if (_box == null) await initialize();
+      return usuarios.firstWhere((u) => u.rol == RolUsuario.admin);
+    } catch (e) {
+      return null;
+    }
+  }
 
-      final users = _box!.values.where((user) =>
-          user.username.toLowerCase() == username.toLowerCase() && 
-          user.password == password);
+  // Configurar contraseña de admin (primera vez)
+  Future<bool> configurarContrasenaAdmin(String contrasena) async {
+    try {
+      final admin = _obtenerAdmin();
+      if (admin == null) return false;
 
-      if (users.isNotEmpty) {
-        _currentUser = users.first;
+      final contrasenaHash = _hashContrasena(contrasena);
+      final adminActualizado = admin.copyWith(contrasena: contrasenaHash);
+      
+      await _usersBox!.put(admin.id, adminActualizado);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error al configurar contraseña: $e');
+      return false;
+    }
+  }
+
+  // Login como admin con contraseña
+  Future<bool> loginAdmin(String contrasena) async {
+    try {
+      final admin = _obtenerAdmin();
+      if (admin == null || admin.contrasena == null) return false;
+
+      final contrasenaHash = _hashContrasena(contrasena);
+      
+      if (admin.contrasena == contrasenaHash) {
+        _usuarioActual = admin.copyWith(ultimoAcceso: DateTime.now());
+        await _usersBox!.put(admin.id, _usuarioActual!);
+        _isAuthenticated = true;
         notifyListeners();
         return true;
       }
+      
       return false;
     } catch (e) {
-      print('❌ Error en login: $e');
+      debugPrint('Error en login admin: $e');
       return false;
     }
   }
 
-  // Registrar empleado
-  Future<bool> registerEmployee(String username, String password) async {
-    if (!isAdmin) return false;
-
+  // Login como usuario (sin contraseña)
+  Future<bool> loginUsuario() async {
     try {
-      if (_box == null) await initialize();
+      // Verificar si existe un usuario común, si no, crearlo
+      final usuarios = _usersBox?.values.toList() ?? [];
+      User? usuario;
+      
+      try {
+        usuario = usuarios.firstWhere((u) => u.rol == RolUsuario.usuario);
+      } catch (e) {
+        // No existe, crear usuario por defecto
+        usuario = User(
+          id: 'usuario_${DateTime.now().millisecondsSinceEpoch}',
+          nombre: 'Usuario',
+          rol: RolUsuario.usuario,
+          fechaCreacion: DateTime.now(),
+        );
+        await _usersBox!.put(usuario.id, usuario);
+      }
 
-      final employee = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        username: username,
-        password: password,
-        role: 'employee',
-        createdAt: DateTime.now(),
-      );
-
-      await _box!.put(employee.id, employee);
+      _usuarioActual = usuario.copyWith(ultimoAcceso: DateTime.now());
+      await _usersBox!.put(usuario.id, _usuarioActual!);
+      _isAuthenticated = true;
       notifyListeners();
       return true;
     } catch (e) {
-      print('❌ Error registrando: $e');
+      debugPrint('Error en login usuario: $e');
       return false;
     }
+  }
+
+  // Cerrar sesión
+  Future<void> logout() async {
+    _usuarioActual = null;
+    _isAuthenticated = false;
+    notifyListeners();
+  }
+
+  // Cambiar contraseña del admin
+  Future<bool> cambiarContrasenaAdmin(String contrasenaActual, String nuevaContrasena) async {
+    try {
+      final admin = _obtenerAdmin();
+      if (admin == null) return false;
+
+      // Verificar contraseña actual
+      final contrasenaActualHash = _hashContrasena(contrasenaActual);
+      if (admin.contrasena != contrasenaActualHash) return false;
+
+      // Actualizar con nueva contraseña
+      final nuevaContrasenaHash = _hashContrasena(nuevaContrasena);
+      final adminActualizado = admin.copyWith(contrasena: nuevaContrasenaHash);
+      
+      await _usersBox!.put(admin.id, adminActualizado);
+      
+      // Actualizar usuario actual si es el admin
+      if (_usuarioActual?.id == admin.id) {
+        _usuarioActual = adminActualizado;
+      }
+      
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error al cambiar contraseña: $e');
+      return false;
+    }
+  }
+
+  // Hash de contraseña (simple pero funcional)
+  String _hashContrasena(String contrasena) {
+    final bytes = utf8.encode(contrasena);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  // Limpiar datos (para testing/reset)
+  Future<void> resetearDatos() async {
+    await _usersBox?.clear();
+    await _crearAdminPorDefecto();
+    await logout();
   }
 }
