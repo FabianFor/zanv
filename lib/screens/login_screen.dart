@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Título
                   Text(
-                    'MiNegocio',
+                    'Proïon',
                     style: TextStyle(
                       fontSize: 32.sp,
                       fontWeight: FontWeight.bold,
