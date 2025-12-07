@@ -11,6 +11,7 @@ import 'providers/product_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/invoice_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/reports_provider.dart'; // ✅ NUEVO
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/product.dart';
@@ -70,6 +71,21 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => InvoiceProvider(),
+        ),
+        
+        // ✅✅ NUEVO: Reports Provider (depende de los 3 anteriores) ✅✅
+        ChangeNotifierProxyProvider3<InvoiceProvider, OrderProvider, ProductProvider, ReportsProvider>(
+          create: (context) => ReportsProvider(
+            invoiceProvider: context.read<InvoiceProvider>(),
+            orderProvider: context.read<OrderProvider>(),
+            productProvider: context.read<ProductProvider>(),
+          ),
+          update: (context, invoiceProvider, orderProvider, productProvider, previous) =>
+              ReportsProvider(
+            invoiceProvider: invoiceProvider,
+            orderProvider: orderProvider,
+            productProvider: productProvider,
+          ),
         ),
       ],
       child: Consumer<SettingsProvider>(

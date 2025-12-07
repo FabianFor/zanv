@@ -6,12 +6,11 @@ import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../providers/business_provider.dart';
 import '../providers/product_provider.dart';
-// ❌ ELIMINADOS - No se usan en este archivo
-// import '../providers/order_provider.dart';
-// import '../providers/invoice_provider.dart';
+import '../providers/auth_provider.dart'; // ✅ NUEVO
 import 'products_screen.dart';
 import 'orders_screen.dart';
 import 'invoices_screen.dart';
+import 'reports_screen.dart'; // ✅ NUEVO
 import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -28,6 +27,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final theme = ThemeHelper(context);
     final businessProvider = context.watch<BusinessProvider>();
     final productProvider = context.watch<ProductProvider>();
+    final authProvider = context.watch<AuthProvider>(); // ✅ NUEVO
     
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
@@ -38,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: theme.scaffoldBackground,
       body: Column(
         children: [
-          // ✅✅ HEADER MEJORADO CON FOTO Y NOMBRE MÁS GRANDE
+          // HEADER
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -60,7 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Row(
                   children: [
-                    // ✅ FOTO DEL NEGOCIO (si existe)
+                    // FOTO DEL NEGOCIO
                     if (businessProvider.profile?.logoPath != null &&
                         businessProvider.profile!.logoPath!.isNotEmpty)
                       Container(
@@ -92,7 +92,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       )
                     else
-                      // ✅ ÍCONO POR DEFECTO
                       Container(
                         width: isTablet ? 50.w : 56.w,
                         height: isTablet ? 50.w : 56.w,
@@ -112,7 +111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
 
-                    // ✅ NOMBRE DEL NEGOCIO MÁS GRANDE (sin descripción)
+                    // NOMBRE DEL NEGOCIO
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ? l10n.businessName
                                 : businessProvider.profile!.businessName,
                             style: TextStyle(
-                              fontSize: isTablet ? 22.sp : 24.sp, // ✅ MÁS GRANDE
+                              fontSize: isTablet ? 22.sp : 24.sp,
                               fontWeight: FontWeight.bold,
                               color: theme.appBarForeground,
                             ),
@@ -139,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
 
-          // CONTENIDO SCROLLEABLE
+          // CONTENIDO
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
@@ -159,7 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: isTablet ? 14.h : 16.h),
 
-                  // Opciones en fila vertical
+                  // PRODUCTOS
                   _QuickAccessTile(
                     label: l10n.products,
                     icon: Icons.inventory_2,
@@ -175,6 +174,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: verticalSpacing),
 
+                  // ÓRDENES
                   _QuickAccessTile(
                     label: l10n.orders,
                     icon: Icons.shopping_cart,
@@ -190,6 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: verticalSpacing),
 
+                  // FACTURAS
                   _QuickAccessTile(
                     label: l10n.invoices,
                     icon: Icons.receipt_long,
@@ -205,6 +206,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: verticalSpacing),
 
+                  // ✅✅ ESTADÍSTICAS - SOLO VISIBLE PARA ADMIN ✅✅
+                  if (authProvider.esAdmin) ...[
+                    _QuickAccessTile(
+                      label: '📊 Estadísticas',
+                      icon: Icons.analytics,
+                      color: const Color(0xFF9C27B0), // Morado
+                      isTablet: isTablet,
+                      theme: theme,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ReportsScreen()),
+                        );
+                      },
+                    ),
+                    SizedBox(height: verticalSpacing),
+                  ],
+
+                  // CONFIGURACIÓN
                   _QuickAccessTile(
                     label: l10n.settings,
                     icon: Icons.settings,
@@ -219,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                   ),
 
-                  // Alerta de stock bajo
+                  // ALERTA DE STOCK BAJO
                   if (productProvider.lowStockProducts.isNotEmpty) ...[
                     SizedBox(height: isTablet ? 28.h : 32.h),
                     _buildLowStockAlert(

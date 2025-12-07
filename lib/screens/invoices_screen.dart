@@ -9,7 +9,7 @@ import '../core/utils/theme_helper.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/business_provider.dart';
 import '../providers/settings_provider.dart';
-import '../providers/auth_provider.dart'; // ✅ AGREGADO
+import '../providers/auth_provider.dart';
 import '../models/business_profile.dart';
 import '../services/invoice_image_generator.dart';
 import '../services/invoice_pdf_generator.dart';
@@ -49,15 +49,86 @@ class InvoicesScreenContent extends StatefulWidget {
   State<InvoicesScreenContent> createState() => _InvoicesScreenContentState();
 }
 
+// ✅ ENUM PARA FILTROS RÁPIDOS
+enum DateFilter { today, thisWeek, thisMonth, all, custom }
+
 class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  DateTime? _filterDate;
+  DateFilter _selectedFilter = DateFilter.today; // ✅ POR DEFECTO: HOY
+  DateTime? _customStartDate;
+  DateTime? _customEndDate;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  // ✅ MÉTODO PARA FILTRAR FACTURAS
+  List<dynamic> _getFilteredInvoices(List<dynamic> allInvoices) {
+    return allInvoices.where((invoice) {
+      // Filtro por búsqueda
+      final matchesSearch = _searchQuery.isEmpty ||
+          invoice.customerName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          invoice.invoiceNumber.toString().contains(_searchQuery);
+
+      // Filtro por fecha
+      final now = DateTime.now();
+      bool matchesDate = false;
+
+      switch (_selectedFilter) {
+        case DateFilter.today:
+          matchesDate = _isSameDay(invoice.createdAt, now);
+          break;
+        case DateFilter.thisWeek:
+          final weekStart = now.subtract(Duration(days: now.weekday - 1));
+          matchesDate = invoice.createdAt.isAfter(weekStart.subtract(const Duration(days: 1)));
+          break;
+        case DateFilter.thisMonth:
+          matchesDate = invoice.createdAt.year == now.year &&
+              invoice.createdAt.month == now.month;
+          break;
+        case DateFilter.all:
+          matchesDate = true;
+          break;
+        case DateFilter.custom:
+          if (_customStartDate != null && _customEndDate != null) {
+            matchesDate = invoice.createdAt.isAfter(_customStartDate!.subtract(const Duration(days: 1))) &&
+                invoice.createdAt.isBefore(_customEndDate!.add(const Duration(days: 1)));
+          } else {
+            matchesDate = true;
+          }
+          break;
+      }
+
+      return matchesSearch && matchesDate;
+    }).toList();
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  String _getFilterLabel() {
+    final now = DateTime.now();
+    switch (_selectedFilter) {
+      case DateFilter.today:
+        return 'Hoy - ${DateFormat('dd/MM/yyyy').format(now)}';
+      case DateFilter.thisWeek:
+        return 'Esta semana';
+      case DateFilter.thisMonth:
+        return 'Este mes - ${DateFormat('MMMM yyyy', 'es').format(now)}';
+      case DateFilter.all:
+        return 'Todas las fechas';
+      case DateFilter.custom:
+        if (_customStartDate != null && _customEndDate != null) {
+          return '${DateFormat('dd/MM').format(_customStartDate!)} - ${DateFormat('dd/MM/yyyy').format(_customEndDate!)}';
+        }
+        return 'Rango personalizado';
+    }
   }
 
   @override
@@ -68,134 +139,137 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     final invoiceProvider = Provider.of<InvoiceProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
-    
-    final filteredInvoices = invoiceProvider.invoices.where((invoice) {
-      final matchesSearch = _searchQuery.isEmpty ||
-          invoice.customerName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          invoice.invoiceNumber.toString().contains(_searchQuery);
-      
-      final matchesDate = _filterDate == null ||
-          (invoice.createdAt.year == _filterDate!.year &&
-           invoice.createdAt.month == _filterDate!.month &&
-           invoice.createdAt.day == _filterDate!.day);
-      
-      return matchesSearch && matchesDate;
-    }).toList();
+
+    final filteredInvoices = _getFilteredInvoices(invoiceProvider.invoices);
+    final totalAmount = filteredInvoices.fold(0.0, (sum, invoice) => sum + invoice.total);
 
     return Column(
       children: [
+        // ✅ BARRA DE BÚSQUEDA Y FILTRO
         Container(
           padding: EdgeInsets.all(16.w),
           color: theme.cardBackground,
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                  style: TextStyle(fontSize: 14.sp, color: theme.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: l10n.searchByCustomer,
-                    hintStyle: TextStyle(fontSize: 14.sp, color: theme.textHint),
-                    prefixIcon: Icon(Icons.search, size: 20.sp, color: theme.iconColor),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.clear, size: 20.sp, color: theme.iconColor),
-                            onPressed: () {
-                              setState(() {
-                                _searchQuery = '';
-                                _searchController.clear();
-                              });
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(color: theme.borderColor),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(color: theme.primary, width: 2),
-                    ),
-                    filled: true,
-                    fillColor: theme.inputFillColor,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 12.h,
-                    ),
+              // Campo de búsqueda
+              TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                style: TextStyle(fontSize: 14.sp, color: theme.textPrimary),
+                decoration: InputDecoration(
+                  hintText: l10n.searchByCustomer,
+                  hintStyle: TextStyle(fontSize: 14.sp, color: theme.textHint),
+                  prefixIcon: Icon(Icons.search, size: 20.sp, color: theme.iconColor),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, size: 20.sp, color: theme.iconColor),
+                          onPressed: () {
+                            setState(() {
+                              _searchQuery = '';
+                              _searchController.clear();
+                            });
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: theme.borderColor),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: theme.primary, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: theme.inputFillColor,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 ),
               ),
-              SizedBox(width: 12.w),
-              
-              Container(
-                height: 48.h,
-                width: 48.w,
-                decoration: BoxDecoration(
-                  color: _filterDate != null ? theme.primary : theme.primaryWithOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(
-                    color: _filterDate != null ? theme.primary : theme.borderColor,
-                    width: _filterDate != null ? 2 : 1,
-                  ),
-                ),
-                child: IconButton(
-                  onPressed: _selectFilterDate,
-                  icon: Icon(
-                    Icons.calendar_today,
-                    color: _filterDate != null ? Colors.white : theme.primary,
-                    size: 20.sp,
-                  ),
-                  padding: EdgeInsets.zero,
-                  tooltip: l10n.filterByDate,
+              SizedBox(height: 12.h),
+
+              // ✅ BOTONES DE FILTROS RÁPIDOS
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip('Hoy', DateFilter.today, theme),
+                    SizedBox(width: 8.w),
+                    _buildFilterChip('Semana', DateFilter.thisWeek, theme),
+                    SizedBox(width: 8.w),
+                    _buildFilterChip('Mes', DateFilter.thisMonth, theme),
+                    SizedBox(width: 8.w),
+                    _buildFilterChip('Todo', DateFilter.all, theme),
+                    SizedBox(width: 8.w),
+                    _buildCustomDateButton(theme),
+                  ],
                 ),
               ),
             ],
           ),
         ),
 
-        if (_searchQuery.isNotEmpty || _filterDate != null)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            color: theme.primaryWithOpacity(0.1),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, size: 16.sp, color: theme.primary),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: Text(
-                    '${filteredInvoices.length} ${_getResultsText(l10n)}',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: theme.textPrimary,
-                    ),
+        // ✅ INFORMACIÓN DEL FILTRO ACTUAL
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          color: theme.primaryWithOpacity(0.1),
+          child: Row(
+            children: [
+              Icon(Icons.calendar_today, size: 16.sp, color: theme.primary),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  _getFilterLabel(),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: theme.textPrimary,
                   ),
                 ),
-                if (_filterDate != null)
-                  Chip(
-                    label: Text(
-                      DateFormat('dd/MM/yyyy').format(_filterDate!),
-                      style: TextStyle(fontSize: 12.sp),
-                    ),
-                    deleteIcon: Icon(Icons.close, size: 16.sp),
-                    onDeleted: () {
-                      setState(() {
-                        _filterDate = null;
-                      });
-                    },
-                    backgroundColor: theme.surfaceColor,
+              ),
+              Text(
+                '${filteredInvoices.length} boleta${filteredInvoices.length != 1 ? 's' : ''}',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: theme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ✅ TOTAL DEL PERÍODO
+        if (filteredInvoices.isNotEmpty)
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            color: theme.success.withOpacity(0.1),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total del período:',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textPrimary,
                   ),
+                ),
+                Text(
+                  settingsProvider.formatPrice(totalAmount),
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: theme.success,
+                  ),
+                ),
               ],
             ),
           ),
 
+        // LISTA DE FACTURAS
         Expanded(
           child: filteredInvoices.isEmpty
               ? Center(
@@ -203,7 +277,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        _searchQuery.isNotEmpty || _filterDate != null
+                        _searchQuery.isNotEmpty
                             ? Icons.search_off
                             : Icons.receipt_long_outlined,
                         size: isTablet ? 70.sp : 80.sp,
@@ -211,27 +285,27 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                       ),
                       SizedBox(height: 16.h),
                       Text(
-                        _searchQuery.isNotEmpty || _filterDate != null
+                        _searchQuery.isNotEmpty
                             ? _getNoInvoicesFoundText(l10n)
-                            : l10n.noInvoices,
-                        style: TextStyle(fontSize: isTablet ? 16.sp : 18.sp, color: theme.textSecondary),
+                            : 'No hay boletas en este período',
+                        style: TextStyle(
+                          fontSize: isTablet ? 16.sp : 18.sp,
+                          color: theme.textSecondary,
+                        ),
                       ),
-                      if (_searchQuery.isNotEmpty || _filterDate != null) ...[
+                      if (_searchQuery.isNotEmpty || _selectedFilter != DateFilter.all) ...[
                         SizedBox(height: 8.h),
                         TextButton.icon(
                           onPressed: () {
                             setState(() {
                               _searchQuery = '';
                               _searchController.clear();
-                              _filterDate = null;
+                              _selectedFilter = DateFilter.today;
                             });
                           },
                           icon: Icon(Icons.clear_all, size: 18.sp),
-                          label: Text(l10n.clearFilters,
-                              style: TextStyle(fontSize: 14.sp)),
-                          style: TextButton.styleFrom(
-                            foregroundColor: theme.primary,
-                          ),
+                          label: Text('Limpiar filtros', style: TextStyle(fontSize: 14.sp)),
+                          style: TextButton.styleFrom(foregroundColor: theme.primary),
                         ),
                       ],
                     ],
@@ -286,27 +360,18 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                               SizedBox(height: 8.h),
                               Row(
                                 children: [
-                                  Icon(
-                                      Icons.calendar_today, 
-                                      size: 14.sp, 
-                                      color: theme.iconColor
-                                  ),
+                                  Icon(Icons.calendar_today, size: 14.sp, color: theme.iconColor),
                                   SizedBox(width: 4.w),
                                   Text(
-                                    DateFormat('dd/MM/yyyy HH:mm')
-                                        .format(invoice.createdAt),
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: theme.textSecondary,
-                                    ),
+                                    DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
+                                    style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
                                   ),
                                 ],
                               ),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [
-                                  Icon(Icons.person, 
-                                      size: 16.sp, color: theme.iconColor),
+                                  Icon(Icons.person, size: 16.sp, color: theme.iconColor),
                                   SizedBox(width: 8.w),
                                   Expanded(
                                     child: Text(
@@ -324,35 +389,25 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                 SizedBox(height: 4.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.phone, 
-                                        size: 14.sp, color: theme.iconColor),
+                                    Icon(Icons.phone, size: 14.sp, color: theme.iconColor),
                                     SizedBox(width: 8.w),
                                     Text(
                                       invoice.customerPhone,
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: theme.textSecondary,
-                                      ),
+                                      style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
                                     ),
                                   ],
                                 ),
                               ],
                               SizedBox(height: 8.h),
                               Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8.w,
-                                  vertical: 4.h,
-                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                                 decoration: BoxDecoration(
                                   color: theme.surfaceColor,
                                   borderRadius: BorderRadius.circular(4.r),
                                 ),
                                 child: Text(
                                   '${invoice.items.length} ${_getProductsText(l10n)}',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: theme.textSecondary,
-                                  ),
+                                  style: TextStyle(fontSize: 12.sp, color: theme.textSecondary),
                                 ),
                               ),
                             ],
@@ -367,37 +422,110 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     );
   }
 
-  Future<void> _selectFilterDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _filterDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: ThemeHelper(context).primary,
-            ),
-          ),
-          child: child!,
-        );
+  Widget _buildFilterChip(String label, DateFilter filter, ThemeHelper theme) {
+    final isSelected = _selectedFilter == filter;
+    return FilterChip(
+      label: Text(label, style: TextStyle(fontSize: 13.sp)),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _selectedFilter = filter;
+        });
       },
+      selectedColor: theme.primary,
+      backgroundColor: theme.surfaceColor,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : theme.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      showCheckmark: false,
     );
-
-    if (picked != null) {
-      setState(() {
-        _filterDate = picked;
-      });
-    }
   }
 
+  Widget _buildCustomDateButton(ThemeHelper theme) {
+    final isSelected = _selectedFilter == DateFilter.custom;
+    return ActionChip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.date_range, size: 16.sp, color: isSelected ? Colors.white : theme.primary),
+          SizedBox(width: 4.w),
+          Text('Rango', style: TextStyle(fontSize: 13.sp)),
+        ],
+      ),
+      onPressed: () async {
+        // ✅✅ TEMA CORREGIDO PARA MODO OSCURO ✅✅
+        final picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+          builder: (context, child) {
+            // ✅ DETECTAR SI ESTÁ EN MODO OSCURO
+            final isDark = theme.isDark;
+            
+            return Theme(
+              data: ThemeData(
+                // ✅ Configuración para modo oscuro/claro
+                brightness: isDark ? Brightness.dark : Brightness.light,
+                colorScheme: isDark
+                    ? ColorScheme.dark(
+                        primary: theme.primary,
+                        onPrimary: Colors.white,
+                        surface: const Color(0xFF1E1E1E),
+                        onSurface: Colors.white,
+                      )
+                    : ColorScheme.light(
+                        primary: theme.primary,
+                        onPrimary: Colors.white,
+                        surface: Colors.white,
+                        onSurface: Colors.black,
+                      ),
+                // ✅ Texto visible
+                textTheme: TextTheme(
+                  bodyLarge: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  bodyMedium: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  titleMedium: TextStyle(
+                    color: isDark ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                // ✅ AppBar del calendario
+                appBarTheme: AppBarTheme(
+                  backgroundColor: theme.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+
+        if (picked != null) {
+          setState(() {
+            _selectedFilter = DateFilter.custom;
+            _customStartDate = picked.start;
+            _customEndDate = picked.end;
+          });
+        }
+      },
+      backgroundColor: isSelected ? theme.primary : theme.surfaceColor,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : theme.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+
+
+  // EL RESTO DEL CÓDIGO SE MANTIENE IGUAL...
+  // (Los métodos _showInvoiceDetails, _confirmDeleteInvoice, etc.)
   void _showInvoiceDetails(BuildContext context, invoice) {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     final businessProvider = Provider.of<BusinessProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false); // ✅ AGREGADO
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -643,7 +771,6 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                       ),
                     ),
                     SizedBox(width: 8.w),
-                    // ✅✅ BOTÓN DE BORRAR SOLO PARA ADMIN ✅✅
                     if (authProvider.esAdmin)
                       IconButton(
                         onPressed: () {
@@ -683,8 +810,8 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
             SizedBox(width: 12.w),
             Expanded(
               child: Text(
-                l10n.deleteInvoice, 
-                style: TextStyle(fontSize: 18.sp, color: theme.textPrimary)
+                l10n.deleteInvoice,
+                style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
               ),
             ),
           ],
@@ -700,11 +827,10 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final invoiceProvider =
-                  Provider.of<InvoiceProvider>(context, listen: false);
-              
+              final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+
               await invoiceProvider.deleteInvoice(invoice.id);
-              
+
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -740,9 +866,8 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     SettingsProvider settingsProvider,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    
-    final hasPermission =
-        await AppPermissionHandler.requestStoragePermission(context);
+
+    final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
 
     if (!hasPermission) {
       if (context.mounted) {
@@ -764,25 +889,24 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
       String filePath;
       bool isPdf = settingsProvider.downloadFormat == 'pdf';
-      
+
       if (isPdf) {
         filePath = await InvoicePdfGenerator.generatePdf(
           invoice: invoice,
-          businessProfile: businessProvider.profile ?? BusinessProfile(
-            name: '',
-            address: '',
-            phone: '',
-            email: '',
-            logoPath: '',
-          ),
+          businessProfile: businessProvider.profile ??
+              BusinessProfile(
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                logoPath: '',
+              ),
           settingsProvider: settingsProvider,
           languageCode: l10n.localeName,
           translations: {
@@ -797,13 +921,14 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
       } else {
         filePath = await InvoiceImageGenerator.generateImage(
           invoice: invoice,
-          businessProfile: businessProvider.profile ?? BusinessProfile(
-            name: '',
-            address: '',
-            phone: '',
-            email: '',
-            logoPath: '',
-          ),
+          businessProfile: businessProvider.profile ??
+              BusinessProfile(
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                logoPath: '',
+              ),
           context: context,
           settingsProvider: settingsProvider,
         );
@@ -835,9 +960,8 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     SettingsProvider settingsProvider,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    
-    final hasPermission =
-        await AppPermissionHandler.requestStoragePermission(context);
+
+    final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
 
     if (!hasPermission) {
       if (context.mounted) {
@@ -859,25 +983,24 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
       String filePath;
       bool isPdf = settingsProvider.downloadFormat == 'pdf';
-      
+
       if (isPdf) {
         filePath = await InvoicePdfGenerator.generatePdf(
           invoice: invoice,
-          businessProfile: businessProvider.profile ?? BusinessProfile(
-            name: '',
-            address: '',
-            phone: '',
-            email: '',
-            logoPath: '',
-          ),
+          businessProfile: businessProvider.profile ??
+              BusinessProfile(
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                logoPath: '',
+              ),
           settingsProvider: settingsProvider,
           languageCode: l10n.localeName,
           translations: {
@@ -892,13 +1015,14 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
       } else {
         filePath = await InvoiceImageGenerator.generateImage(
           invoice: invoice,
-          businessProfile: businessProvider.profile ?? BusinessProfile(
-            name: '',
-            address: '',
-            phone: '',
-            email: '',
-            logoPath: '',
-          ),
+          businessProfile: businessProvider.profile ??
+              BusinessProfile(
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                logoPath: '',
+              ),
           context: context,
           settingsProvider: settingsProvider,
         );
@@ -912,7 +1036,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
 
       if (context.mounted) {
         Navigator.pop(context);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -964,33 +1088,33 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     }
   }
 
-  String _getResultsText(AppLocalizations l10n) {
-    switch (l10n.localeName) {
-      case 'es': return 'resultado(s)';
-      case 'en': return 'result(s)';
-      case 'pt': return 'resultado(s)';
-      case 'zh': return '结果';
-      default: return 'result(s)';
-    }
-  }
-
   String _getNoInvoicesFoundText(AppLocalizations l10n) {
     switch (l10n.localeName) {
-      case 'es': return 'No se encontraron boletas';
-      case 'en': return 'No receipts found';
-      case 'pt': return 'Nenhum recibo encontrado';
-      case 'zh': return '未找到收据';
-      default: return 'No receipts found';
+      case 'es':
+        return 'No se encontraron boletas';
+      case 'en':
+        return 'No receipts found';
+      case 'pt':
+        return 'Nenhum recibo encontrado';
+      case 'zh':
+        return '未找到收据';
+      default:
+        return 'No receipts found';
     }
   }
 
   String _getProductsText(AppLocalizations l10n) {
     switch (l10n.localeName) {
-      case 'es': return 'producto(s)';
-      case 'en': return 'product(s)';
-      case 'pt': return 'produto(s)';
-      case 'zh': return '产品';
-      default: return 'product(s)';
+      case 'es':
+        return 'producto(s)';
+      case 'en':
+        return 'product(s)';
+      case 'pt':
+        return 'produto(s)';
+      case 'zh':
+        return '产品';
+      default:
+        return 'product(s)';
     }
   }
 }
