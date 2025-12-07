@@ -258,7 +258,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // PÁGINA 1: BIENVENIDA
+  // PÁGINA 1: BIENVENIDA CON LOGO CIRCULAR MÁS GRANDE
   Widget _buildWelcomePage(AppLocalizations l10n, ThemeHelper theme) {
     return Center(
       child: Padding(
@@ -266,14 +266,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.business_center_rounded,
-              size: 120.sp,
-              color: theme.primary,
+            // Logo circular de proion - TAMAÑO AUMENTADO A 200x200
+            Container(
+              width: 210.w,
+              height: 210.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.primary.withOpacity(0.2),
+                  width: 3,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.primary.withOpacity(0.2),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/icon/logo2.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-            SizedBox(height: 40.h),
+            SizedBox(height: 30.h),
             Text(
-              'Proio',
+              'Proïon',
               style: TextStyle(
                 fontSize: 48.sp,
                 fontWeight: FontWeight.bold,
@@ -295,7 +315,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // PÁGINA 2: SELECCIÓN DE IDIOMA
+  // PÁGINA 2: SELECCIÓN DE IDIOMA (SIN BANDERAS)
   Widget _buildLanguageSelectionPage(AppLocalizations l10n, ThemeHelper theme) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.w),
@@ -321,13 +341,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           SizedBox(height: 40.h),
 
-          _buildLanguageOption('es', l10n.spanish, '🇪🇸', theme),
+          _buildLanguageOption('es', l10n.spanish, theme),
           SizedBox(height: 12.h),
-          _buildLanguageOption('en', l10n.english, '🇺🇸', theme),
+          _buildLanguageOption('en', l10n.english, theme),
           SizedBox(height: 12.h),
-          _buildLanguageOption('pt', l10n.portuguese, '🇧🇷', theme),
+          _buildLanguageOption('pt', l10n.portuguese, theme),
           SizedBox(height: 12.h),
-          _buildLanguageOption('zh', l10n.chinese, '🇨🇳', theme),
+          _buildLanguageOption('zh', l10n.chinese, theme),
         ],
       ),
     );
@@ -664,7 +684,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildLanguageOption(String code, String name, String flag, ThemeHelper theme) {
+  // ✅ WIDGET DE IDIOMA SIN BANDERAS
+  Widget _buildLanguageOption(String code, String name, ThemeHelper theme) {
     final isSelected = _selectedLanguage == code;
     return InkWell(
       onTap: () async {
@@ -682,7 +703,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         child: Row(
           children: [
-            Text(flag, style: TextStyle(fontSize: 24.sp)),
+            // Círculo con código de idioma
+            Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: theme.primary.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  code.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: theme.primary,
+                  ),
+                ),
+              ),
+            ),
             SizedBox(width: 12.w),
             Expanded(
               child: Text(

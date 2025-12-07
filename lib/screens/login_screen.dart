@@ -25,8 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginAdmin() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (_contrasenaController.text.trim().isEmpty) {
-      _mostrarMensaje('Por favor ingrese la contraseña', esError: true);
+      _mostrarMensaje(l10n.pleaseEnterPassword, esError: true);
       return;
     }
 
@@ -44,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else {
-      _mostrarMensaje('Contraseña incorrecta', esError: true);
+      _mostrarMensaje(l10n.incorrectPassword, esError: true);
       _contrasenaController.clear();
     }
   }
@@ -76,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authProvider = context.watch<AuthProvider>();
 
     // Si el admin no tiene contraseña configurada, mostrar pantalla de configuración
@@ -102,13 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
+                  // ✅ LOGO CIRCULAR CON IMAGEN MÁS GRANDE
                   Container(
-                    width: 120.w,
-                    height: 120.w,
+                    width: 150.w,
+                    height: 150.w,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(60.r),
+                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
@@ -117,10 +120,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.business,
-                      size: 60.sp,
-                      color: Theme.of(context).primaryColor,
+                    child: ClipOval(
+                      child: Padding(
+                        padding: EdgeInsets.all(2.w),
+                        child: Image.asset(
+                          'assets/icon/logo2.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   ),
 
@@ -128,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Título
                   Text(
-                    'Proïon',
+                    l10n.proioApp,
                     style: TextStyle(
                       fontSize: 32.sp,
                       fontWeight: FontWeight.bold,
@@ -139,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(height: 8.h),
 
                   Text(
-                    'Sistema de Gestión',
+                    l10n.businessManagementSystem,
                     style: TextStyle(
                       fontSize: 16.sp,
                       color: Colors.white.withOpacity(0.9),
@@ -166,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         // Login Admin
                         Text(
-                          'Iniciar Sesión como Administrador',
+                          l10n.loginAsAdministrator,
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
@@ -182,8 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: _ocultarContrasena,
                           enabled: !_isLoading,
                           decoration: InputDecoration(
-                            labelText: 'Contraseña',
-                            hintText: 'Ingrese su contraseña',
+                            labelText: l10n.password,
+                            hintText: l10n.enterPassword,
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -224,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.white,
                                   )
                                 : Text(
-                                    'Ingresar como Admin',
+                                    l10n.loginButton,
                                     style: TextStyle(
                                       fontSize: 16.sp,
                                       fontWeight: FontWeight.bold,
@@ -272,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             child: Text(
-                              'Continuar como Usuario',
+                              l10n.continueAsUser,
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,
@@ -288,7 +295,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Información adicional
                   Text(
-                    'Usuario: Solo visualización y creación de órdenes',
+                    l10n.userOnlyMode,
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: Colors.white.withOpacity(0.8),

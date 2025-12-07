@@ -12,7 +12,7 @@ import 'providers/order_provider.dart';
 import 'providers/invoice_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/reports_provider.dart';
-import 'screens/onboarding_screen.dart'; // ✅ NUEVO
+import 'screens/onboarding_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/product.dart';
@@ -110,7 +110,7 @@ class MyApp extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 supportedLocales: const [
-                  Locale('en'), // ✅ INGLÉS PRIMERO
+                  Locale('en'),
                   Locale('es'),
                   Locale('pt'),
                   Locale('zh'),
@@ -138,7 +138,10 @@ class _AppInitializerState extends State<_AppInitializer> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    // ✅ Usar addPostFrameCallback para evitar el error de build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {
@@ -193,7 +196,7 @@ class _AppInitializerState extends State<_AppInitializer> {
       );
     }
 
-    // ✅✅ NUEVO: Verificar si completó onboarding ✅✅
+    // Verificar si completó onboarding
     final settingsProvider = context.watch<SettingsProvider>();
     
     if (!settingsProvider.onboardingCompleted) {

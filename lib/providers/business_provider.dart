@@ -25,12 +25,12 @@ class BusinessProvider with ChangeNotifier {
 
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    // ❌ REMOVIDO: notifyListeners(); - No notificar durante carga inicial
 
     try {
       _box = await Hive.openBox<BusinessProfile>('business_profile');
       
-      // ✅ CORRECCIÓN: Obtener el perfil correctamente
+      // Obtener el perfil correctamente
       if (_box!.isNotEmpty) {
         _profile = _box!.get('profile');
       } else {
@@ -43,6 +43,7 @@ class BusinessProvider with ChangeNotifier {
       _profile = null;
     } finally {
       _isLoading = false;
+      // ✅ Solo notificar una vez al finalizar
       notifyListeners();
     }
   }

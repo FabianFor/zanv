@@ -7,7 +7,7 @@ class AppTheme {
     brightness: Brightness.light,
     
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF2196F3),
+      primary: Color(0xFF083e70),  // ✅ NUEVO COLOR
       secondary: Color(0xFF4CAF50),
       error: Color(0xFFE53935),
       surface: Colors.white,
@@ -20,7 +20,7 @@ class AppTheme {
     scaffoldBackgroundColor: const Color(0xFFF5F5F5),
     
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF2196F3),
+      backgroundColor: Color(0xFF083e70),  // ✅ NUEVO COLOR
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: false,
@@ -57,7 +57,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF083e70), width: 2),  // ✅ NUEVO COLOR
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -73,7 +73,7 @@ class AppTheme {
     
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
-      selectedItemColor: Color(0xFF2196F3),
+      selectedItemColor: Color(0xFF083e70),  // ✅ NUEVO COLOR
       unselectedItemColor: Colors.grey,
       elevation: 8,
       type: BottomNavigationBarType.fixed,
@@ -100,7 +100,7 @@ class AppTheme {
     brightness: Brightness.dark,
     
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF2196F3),
+      primary: Color(0xFF083e70),  // ✅ NUEVO COLOR
       secondary: Color(0xFF4CAF50),
       error: Color(0xFFEF5350),
       surface: Color(0xFF1E1E1E),
@@ -151,7 +151,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF083e70), width: 2),  // ✅ NUEVO COLOR
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -167,7 +167,7 @@ class AppTheme {
     
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Color(0xFF1E1E1E),
-      selectedItemColor: Color(0xFF2196F3),
+      selectedItemColor: Color(0xFF083e70),  // ✅ NUEVO COLOR
       unselectedItemColor: Colors.grey,
       elevation: 8,
       type: BottomNavigationBarType.fixed,

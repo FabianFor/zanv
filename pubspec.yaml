@@ -53,9 +53,11 @@ dependencies:
   open_filex: ^4.5.0
   printing: ^5.11.1
   
-  # ✅ NUEVA: Para seleccionar archivos JSON
+  # File picker para seleccionar archivos JSON
   file_picker: ^8.0.3
-crypto: ^3.0.3
+  
+  # Cryptography
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -77,7 +79,7 @@ flutter_launcher_icons:
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icon/logo.png"
   remove_alpha_ios: true
-  adaptive_icon_padding: 10  # ✅ AGREGA ESTA LÍNEA (valor entre 0-100)
+  adaptive_icon_padding: 10
 
 flutter:
   uses-material-design: true
