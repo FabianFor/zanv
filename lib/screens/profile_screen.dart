@@ -30,7 +30,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     final businessProvider = context.read<BusinessProvider>();
     
-    // ✅ CORREGIDO: Usar propiedades correctas de BusinessProfile
     _businessNameController = TextEditingController(
       text: businessProvider.profile?.name ?? '',
     );
@@ -56,16 +55,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickLogo() async {
+    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
+    
     try {
       final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
       
       if (!hasPermission) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ Necesitas dar permisos para elegir una imagen'),
+            SnackBar(
+              content: Text('⚠️ ${l10n.permissionsNeeded}'), // ✅ TRADUCIDO
               backgroundColor: Colors.orange,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -86,10 +87,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
         
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Logo seleccionado correctamente'),
+          SnackBar(
+            content: Text('✅ ${l10n.logoSelectedSuccess}'), // ✅ TRADUCIDO
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 1),
+            duration: const Duration(seconds: 1),
           ),
         );
       }
@@ -97,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error al seleccionar imagen: $e'),
+            content: Text('❌ ${l10n.errorSelectingImage(e.toString())}'), // ✅ TRADUCIDO
             backgroundColor: Colors.red,
           ),
         );
@@ -106,6 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    final l10n = AppLocalizations.of(context)!; // ✅ AGREGADO
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -116,7 +119,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final businessProvider = context.read<BusinessProvider>();
 
-    // ✅ CORREGIDO: Crear BusinessProfile con los campos correctos
     final updatedProfile = BusinessProfile(
       name: _businessNameController.text.trim(),
       address: _addressController.text.trim(),
@@ -134,16 +136,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Perfil actualizado correctamente'),
+          SnackBar(
+            content: Text('✅ ${l10n.profileUpdatedSuccess}'), // ✅ TRADUCIDO
             backgroundColor: Colors.green,
           ),
         );
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Error al guardar el perfil'),
+          SnackBar(
+            content: Text('❌ ${l10n.errorSavingProfile}'), // ✅ TRADUCIDO
             backgroundColor: Colors.red,
           ),
         );

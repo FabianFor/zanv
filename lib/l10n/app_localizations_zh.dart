@@ -341,7 +341,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get productDeleted => '产品删除成功';
 
   @override
-  String get permissionsNeeded => '需要权限';
+  String get permissionsNeeded => '您需要授予权限才能选择图像';
 
   @override
   String get permissionsMessage =>
@@ -898,4 +898,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get legalDisclaimer => '⚠️ 此收据仅供内部控制使用，不构成有效的税务凭证。';
+
+  @override
+  String get adminOnly => '仅限管理员';
+
+  @override
+  String get adminOnlyCurrencyMessage => '只有管理员可以更改业务货币。';
+
+  @override
+  String get understood => '明白了';
+
+  @override
+  String minNameCharacters(int count) {
+    return '名称必须至少 $count 个字符';
+  }
+
+  @override
+  String get nameTooLong => '名称太长';
+
+  @override
+  String get invalidPhoneNumber => '电话号码无效';
+
+  @override
+  String unexpectedError(String error) {
+    return '意外错误：$error';
+  }
+
+  @override
+  String get logoSelectedSuccess => '成功选择徽标';
+
+  @override
+  String errorSelectingImage(String error) {
+    return '选择图像时出错：$error';
+  }
+
+  @override
+  String get profileUpdatedSuccess => '个人资料已成功更新';
+
+  @override
+  String get errorSavingProfile => '保存个人资料时出错';
 }

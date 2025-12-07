@@ -428,5 +428,40 @@
   "configureAndContinue": "Configure and Continue",
   "savePasswordSecurely": "🔒 Save this password in a safe place",
   "loading": "Loading...",
-  "legalDisclaimer": "⚠️ This receipt is for internal control only. It does not constitute a valid tax document."
+  "legalDisclaimer": "⚠️ This receipt is for internal control only. It does not constitute a valid tax document.",
+  "adminOnly": "Administrator Only",
+  "adminOnlyCurrencyMessage": "Only the Administrator can change the business currency.",
+  "understood": "Understood",
+  "minNameCharacters": "Name must be at least {count} characters",
+"@minNameCharacters": {
+  "placeholders": {
+    "count": {
+      "type": "int"
+    }
+  }
+},
+"nameTooLong": "Name is too long",
+"invalidPhoneNumber": "Invalid phone number",
+"unexpectedError": "Unexpected error: {error}",
+"@unexpectedError": {
+  "placeholders": {
+    "error": {
+      "type": "String"
+    }
+  }
+},
+"permissionsNeeded": "You need to grant permissions to choose an image",
+"logoSelectedSuccess": "Logo selected successfully",
+"errorSelectingImage": "Error selecting image: {error}",
+"@errorSelectingImage": {
+  "placeholders": {
+    "error": {
+      "type": "String"
+    }
+  }
+},
+"profileUpdatedSuccess": "Profile updated successfully",
+"errorSavingProfile": "Error saving profile"
+
+
 }

@@ -428,5 +428,39 @@
   "configureAndContinue": "Configurar y Continuar",
   "savePasswordSecurely": "🔒 Guarde esta contraseña en un lugar seguro",
   "loading": "Cargando...",
-  "legalDisclaimer": "⚠️ Este recibo es solo para control interno. No constituye un comprobante de pago válido ante autoridades fiscales."
+  "legalDisclaimer": "⚠️ Este recibo es solo para control interno. No constituye un comprobante de pago válido ante autoridades fiscales.",
+  "adminOnly": "Solo Administrador",
+  "adminOnlyCurrencyMessage": "Solo el Administrador puede cambiar la moneda del negocio.",
+  "understood": "Entendido",
+  "minNameCharacters": "El nombre debe tener al menos {count} caracteres",
+"@minNameCharacters": {
+  "placeholders": {
+    "count": {
+      "type": "int"
+    }
+  }
+},
+"nameTooLong": "El nombre es demasiado largo",
+"invalidPhoneNumber": "Número de teléfono inválido",
+"unexpectedError": "Error inesperado: {error}",
+"@unexpectedError": {
+  "placeholders": {
+    "error": {
+      "type": "String"
+    }
+  }
+},
+"permissionsNeeded": "Necesitas dar permisos para elegir una imagen",
+"logoSelectedSuccess": "Logo seleccionado correctamente",
+"errorSelectingImage": "Error al seleccionar imagen: {error}",
+"@errorSelectingImage": {
+  "placeholders": {
+    "error": {
+      "type": "String"
+    }
+  }
+},
+"profileUpdatedSuccess": "Perfil actualizado correctamente",
+"errorSavingProfile": "Error al guardar el perfil"
+
 }

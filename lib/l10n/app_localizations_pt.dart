@@ -344,7 +344,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get productDeleted => 'Produto excluído com sucesso';
 
   @override
-  String get permissionsNeeded => 'Permissões necessárias';
+  String get permissionsNeeded =>
+      'Você precisa conceder permissões para escolher uma imagem';
 
   @override
   String get permissionsMessage =>
@@ -908,4 +909,44 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get legalDisclaimer =>
       '⚠️ Este recibo é apenas para controle interno. Não constitui um comprovante fiscal válido.';
+
+  @override
+  String get adminOnly => 'Apenas Administrador';
+
+  @override
+  String get adminOnlyCurrencyMessage =>
+      'Apenas o Administrador pode alterar a moeda do negócio.';
+
+  @override
+  String get understood => 'Entendido';
+
+  @override
+  String minNameCharacters(int count) {
+    return 'O nome deve ter pelo menos $count caracteres';
+  }
+
+  @override
+  String get nameTooLong => 'O nome é muito longo';
+
+  @override
+  String get invalidPhoneNumber => 'Número de telefone inválido';
+
+  @override
+  String unexpectedError(String error) {
+    return 'Erro inesperado: $error';
+  }
+
+  @override
+  String get logoSelectedSuccess => 'Logo selecionado com sucesso';
+
+  @override
+  String errorSelectingImage(String error) {
+    return 'Erro ao selecionar imagem: $error';
+  }
+
+  @override
+  String get profileUpdatedSuccess => 'Perfil atualizado com sucesso';
+
+  @override
+  String get errorSavingProfile => 'Erro ao salvar o perfil';
 }

@@ -238,38 +238,38 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // ✅✅ DIÁLOGO "SOLO ADMIN" ✅✅
-  void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizations l10n) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: theme.cardBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        title: Row(
-          children: [
-            Icon(Icons.lock, color: theme.warning, size: 24.sp),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                'Solo Administrador',
-                style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
-              ),
+void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizations l10n) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: theme.cardBackground,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+      title: Row(
+        children: [
+          Icon(Icons.lock, color: theme.warning, size: 24.sp),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              l10n.adminOnly, // ✅ TRADUCIDO
+              style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
             ),
-          ],
-        ),
-        content: Text(
-          'Solo el Administrador puede cambiar la moneda del negocio.',
-          style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Entendido', style: TextStyle(fontSize: 14.sp)),
           ),
         ],
       ),
-    );
-  }
+      content: Text(
+        l10n.adminOnlyCurrencyMessage, // ✅ TRADUCIDO
+        style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.understood, style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
+        ),
+      ],
+    ),
+  );
+}
+
 
   // DIÁLOGO DE IDIOMA (SIN CAMBIOS - TODOS PUEDEN USAR)
   void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme) {

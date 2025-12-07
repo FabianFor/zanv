@@ -428,5 +428,40 @@
   "configureAndContinue": "配置并继续",
   "savePasswordSecurely": "🔒 请将此密码保存在安全的地方",
   "loading": "正在加载...",
-  "legalDisclaimer": "⚠️ 此收据仅供内部控制使用，不构成有效的税务凭证。"
+  "legalDisclaimer": "⚠️ 此收据仅供内部控制使用，不构成有效的税务凭证。",
+  "adminOnly": "仅限管理员",
+  "adminOnlyCurrencyMessage": "只有管理员可以更改业务货币。",
+  "understood": "明白了",
+  "minNameCharacters": "名称必须至少 {count} 个字符",
+"@minNameCharacters": {
+  "placeholders": {
+    "count": {
+      "type": "int"
+    }
+  }
+},
+"nameTooLong": "名称太长",
+"invalidPhoneNumber": "电话号码无效",
+"unexpectedError": "意外错误：{error}",
+"@unexpectedError": {
+  "placeholders": {
+    "error": {
+      "type": "String"
+    }
+  }
+},
+"permissionsNeeded": "您需要授予权限才能选择图像",
+"logoSelectedSuccess": "成功选择徽标",
+"errorSelectingImage": "选择图像时出错：{error}",
+"@errorSelectingImage": {
+  "placeholders": {
+    "error": {
+      "type": "String"
+    }
+  }
+},
+"profileUpdatedSuccess": "个人资料已成功更新",
+"errorSavingProfile": "保存个人资料时出错"
+
+
 }

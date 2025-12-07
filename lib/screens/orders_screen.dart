@@ -150,10 +150,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         return l10n.nameRequiredField;
                       }
                       if (value.trim().length < ValidationLimits.minCustomerNameLength) {
-                        return 'El nombre debe tener al menos ${ValidationLimits.minCustomerNameLength} caracteres';
+                        return l10n.minNameCharacters(ValidationLimits.minCustomerNameLength); // ✅ TRADUCIDO
                       }
                       if (value.trim().length > ValidationLimits.maxCustomerNameLength) {
-                        return 'El nombre es demasiado largo';
+                        return l10n.nameTooLong; // ✅ TRADUCIDO
                       }
                       return null;
                     },
@@ -185,7 +185,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                     maxLength: ValidationLimits.maxPhoneLength,
                     validator: (value) {
                       if (value != null && value.isNotEmpty && value.length < ValidationLimits.minPhoneLength) {
-                        return 'Número de teléfono inválido';
+                        return l10n.invalidPhoneNumber; // ✅ TRADUCIDO
                       }
                       return null;
                     },
@@ -301,10 +301,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       final tax = 0.0;
       final total = subtotal + tax;
 
-      // ✅✅ USAR EL NUEVO MÉTODO PARA OBTENER EL NÚMERO CORRECTO ✅✅
       final order = Order(
         id: const Uuid().v4(),
-        orderNumber: orderProvider.getNextOrderNumber(), // ✅ CORRECTO
+        orderNumber: orderProvider.getNextOrderNumber(),
         customerName: _customerNameController.text.trim(),
         customerPhone: _customerPhoneController.text.trim(),
         items: items,
@@ -315,10 +314,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         createdAt: DateTime.now(),
       );
 
-      // ✅✅ USAR EL NUEVO MÉTODO PARA OBTENER EL NÚMERO CORRECTO ✅✅
       final invoice = Invoice(
         id: const Uuid().v4(),
-        invoiceNumber: invoiceProvider.getNextInvoiceNumber(), // ✅ CORRECTO
+        invoiceNumber: invoiceProvider.getNextInvoiceNumber(),
         customerName: _customerNameController.text.trim(),
         customerPhone: _customerPhoneController.text.trim(),
         items: items,
@@ -390,7 +388,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error inesperado: ${e.toString()}'),
+            content: Text('❌ ${l10n.unexpectedError(e.toString())}'), // ✅ TRADUCIDO
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),

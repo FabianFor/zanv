@@ -753,7 +753,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionsNeeded.
   ///
   /// In es, this message translates to:
-  /// **'Permisos necesarios'**
+  /// **'Necesitas dar permisos para elegir una imagen'**
   String get permissionsNeeded;
 
   /// No description provided for @permissionsMessage.
@@ -1805,6 +1805,72 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'⚠️ Este recibo es solo para control interno. No constituye un comprobante de pago válido ante autoridades fiscales.'**
   String get legalDisclaimer;
+
+  /// No description provided for @adminOnly.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo Administrador'**
+  String get adminOnly;
+
+  /// No description provided for @adminOnlyCurrencyMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo el Administrador puede cambiar la moneda del negocio.'**
+  String get adminOnlyCurrencyMessage;
+
+  /// No description provided for @understood.
+  ///
+  /// In es, this message translates to:
+  /// **'Entendido'**
+  String get understood;
+
+  /// No description provided for @minNameCharacters.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre debe tener al menos {count} caracteres'**
+  String minNameCharacters(int count);
+
+  /// No description provided for @nameTooLong.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre es demasiado largo'**
+  String get nameTooLong;
+
+  /// No description provided for @invalidPhoneNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de teléfono inválido'**
+  String get invalidPhoneNumber;
+
+  /// No description provided for @unexpectedError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error inesperado: {error}'**
+  String unexpectedError(String error);
+
+  /// No description provided for @logoSelectedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Logo seleccionado correctamente'**
+  String get logoSelectedSuccess;
+
+  /// No description provided for @errorSelectingImage.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al seleccionar imagen: {error}'**
+  String errorSelectingImage(String error);
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil actualizado correctamente'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @errorSavingProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al guardar el perfil'**
+  String get errorSavingProfile;
 }
 
 class _AppLocalizationsDelegate
