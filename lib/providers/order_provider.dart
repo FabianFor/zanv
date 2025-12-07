@@ -20,6 +20,21 @@ class OrderProvider with ChangeNotifier {
   String? get error => _error;
   int get totalOrders => _orders.length;
 
+  // ✅✅ NUEVO MÉTODO PARA OBTENER EL SIGUIENTE NÚMERO DE ORDEN ✅✅
+  int getNextOrderNumber() {
+    if (_box == null || _box!.isEmpty) return 1;
+    
+    // Buscar el número más alto en todas las órdenes
+    int maxNumber = 0;
+    for (var order in _box!.values) {
+      if (order.orderNumber > maxNumber) {
+        maxNumber = order.orderNumber;
+      }
+    }
+    
+    return maxNumber + 1;
+  }
+
   // ✅ CÁLCULOS OPTIMIZADOS CON LAZY EVALUATION
   List<Order> get pendingOrders =>
       _orders.where((o) => o.status == 'pending').toList();

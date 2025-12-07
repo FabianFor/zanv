@@ -27,7 +27,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   
   final _customerNameController = TextEditingController();
   final _customerPhoneController = TextEditingController();
-  final _productSearchController = TextEditingController(); // ✅ AGREGADO
+  final _productSearchController = TextEditingController();
   final Map<String, int> _cart = {};
   String _productSearchQuery = '';
   Timer? _debounce;
@@ -43,12 +43,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     _tabController.dispose();
     _customerNameController.dispose();
     _customerPhoneController.dispose();
-    _productSearchController.dispose(); // ✅ AGREGADO
+    _productSearchController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
-  // ✅ MÉTODO OPTIMIZADO PARA BÚSQUEDA CON DEBOUNCE
   void _onSearchChanged(String value) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     
@@ -302,9 +301,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       final tax = 0.0;
       final total = subtotal + tax;
 
+      // ✅✅ USAR EL NUEVO MÉTODO PARA OBTENER EL NÚMERO CORRECTO ✅✅
       final order = Order(
         id: const Uuid().v4(),
-        orderNumber: orderProvider.orders.length + 1,
+        orderNumber: orderProvider.getNextOrderNumber(), // ✅ CORRECTO
         customerName: _customerNameController.text.trim(),
         customerPhone: _customerPhoneController.text.trim(),
         items: items,
@@ -315,9 +315,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         createdAt: DateTime.now(),
       );
 
+      // ✅✅ USAR EL NUEVO MÉTODO PARA OBTENER EL NÚMERO CORRECTO ✅✅
       final invoice = Invoice(
         id: const Uuid().v4(),
-        invoiceNumber: invoiceProvider.invoices.length + 1,
+        invoiceNumber: invoiceProvider.getNextInvoiceNumber(), // ✅ CORRECTO
         customerName: _customerNameController.text.trim(),
         customerPhone: _customerPhoneController.text.trim(),
         items: items,
@@ -350,7 +351,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             _customerNameController.clear();
             _customerPhoneController.clear();
             _productSearchQuery = '';
-            _productSearchController.clear(); // ✅ AGREGADO
+            _productSearchController.clear();
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -451,11 +452,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
     return Column(
       children: [
-        // ✅ CAMPO DE BÚSQUEDA CON FIX
+        // Campo de búsqueda
         Padding(
           padding: EdgeInsets.all(16.w),
           child: TextField(
-            controller: _productSearchController, // ✅ AGREGADO
+            controller: _productSearchController,
             onChanged: _onSearchChanged,
             style: TextStyle(color: theme.textPrimary, fontSize: 14.sp),
             decoration: InputDecoration(
@@ -468,7 +469,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       onPressed: () {
                         setState(() {
                           _productSearchQuery = '';
-                          _productSearchController.clear(); // ✅ AGREGADO
+                          _productSearchController.clear();
                         });
                       },
                     )
@@ -489,7 +490,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         ),
 
-        // ✅ BOTÓN VER CARRITO
+        // Botón ver carrito
         if (_cart.isNotEmpty)
           Container(
             margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -510,7 +511,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         if (_cart.isNotEmpty) SizedBox(height: 12.h),
 
-        // ✅ LISTVIEW OPTIMIZADO DE PRODUCTOS
+        // Lista de productos
         Expanded(
           child: filteredProducts.isEmpty
               ? Center(
@@ -536,7 +537,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               : ListView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   itemCount: filteredProducts.length,
-                  // ✅ OPTIMIZACIONES DE RENDIMIENTO
                   cacheExtent: 500,
                   addAutomaticKeepAlives: false,
                   addRepaintBoundaries: true,
@@ -553,7 +553,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         padding: EdgeInsets.all(isTablet ? 10.w : 12.w),
                         child: Row(
                           children: [
-                            // ✅ IMAGEN OPTIMIZADA
+                            // Imagen
                             Container(
                               width: isTablet ? 60.w : 70.w,
                               height: isTablet ? 60.w : 70.w,
@@ -586,7 +586,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                             ),
                             SizedBox(width: 12.w),
 
-                            // INFORMACIÓN DEL PRODUCTO
+                            // Información del producto
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -623,7 +623,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                               ),
                             ),
 
-                            // CONTROLES DE CANTIDAD
+                            // Controles de cantidad
                             if (inCart > 0)
                               Container(
                                 decoration: BoxDecoration(
@@ -689,7 +689,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 ),
         ),
 
-        // BARRA DE TOTAL Y BOTONES
+        // Barra de total y botones
         if (_cart.isNotEmpty)
           Container(
             padding: EdgeInsets.all(16.w),

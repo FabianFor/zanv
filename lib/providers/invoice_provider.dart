@@ -23,6 +23,21 @@ class InvoiceProvider with ChangeNotifier {
   String? get error => _error;
   int get totalInvoices => _box?.length ?? 0;
 
+  // ✅✅ NUEVO MÉTODO PARA OBTENER EL SIGUIENTE NÚMERO DE FACTURA ✅✅
+  int getNextInvoiceNumber() {
+    if (_box == null || _box!.isEmpty) return 1;
+    
+    // Buscar el número más alto en todas las facturas
+    int maxNumber = 0;
+    for (var invoice in _box!.values) {
+      if (invoice.invoiceNumber > maxNumber) {
+        maxNumber = invoice.invoiceNumber;
+      }
+    }
+    
+    return maxNumber + 1;
+  }
+
   double get totalRevenue {
     return _invoices.fold(0.0, (sum, invoice) => sum + invoice.total);
   }
