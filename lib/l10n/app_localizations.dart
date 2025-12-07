@@ -759,7 +759,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionsMessage.
   ///
   /// In es, this message translates to:
-  /// **'Esta aplicación necesita acceso a tus fotos para agregar imágenes a los productos.\n\nVe a:\nConfiguración → Aplicaciones → MiNegocio → Permisos → Fotos y multimedia'**
+  /// **'Esta aplicación necesita acceso a tus fotos para agregar imágenes a los productos.\n\nVe a:\nConfiguración → Aplicaciones → Proio → Permisos → Fotos y multimedia'**
   String get permissionsMessage;
 
   /// No description provided for @openSettings.
@@ -1421,6 +1421,294 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No hay boletas en este período'**
   String get noBilletsInPeriodShort;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Comencemos!'**
+  String get getStarted;
+
+  /// No description provided for @setupYourBusiness.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura tu negocio para empezar'**
+  String get setupYourBusiness;
+
+  /// No description provided for @businessSetup.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración Inicial'**
+  String get businessSetup;
+
+  /// No description provided for @step.
+  ///
+  /// In es, this message translates to:
+  /// **'Paso'**
+  String get step;
+
+  /// No description provided for @ofPreposition.
+  ///
+  /// In es, this message translates to:
+  /// **'de'**
+  String get ofPreposition;
+
+  /// No description provided for @businessInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Información del Negocio'**
+  String get businessInfo;
+
+  /// No description provided for @enterBusinessName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de tu negocio'**
+  String get enterBusinessName;
+
+  /// No description provided for @businessNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Mi Tienda'**
+  String get businessNameHint;
+
+  /// No description provided for @businessLogo.
+  ///
+  /// In es, this message translates to:
+  /// **'Logo (Opcional)'**
+  String get businessLogo;
+
+  /// No description provided for @tapToAddLogo.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para agregar logo'**
+  String get tapToAddLogo;
+
+  /// No description provided for @contactInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Información de Contacto'**
+  String get contactInfo;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Teléfono'**
+  String get phoneNumber;
+
+  /// No description provided for @phoneHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: +57 300 123 4567'**
+  String get phoneHint;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get emailAddress;
+
+  /// No description provided for @emailHint.
+  ///
+  /// In es, this message translates to:
+  /// **'ejemplo@correo.com'**
+  String get emailHint;
+
+  /// No description provided for @optionalField.
+  ///
+  /// In es, this message translates to:
+  /// **'(Opcional)'**
+  String get optionalField;
+
+  /// No description provided for @preferences.
+  ///
+  /// In es, this message translates to:
+  /// **'Preferencias'**
+  String get preferences;
+
+  /// No description provided for @selectYourLanguage.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona tu idioma'**
+  String get selectYourLanguage;
+
+  /// No description provided for @spanish.
+  ///
+  /// In es, this message translates to:
+  /// **'Español'**
+  String get spanish;
+
+  /// No description provided for @english.
+  ///
+  /// In es, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @portuguese.
+  ///
+  /// In es, this message translates to:
+  /// **'Português'**
+  String get portuguese;
+
+  /// No description provided for @chinese.
+  ///
+  /// In es, this message translates to:
+  /// **'中文'**
+  String get chinese;
+
+  /// No description provided for @selectYourCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda'**
+  String get selectYourCurrency;
+
+  /// No description provided for @security.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguridad'**
+  String get security;
+
+  /// No description provided for @createAdminPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea una contraseña de administrador'**
+  String get createAdminPassword;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 6 caracteres'**
+  String get passwordHint;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar contraseña'**
+  String get confirmPassword;
+
+  /// No description provided for @confirmPasswordHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Repite la contraseña'**
+  String get confirmPasswordHint;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Las contraseñas no coinciden'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 6 caracteres'**
+  String get passwordTooShort;
+
+  /// No description provided for @adminPasswordInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Protege las funciones de administrador'**
+  String get adminPasswordInfo;
+
+  /// No description provided for @finish.
+  ///
+  /// In es, this message translates to:
+  /// **'Finalizar'**
+  String get finish;
+
+  /// No description provided for @skip.
+  ///
+  /// In es, this message translates to:
+  /// **'Omitir'**
+  String get skip;
+
+  /// No description provided for @next.
+  ///
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get next;
+
+  /// No description provided for @previous.
+  ///
+  /// In es, this message translates to:
+  /// **'Anterior'**
+  String get previous;
+
+  /// No description provided for @allSet.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Todo listo!'**
+  String get allSet;
+
+  /// No description provided for @readyToStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu negocio está listo para comenzar'**
+  String get readyToStart;
+
+  /// No description provided for @startNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Empezar ahora'**
+  String get startNow;
+
+  /// No description provided for @proioApp.
+  ///
+  /// In es, this message translates to:
+  /// **'Proio'**
+  String get proioApp;
+
+  /// No description provided for @businessManagementSystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Sistema de Gestión'**
+  String get businessManagementSystem;
+
+  /// No description provided for @loginAsAdministrator.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar Sesión como Administrador'**
+  String get loginAsAdministrator;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get enterPassword;
+
+  /// No description provided for @loginButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresar como Admin'**
+  String get loginButton;
+
+  /// No description provided for @continueAsUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar como Usuario'**
+  String get continueAsUser;
+
+  /// No description provided for @userOnlyMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuario: Solo visualización y creación de órdenes'**
+  String get userOnlyMode;
+
+  /// No description provided for @adminAccessRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Acceso de Administrador'**
+  String get adminAccessRequired;
+
+  /// No description provided for @adminLoginRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitas iniciar sesión como administrador'**
+  String get adminLoginRequired;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In es, this message translates to:
+  /// **'Intentar de nuevo'**
+  String get tryAgain;
 }
 
 class _AppLocalizationsDelegate

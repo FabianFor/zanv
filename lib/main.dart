@@ -11,7 +11,8 @@ import 'providers/product_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/invoice_provider.dart';
 import 'providers/settings_provider.dart';
-import 'providers/reports_provider.dart'; // ✅ NUEVO
+import 'providers/reports_provider.dart';
+import 'screens/onboarding_screen.dart'; // ✅ NUEVO
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/product.dart';
@@ -73,7 +74,7 @@ class MyApp extends StatelessWidget {
           create: (_) => InvoiceProvider(),
         ),
         
-        // ✅✅ NUEVO: Reports Provider (depende de los 3 anteriores) ✅✅
+        // Reports Provider
         ChangeNotifierProxyProvider3<InvoiceProvider, OrderProvider, ProductProvider, ReportsProvider>(
           create: (context) => ReportsProvider(
             invoiceProvider: context.read<InvoiceProvider>(),
@@ -96,7 +97,7 @@ class MyApp extends StatelessWidget {
             splitScreenMode: true,
             builder: (context, child) {
               return MaterialApp(
-                title: 'MiNegocio',
+                title: 'Proio',
                 debugShowCheckedModeBanner: false,
                 theme: settingsProvider.isDarkMode
                     ? AppTheme.darkTheme
@@ -109,8 +110,8 @@ class MyApp extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 supportedLocales: const [
+                  Locale('en'), // ✅ INGLÉS PRIMERO
                   Locale('es'),
-                  Locale('en'),
                   Locale('pt'),
                   Locale('zh'),
                 ],
@@ -144,7 +145,7 @@ class _AppInitializerState extends State<_AppInitializer> {
     debugPrint('🔧 Inicializando app...');
     
     try {
-      // ✅✅ CARGAR TODOS LOS PROVIDERS EN PARALELO ✅✅
+      // Cargar todos los providers en paralelo
       await Future.wait([
         context.read<AuthProvider>().initialize(),
         context.read<SettingsProvider>().loadSettings(),
@@ -180,7 +181,7 @@ class _AppInitializerState extends State<_AppInitializer> {
               ),
               SizedBox(height: 16),
               Text(
-                'Cargando...',
+                'Loading...',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white,
@@ -192,7 +193,14 @@ class _AppInitializerState extends State<_AppInitializer> {
       );
     }
 
-    // Una vez inicializado, verificar autenticación
+    // ✅✅ NUEVO: Verificar si completó onboarding ✅✅
+    final settingsProvider = context.watch<SettingsProvider>();
+    
+    if (!settingsProvider.onboardingCompleted) {
+      return const OnboardingScreen();
+    }
+
+    // Verificar autenticación
     final authProvider = context.watch<AuthProvider>();
     
     if (authProvider.isAuthenticated) {

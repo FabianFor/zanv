@@ -345,7 +345,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get permissionsMessage =>
-      '此应用需要访问您的照片以将图片添加到产品中。\n\n前往：\n设置 → 应用 → 我的业务 → 权限 → 照片和媒体';
+      '此应用需要访问您的照片以将图片添加到产品中。\n\n前往：\n设置 → 应用 → Proio → 权限 → 照片和媒体';
 
   @override
   String get openSettings => '打开设置';
@@ -706,4 +706,148 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noBilletsInPeriodShort => '此期间没有收据';
+
+  @override
+  String get getStarted => '开始吧！';
+
+  @override
+  String get setupYourBusiness => '配置您的业务以开始';
+
+  @override
+  String get businessSetup => '初始设置';
+
+  @override
+  String get step => '步骤';
+
+  @override
+  String get ofPreposition => '的';
+
+  @override
+  String get businessInfo => '业务信息';
+
+  @override
+  String get enterBusinessName => '业务名称';
+
+  @override
+  String get businessNameHint => '例如：我的商店';
+
+  @override
+  String get businessLogo => '徽标（可选）';
+
+  @override
+  String get tapToAddLogo => '点击添加徽标';
+
+  @override
+  String get contactInfo => '联系信息';
+
+  @override
+  String get phoneNumber => '电话';
+
+  @override
+  String get phoneHint => '例如：+86 138 0000 0000';
+
+  @override
+  String get emailAddress => '电子邮件';
+
+  @override
+  String get emailHint => 'example@email.com';
+
+  @override
+  String get optionalField => '（可选）';
+
+  @override
+  String get preferences => '偏好设置';
+
+  @override
+  String get selectYourLanguage => '选择您的语言';
+
+  @override
+  String get spanish => 'Español';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get portuguese => 'Português';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get selectYourCurrency => '货币';
+
+  @override
+  String get security => '安全';
+
+  @override
+  String get createAdminPassword => '创建管理员密码';
+
+  @override
+  String get passwordHint => '最少6个字符';
+
+  @override
+  String get confirmPassword => '确认密码';
+
+  @override
+  String get confirmPasswordHint => '重复密码';
+
+  @override
+  String get passwordMismatch => '密码不匹配';
+
+  @override
+  String get passwordTooShort => '最少6个字符';
+
+  @override
+  String get adminPasswordInfo => '保护管理员功能';
+
+  @override
+  String get finish => '完成';
+
+  @override
+  String get skip => '跳过';
+
+  @override
+  String get next => '下一步';
+
+  @override
+  String get previous => '上一步';
+
+  @override
+  String get allSet => '一切就绪！';
+
+  @override
+  String get readyToStart => '您的业务已准备好开始';
+
+  @override
+  String get startNow => '立即开始';
+
+  @override
+  String get proioApp => 'Proio';
+
+  @override
+  String get businessManagementSystem => '管理系统';
+
+  @override
+  String get loginAsAdministrator => '以管理员身份登录';
+
+  @override
+  String get enterPassword => '密码';
+
+  @override
+  String get loginButton => '以管理员身份登录';
+
+  @override
+  String get continueAsUser => '以用户身份继续';
+
+  @override
+  String get userOnlyMode => '用户：仅查看和创建订单';
+
+  @override
+  String get adminAccessRequired => '管理员访问';
+
+  @override
+  String get adminLoginRequired => '您需要以管理员身份登录';
+
+  @override
+  String get tryAgain => '重试';
 }

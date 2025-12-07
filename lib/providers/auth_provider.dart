@@ -40,7 +40,6 @@ class AuthProvider extends ChangeNotifier {
   // Crear admin por defecto (primera vez)
   Future<void> _crearAdminPorDefecto() async {
     try {
-      // ✅ Verificar que el box esté disponible
       if (_usersBox == null) {
         debugPrint('❌ Error: _usersBox es null');
         return;
@@ -67,7 +66,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       final admin = _obtenerAdmin();
       
-      // Si no hay admin, significa que es primera vez
       if (admin == null) {
         debugPrint('🔍 No hay admin, es primera configuración');
         return false;
@@ -78,7 +76,7 @@ class AuthProvider extends ChangeNotifier {
       return tieneContrasena;
     } catch (e) {
       debugPrint('⚠️ Error verificando contraseña: $e');
-      return false; // Asumir que no tiene contraseña si hay error
+      return false;
     }
   }
 
@@ -111,7 +109,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       debugPrint('🔐 Iniciando configuración de contraseña...');
       
-      // ✅ FIX: Verificar que el box esté inicializado
       if (_usersBox == null) {
         debugPrint('⚠️ Box no inicializado, inicializando...');
         await initialize();
@@ -122,7 +119,6 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
       
-      // ✅ FIX: Si no hay admin, crearlo primero
       User? admin = _obtenerAdmin();
       
       if (admin == null) {
@@ -139,7 +135,6 @@ class AuthProvider extends ChangeNotifier {
       final contrasenaHash = _hashContrasena(contrasena);
       debugPrint('🔒 Hash generado: ${contrasenaHash.substring(0, 10)}...');
       
-      // Crear nuevo admin con contraseña
       final adminActualizado = User(
         id: admin.id,
         nombre: admin.nombre,
@@ -151,7 +146,6 @@ class AuthProvider extends ChangeNotifier {
       
       await _usersBox!.put(admin.id, adminActualizado);
       
-      // Verificar que se guardó
       final verificar = _usersBox!.get(admin.id);
       debugPrint('✅ Contraseña guardada. Verificación: ${verificar?.contrasena != null}');
       
@@ -162,6 +156,11 @@ class AuthProvider extends ChangeNotifier {
       debugPrint('Stack trace: $stackTrace');
       return false;
     }
+  }
+
+  // 👇 MÉTODO NUEVO: Alias para compatibilidad con onboarding
+  Future<bool> setPassword(String password) async {
+    return await configurarContrasenaAdmin(password);
   }
 
   // Login como admin con contraseña

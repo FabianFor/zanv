@@ -347,7 +347,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionsMessage =>
-      'This app needs access to your photos to add images to products.\n\nGo to:\nSettings → Apps → MiNegocio → Permissions → Photos and media';
+      'This app needs access to your photos to add images to products.\n\nGo to:\nSettings → Apps → Proio → Permissions → Photos and media';
 
   @override
   String get openSettings => 'Open Settings';
@@ -710,4 +710,148 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noBilletsInPeriodShort => 'No receipts in this period';
+
+  @override
+  String get getStarted => 'Let\'s get started!';
+
+  @override
+  String get setupYourBusiness => 'Set up your business to begin';
+
+  @override
+  String get businessSetup => 'Initial Setup';
+
+  @override
+  String get step => 'Step';
+
+  @override
+  String get ofPreposition => 'of';
+
+  @override
+  String get businessInfo => 'Business Information';
+
+  @override
+  String get enterBusinessName => 'Business name';
+
+  @override
+  String get businessNameHint => 'Ex: My Store';
+
+  @override
+  String get businessLogo => 'Logo (Optional)';
+
+  @override
+  String get tapToAddLogo => 'Tap to add logo';
+
+  @override
+  String get contactInfo => 'Contact Information';
+
+  @override
+  String get phoneNumber => 'Phone';
+
+  @override
+  String get phoneHint => 'Ex: +1 555 123 4567';
+
+  @override
+  String get emailAddress => 'Email';
+
+  @override
+  String get emailHint => 'example@email.com';
+
+  @override
+  String get optionalField => '(Optional)';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get selectYourLanguage => 'Select your language';
+
+  @override
+  String get spanish => 'Español';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get portuguese => 'Português';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get selectYourCurrency => 'Currency';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get createAdminPassword => 'Create admin password';
+
+  @override
+  String get passwordHint => 'Minimum 6 characters';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get confirmPasswordHint => 'Repeat password';
+
+  @override
+  String get passwordMismatch => 'Passwords don\'t match';
+
+  @override
+  String get passwordTooShort => 'Minimum 6 characters';
+
+  @override
+  String get adminPasswordInfo => 'Protects administrator functions';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get allSet => 'All set!';
+
+  @override
+  String get readyToStart => 'Your business is ready to start';
+
+  @override
+  String get startNow => 'Start now';
+
+  @override
+  String get proioApp => 'Proio';
+
+  @override
+  String get businessManagementSystem => 'Business Management System';
+
+  @override
+  String get loginAsAdministrator => 'Login as Administrator';
+
+  @override
+  String get enterPassword => 'Password';
+
+  @override
+  String get loginButton => 'Login as Admin';
+
+  @override
+  String get continueAsUser => 'Continue as User';
+
+  @override
+  String get userOnlyMode => 'User: View-only and order creation';
+
+  @override
+  String get adminAccessRequired => 'Administrator Access';
+
+  @override
+  String get adminLoginRequired => 'You need to login as administrator';
+
+  @override
+  String get tryAgain => 'Try again';
 }

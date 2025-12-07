@@ -137,7 +137,7 @@
   "deleteProductConfirm": "Tem certeza de que deseja excluir este produto?",
   "productDeleted": "Produto excluído com sucesso",
   "permissionsNeeded": "Permissões necessárias",
-  "permissionsMessage": "Este aplicativo precisa de acesso às suas fotos para adicionar imagens aos produtos.\n\nVá para:\nConfigurações → Aplicativos → MeuNegócio → Permissões → Fotos e mídia",
+  "permissionsMessage": "Este aplicativo precisa de acesso às suas fotos para adicionar imagens aos produtos.\n\nVá para:\nConfigurações → Aplicativos → Proio → Permissões → Fotos e mídia",
   "openSettings": "Abrir Configurações",
   "needPermissionToSelectImage": "Você precisa conceder permissão para selecionar imagens",
   "trySelectAnyway": "Tentar selecionar a imagem mesmo assim",
@@ -246,8 +246,7 @@
   "downloadFormatPdf": "Documento (PDF)",
   "@downloadFormatPdf": {
     "description": "Opção para baixar como PDF"
-  }
-    ,
+  },
   "loginTitle": "MeuNegócio",
   "loginSubtitle": "Sistema de Gestão",
   "loginAsEmployee": "Entrar como Funcionário",
@@ -268,8 +267,7 @@
   "exportError": "Erro ao exportar",
   "importError": "Erro ao importar",
   "fileNotSelected": "Nenhum arquivo selecionado",
-  "logout": "Sair"
-  ,
+  "logout": "Sair",
   "statistics": "Estatísticas",
   "sales": "Vendas",
   "today": "Hoje",
@@ -328,8 +326,7 @@
         "type": "int"
       }
     }
-  }
-  ,
+  },
   "filterToday": "Hoje",
   "filterWeek": "Semana",
   "filterMonth": "Mês",
@@ -367,7 +364,54 @@
     }
   },
   "clearAllFilters": "Limpar filtros",
-  "noBilletsInPeriodShort": "Sem recibos neste período"
+  "noBilletsInPeriodShort": "Sem recibos neste período",
+  "getStarted": "Vamos começar!",
+  "setupYourBusiness": "Configure seu negócio para começar",
+  "businessSetup": "Configuração Inicial",
+  "step": "Passo",
+  "ofPreposition": "de",
+  "businessInfo": "Informações do Negócio",
 
+  "enterBusinessName": "Nome do negócio",
+  "businessNameHint": "Ex: Minha Loja",
+  "businessLogo": "Logo (Opcional)",
+  "tapToAddLogo": "Toque para adicionar logo",
+  "contactInfo": "Informações de Contato",
+  "phoneNumber": "Telefone",
+  "phoneHint": "Ex: +55 11 91234-5678",
+  "emailAddress": "E-mail",
+  "emailHint": "exemplo@email.com",
+  "optionalField": "(Opcional)",
+  "preferences": "Preferências",
+  "selectYourLanguage": "Selecione seu idioma",
+  "spanish": "Español",
+  "english": "English",
+  "portuguese": "Português",
+  "chinese": "中文",
+  "selectYourCurrency": "Moeda",
+  "security": "Segurança",
+  "createAdminPassword": "Criar senha de administrador",
+  "passwordHint": "Mínimo 6 caracteres",
+  "confirmPassword": "Confirmar senha",
+  "confirmPasswordHint": "Repita a senha",
+  "passwordMismatch": "As senhas não coincidem",
+  "passwordTooShort": "Mínimo 6 caracteres",
+  "adminPasswordInfo": "Protege funções de administrador",
+  "finish": "Finalizar",
+  "skip": "Pular",
+  "next": "Próximo",
+  "previous": "Anterior",
+  "allSet": "Tudo pronto!",
+  "readyToStart": "Seu negócio está pronto para começar",
+  "startNow": "Começar agora",
+  "proioApp": "Proio",
+  "businessManagementSystem": "Sistema de Gestão",
+  "loginAsAdministrator": "Entrar como Administrador",
+  "enterPassword": "Senha",
+  "loginButton": "Entrar como Admin",
+  "continueAsUser": "Continuar como Usuário",
+  "userOnlyMode": "Usuário: Apenas visualização e criação de pedidos",
+  "adminAccessRequired": "Acesso de Administrador",
+  "adminLoginRequired": "Você precisa entrar como administrador",
+  "tryAgain": "Tentar novamente"
 }
-

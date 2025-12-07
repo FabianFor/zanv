@@ -346,7 +346,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get permissionsMessage =>
-      'Esta aplicación necesita acceso a tus fotos para agregar imágenes a los productos.\n\nVe a:\nConfiguración → Aplicaciones → MiNegocio → Permisos → Fotos y multimedia';
+      'Esta aplicación necesita acceso a tus fotos para agregar imágenes a los productos.\n\nVe a:\nConfiguración → Aplicaciones → Proio → Permisos → Fotos y multimedia';
 
   @override
   String get openSettings => 'Abrir Configuración';
@@ -711,4 +711,150 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noBilletsInPeriodShort => 'No hay boletas en este período';
+
+  @override
+  String get getStarted => '¡Comencemos!';
+
+  @override
+  String get setupYourBusiness => 'Configura tu negocio para empezar';
+
+  @override
+  String get businessSetup => 'Configuración Inicial';
+
+  @override
+  String get step => 'Paso';
+
+  @override
+  String get ofPreposition => 'de';
+
+  @override
+  String get businessInfo => 'Información del Negocio';
+
+  @override
+  String get enterBusinessName => 'Nombre de tu negocio';
+
+  @override
+  String get businessNameHint => 'Ej: Mi Tienda';
+
+  @override
+  String get businessLogo => 'Logo (Opcional)';
+
+  @override
+  String get tapToAddLogo => 'Toca para agregar logo';
+
+  @override
+  String get contactInfo => 'Información de Contacto';
+
+  @override
+  String get phoneNumber => 'Teléfono';
+
+  @override
+  String get phoneHint => 'Ej: +57 300 123 4567';
+
+  @override
+  String get emailAddress => 'Correo electrónico';
+
+  @override
+  String get emailHint => 'ejemplo@correo.com';
+
+  @override
+  String get optionalField => '(Opcional)';
+
+  @override
+  String get preferences => 'Preferencias';
+
+  @override
+  String get selectYourLanguage => 'Selecciona tu idioma';
+
+  @override
+  String get spanish => 'Español';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get portuguese => 'Português';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get selectYourCurrency => 'Moneda';
+
+  @override
+  String get security => 'Seguridad';
+
+  @override
+  String get createAdminPassword => 'Crea una contraseña de administrador';
+
+  @override
+  String get passwordHint => 'Mínimo 6 caracteres';
+
+  @override
+  String get confirmPassword => 'Confirmar contraseña';
+
+  @override
+  String get confirmPasswordHint => 'Repite la contraseña';
+
+  @override
+  String get passwordMismatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get passwordTooShort => 'Mínimo 6 caracteres';
+
+  @override
+  String get adminPasswordInfo => 'Protege las funciones de administrador';
+
+  @override
+  String get finish => 'Finalizar';
+
+  @override
+  String get skip => 'Omitir';
+
+  @override
+  String get next => 'Siguiente';
+
+  @override
+  String get previous => 'Anterior';
+
+  @override
+  String get allSet => '¡Todo listo!';
+
+  @override
+  String get readyToStart => 'Tu negocio está listo para comenzar';
+
+  @override
+  String get startNow => 'Empezar ahora';
+
+  @override
+  String get proioApp => 'Proio';
+
+  @override
+  String get businessManagementSystem => 'Sistema de Gestión';
+
+  @override
+  String get loginAsAdministrator => 'Iniciar Sesión como Administrador';
+
+  @override
+  String get enterPassword => 'Contraseña';
+
+  @override
+  String get loginButton => 'Ingresar como Admin';
+
+  @override
+  String get continueAsUser => 'Continuar como Usuario';
+
+  @override
+  String get userOnlyMode =>
+      'Usuario: Solo visualización y creación de órdenes';
+
+  @override
+  String get adminAccessRequired => 'Acceso de Administrador';
+
+  @override
+  String get adminLoginRequired =>
+      'Necesitas iniciar sesión como administrador';
+
+  @override
+  String get tryAgain => 'Intentar de nuevo';
 }

@@ -14,12 +14,16 @@ class SettingsProvider with ChangeNotifier {
   
   // Configuración de formato de descarga
   String _downloadFormat = 'image';
+  
+  // ✅✅ NUEVO: Onboarding ✅✅
+  bool _onboardingCompleted = false;
 
   String get currencyCode => _currencyCode;
   String get currencySymbol => _currencySymbol;
   Locale get locale => _locale;
   ThemeMode get themeMode => _themeMode;
   String get downloadFormat => _downloadFormat;
+  bool get onboardingCompleted => _onboardingCompleted; // ✅ NUEVO
   
   bool get isDarkMode => _themeMode == ThemeMode.dark;
 
@@ -58,8 +62,10 @@ class SettingsProvider with ChangeNotifier {
     
     _downloadFormat = prefs.getString('download_format') ?? 'image';
     
+    _onboardingCompleted = prefs.getBool('onboarding_completed') ?? false; // ✅ NUEVO
+    
     notifyListeners();
-    print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}, Dark: $isDark, Format: $_downloadFormat');
+    print('✅ Configuración cargada: $_currencyCode, ${_locale.languageCode}, Dark: $isDark, Format: $_downloadFormat, Onboarding: $_onboardingCompleted');
   }
 
   Future<void> setCurrency(String code) async {
@@ -124,6 +130,17 @@ class SettingsProvider with ChangeNotifier {
     print('✅ Formato de descarga cambiado a: $format');
   }
 
+  // ✅✅ NUEVO: Completar Onboarding ✅✅
+  Future<void> completeOnboarding() async {
+    _onboardingCompleted = true;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
+
+    notifyListeners();
+    print('✅ Onboarding completado');
+  }
+
   String formatPrice(double price) {
     final noDecimalCurrencies = ['JPY', 'CLP', 'COP'];
     
@@ -138,12 +155,10 @@ class SettingsProvider with ChangeNotifier {
     }
   }
 
-  // ✅ MÉTODO PARA OBTENER NOMBRE DE LA MONEDA ACTUAL
   String getCurrencyName(String languageCode) {
     return getCurrencyNameForCode(_currencyCode, languageCode);
   }
 
-  // ✅ NUEVO: MÉTODO PARA OBTENER NOMBRE DE CUALQUIER MONEDA
   String getCurrencyNameForCode(String code, String languageCode) {
     final names = {
       'PEN': {
