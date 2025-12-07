@@ -857,4 +857,51 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tryAgain => 'Intentar de nuevo';
+
+  @override
+  String get completeAllFields => 'Por favor complete todos los campos';
+
+  @override
+  String get passwordMinLength =>
+      'La contraseña debe tener al menos 4 caracteres';
+
+  @override
+  String get passwordsDoNotMatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get passwordConfiguredSuccessfully =>
+      'Contraseña configurada exitosamente';
+
+  @override
+  String get errorConfiguringPassword => 'Error al configurar la contraseña';
+
+  @override
+  String get initialSetup => 'Configuración Inicial';
+
+  @override
+  String get configureAdminPassword =>
+      'Configure su contraseña de administrador';
+
+  @override
+  String get firstTimeMessage =>
+      'Esta es la primera vez que usa la aplicación. Por favor configure una contraseña segura.';
+
+  @override
+  String get newPassword => 'Nueva Contraseña';
+
+  @override
+  String get minimumCharacters => 'Mínimo 4 caracteres';
+
+  @override
+  String get confirmPasswordLabel => 'Confirmar Contraseña';
+
+  @override
+  String get repeatPassword => 'Repita la contraseña';
+
+  @override
+  String get configureAndContinue => 'Configurar y Continuar';
+
+  @override
+  String get savePasswordSecurely =>
+      '🔒 Guarde esta contraseña en un lugar seguro';
 }

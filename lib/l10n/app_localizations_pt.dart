@@ -111,7 +111,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get phone => 'Telefone';
 
   @override
-  String get email => 'E-mail';
+  String get email => 'Email';
 
   @override
   String get share => 'Compartilhar';
@@ -209,7 +209,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get orderCreatedError => 'Erro ao criar pedido';
 
   @override
-  String get noProductsAvailable => 'Nenhum produto disponível';
+  String get noProductsAvailable => 'Sem produtos disponíveis';
 
   @override
   String get noProductsFound => 'Nenhum produto encontrado';
@@ -251,7 +251,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get businessNameRequired => 'O nome do negócio é obrigatório';
 
   @override
-  String get invalidEmail => 'Digite um e-mail válido';
+  String get invalidEmail => 'Insira um email válido';
 
   @override
   String get profileUpdated => 'Perfil atualizado com sucesso';
@@ -375,7 +375,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get phoneLabel => 'Telefone';
 
   @override
-  String get emailLabel => 'E-mail';
+  String get emailLabel => 'Email';
 
   @override
   String get productList => 'Lista de produtos';
@@ -488,7 +488,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maxStockValue => 'O estoque máximo é 999999';
 
   @override
-  String get validStockRequired => 'Digite um estoque válido';
+  String get validStockRequired => 'Insira um estoque válido';
 
   @override
   String get minPriceValue => 'O preço mínimo é 0.01';
@@ -497,7 +497,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maxPriceValue => 'O preço máximo é 99999999';
 
   @override
-  String get validPriceRequired => 'Digite um preço válido';
+  String get validPriceRequired => 'Insira um preço válido';
 
   @override
   String get customerNameMinLength => 'O nome deve ter pelo menos 2 caracteres';
@@ -618,7 +618,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get stockAlerts => 'Alertas de Estoque';
 
   @override
-  String get allGood => 'Tudo em ordem';
+  String get allGood => 'Tudo certo';
 
   @override
   String get noLowStockProducts => 'Sem produtos com estoque baixo';
@@ -634,7 +634,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get noSalesRecorded => 'Sem vendas registradas';
+  String get noSalesRecorded => 'Nenhuma venda registrada';
 
   @override
   String get todayLabel => 'Hoje';
@@ -732,7 +732,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get businessInfo => 'Informações do Negócio';
 
   @override
-  String get enterBusinessName => 'Nome do negócio';
+  String get enterBusinessName => 'Nome do seu negócio';
 
   @override
   String get businessNameHint => 'Ex: Minha Loja';
@@ -750,10 +750,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get phoneNumber => 'Telefone';
 
   @override
-  String get phoneHint => 'Ex: +55 11 91234-5678';
+  String get phoneHint => 'Ex: +55 11 98765 4321';
 
   @override
-  String get emailAddress => 'E-mail';
+  String get emailAddress => 'Email';
 
   @override
   String get emailHint => 'exemplo@email.com';
@@ -786,7 +786,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get security => 'Segurança';
 
   @override
-  String get createAdminPassword => 'Criar senha de administrador';
+  String get createAdminPassword => 'Crie uma senha de administrador';
 
   @override
   String get passwordHint => 'Mínimo 6 caracteres';
@@ -804,7 +804,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passwordTooShort => 'Mínimo 6 caracteres';
 
   @override
-  String get adminPasswordInfo => 'Protege funções de administrador';
+  String get adminPasswordInfo => 'Proteja as funções de administrador';
 
   @override
   String get finish => 'Finalizar';
@@ -853,8 +853,52 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminAccessRequired => 'Acesso de Administrador';
 
   @override
-  String get adminLoginRequired => 'Você precisa entrar como administrador';
+  String get adminLoginRequired =>
+      'Você precisa fazer login como administrador';
 
   @override
   String get tryAgain => 'Tentar novamente';
+
+  @override
+  String get completeAllFields => 'Por favor, preencha todos os campos';
+
+  @override
+  String get passwordMinLength => 'A senha deve ter pelo menos 4 caracteres';
+
+  @override
+  String get passwordsDoNotMatch => 'As senhas não coincidem';
+
+  @override
+  String get passwordConfiguredSuccessfully => 'Senha configurada com sucesso';
+
+  @override
+  String get errorConfiguringPassword => 'Erro ao configurar a senha';
+
+  @override
+  String get initialSetup => 'Configuração Inicial';
+
+  @override
+  String get configureAdminPassword => 'Configure sua senha de administrador';
+
+  @override
+  String get firstTimeMessage =>
+      'Esta é a primeira vez que você usa o aplicativo. Por favor, configure uma senha segura.';
+
+  @override
+  String get newPassword => 'Nova Senha';
+
+  @override
+  String get minimumCharacters => 'Mínimo 4 caracteres';
+
+  @override
+  String get confirmPasswordLabel => 'Confirmar Senha';
+
+  @override
+  String get repeatPassword => 'Repita a senha';
+
+  @override
+  String get configureAndContinue => 'Configurar e Continuar';
+
+  @override
+  String get savePasswordSecurely => '🔒 Guarde esta senha em um lugar seguro';
 }

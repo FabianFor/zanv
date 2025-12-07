@@ -1709,6 +1709,90 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Intentar de nuevo'**
   String get tryAgain;
+
+  /// No description provided for @completeAllFields.
+  ///
+  /// In es, this message translates to:
+  /// **'Por favor complete todos los campos'**
+  String get completeAllFields;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña debe tener al menos 4 caracteres'**
+  String get passwordMinLength;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Las contraseñas no coinciden'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @passwordConfiguredSuccessfully.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña configurada exitosamente'**
+  String get passwordConfiguredSuccessfully;
+
+  /// No description provided for @errorConfiguringPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al configurar la contraseña'**
+  String get errorConfiguringPassword;
+
+  /// No description provided for @initialSetup.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración Inicial'**
+  String get initialSetup;
+
+  /// No description provided for @configureAdminPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Configure su contraseña de administrador'**
+  String get configureAdminPassword;
+
+  /// No description provided for @firstTimeMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta es la primera vez que usa la aplicación. Por favor configure una contraseña segura.'**
+  String get firstTimeMessage;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Contraseña'**
+  String get newPassword;
+
+  /// No description provided for @minimumCharacters.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 4 caracteres'**
+  String get minimumCharacters;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar Contraseña'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @repeatPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Repita la contraseña'**
+  String get repeatPassword;
+
+  /// No description provided for @configureAndContinue.
+  ///
+  /// In es, this message translates to:
+  /// **'Configurar y Continuar'**
+  String get configureAndContinue;
+
+  /// No description provided for @savePasswordSecurely.
+  ///
+  /// In es, this message translates to:
+  /// **'🔒 Guarde esta contraseña en un lugar seguro'**
+  String get savePasswordSecurely;
 }
 
 class _AppLocalizationsDelegate

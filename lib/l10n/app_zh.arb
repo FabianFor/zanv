@@ -371,7 +371,6 @@
   "step": "步骤",
   "ofPreposition": "的",
   "businessInfo": "业务信息",
-
   "enterBusinessName": "业务名称",
   "businessNameHint": "例如：我的商店",
   "businessLogo": "徽标（可选）",
@@ -413,5 +412,19 @@
   "userOnlyMode": "用户：仅查看和创建订单",
   "adminAccessRequired": "管理员访问",
   "adminLoginRequired": "您需要以管理员身份登录",
-  "tryAgain": "重试"
+  "tryAgain": "重试",
+  "completeAllFields": "请填写所有字段",
+  "passwordMinLength": "密码必须至少4个字符",
+  "passwordsDoNotMatch": "密码不匹配",
+  "passwordConfiguredSuccessfully": "密码配置成功",
+  "errorConfiguringPassword": "配置密码时出错",
+  "initialSetup": "初始设置",
+  "configureAdminPassword": "配置您的管理员密码",
+  "firstTimeMessage": "这是您第一次使用该应用程序。请配置一个安全密码。",
+  "newPassword": "新密码",
+  "minimumCharacters": "最少4个字符",
+  "confirmPasswordLabel": "确认密码",
+  "repeatPassword": "重复密码",
+  "configureAndContinue": "配置并继续",
+  "savePasswordSecurely": "🔒 请将此密码保存在安全的地方"
 }

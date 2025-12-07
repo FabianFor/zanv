@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../l10n/app_localizations.dart';
 import 'login_screen.dart';
 
 class ConfigurarContrasenaScreen extends StatefulWidget {
@@ -28,23 +29,23 @@ class _ConfigurarContrasenaScreenState
   }
 
   Future<void> _configurarContrasena() async {
+    final l10n = AppLocalizations.of(context)!;
     final contrasena = _contrasenaController.text.trim();
     final confirmar = _confirmarController.text.trim();
 
     // Validaciones
     if (contrasena.isEmpty || confirmar.isEmpty) {
-      _mostrarMensaje('Por favor complete todos los campos', esError: true);
+      _mostrarMensaje(l10n.completeAllFields, esError: true);
       return;
     }
 
     if (contrasena.length < 4) {
-      _mostrarMensaje('La contraseña debe tener al menos 4 caracteres',
-          esError: true);
+      _mostrarMensaje(l10n.passwordMinLength, esError: true);
       return;
     }
 
     if (contrasena != confirmar) {
-      _mostrarMensaje('Las contraseñas no coinciden', esError: true);
+      _mostrarMensaje(l10n.passwordsDoNotMatch, esError: true);
       return;
     }
 
@@ -57,7 +58,7 @@ class _ConfigurarContrasenaScreenState
       setState(() => _isLoading = false);
 
       if (exito) {
-        _mostrarMensaje('Contraseña configurada exitosamente');
+        _mostrarMensaje(l10n.passwordConfiguredSuccessfully);
         
         // Esperar un momento y regresar al login
         await Future.delayed(const Duration(seconds: 1));
@@ -68,11 +69,11 @@ class _ConfigurarContrasenaScreenState
           );
         }
       } else {
-        _mostrarMensaje('Error al configurar la contraseña', esError: true);
+        _mostrarMensaje(l10n.errorConfiguringPassword, esError: true);
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      _mostrarMensaje('Error: ${e.toString()}', esError: true);
+      _mostrarMensaje('${l10n.error}: ${e.toString()}', esError: true);
       debugPrint('Error al configurar contraseña: $e');
     }
   }
@@ -91,8 +92,10 @@ class _ConfigurarContrasenaScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
-      backgroundColor: Colors.black, // Fondo negro
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -126,7 +129,7 @@ class _ConfigurarContrasenaScreenState
 
                 // Título
                 Text(
-                  'Configuración Inicial',
+                  l10n.initialSetup,
                   style: TextStyle(
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
@@ -137,7 +140,7 @@ class _ConfigurarContrasenaScreenState
                 SizedBox(height: 8.h),
 
                 Text(
-                  'Configure su contraseña de administrador',
+                  l10n.configureAdminPassword,
                   style: TextStyle(
                     fontSize: 16.sp,
                     color: Colors.white.withOpacity(0.9),
@@ -147,11 +150,11 @@ class _ConfigurarContrasenaScreenState
 
                 SizedBox(height: 40.h),
 
-                // Tarjeta de configuración - SOLO ESTA EN AZUL OSCURO
+                // Tarjeta de configuración
                 Container(
                   padding: EdgeInsets.all(24.w),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A237E), // Azul noche oscuro
+                    color: const Color(0xFF1A237E),
                     borderRadius: BorderRadius.circular(16.r),
                     boxShadow: [
                       BoxShadow(
@@ -182,7 +185,7 @@ class _ConfigurarContrasenaScreenState
                             SizedBox(width: 12.w),
                             Expanded(
                               child: Text(
-                                'Esta es la primera vez que usa la aplicación. Por favor configure una contraseña segura.',
+                                l10n.firstTimeMessage,
                                 style: TextStyle(
                                   fontSize: 13.sp,
                                   color: Colors.white,
@@ -202,9 +205,9 @@ class _ConfigurarContrasenaScreenState
                         enabled: !_isLoading,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText: 'Nueva Contraseña',
+                          labelText: l10n.newPassword,
                           labelStyle: const TextStyle(color: Colors.white70),
-                          hintText: 'Mínimo 4 caracteres',
+                          hintText: l10n.minimumCharacters,
                           hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                           prefixIcon: const Icon(Icons.lock, color: Colors.white),
                           suffixIcon: IconButton(
@@ -242,9 +245,9 @@ class _ConfigurarContrasenaScreenState
                         enabled: !_isLoading,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText: 'Confirmar Contraseña',
+                          labelText: l10n.confirmPasswordLabel,
                           labelStyle: const TextStyle(color: Colors.white70),
-                          hintText: 'Repita la contraseña',
+                          hintText: l10n.repeatPassword,
                           hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                           prefixIcon: const Icon(Icons.lock_clock, color: Colors.white),
                           suffixIcon: IconButton(
@@ -294,7 +297,7 @@ class _ConfigurarContrasenaScreenState
                                   color: Color(0xFF1A237E),
                                 )
                               : Text(
-                                  'Configurar y Continuar',
+                                  l10n.configureAndContinue,
                                   style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
@@ -310,7 +313,7 @@ class _ConfigurarContrasenaScreenState
 
                 // Nota de seguridad
                 Text(
-                  '🔒 Guarde esta contraseña en un lugar seguro',
+                  l10n.savePasswordSecurely,
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.white.withOpacity(0.9),

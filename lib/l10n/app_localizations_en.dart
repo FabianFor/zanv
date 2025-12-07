@@ -132,7 +132,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businessManagement => 'Business Management';
 
   @override
-  String get productsRegistered => 'Products Registered';
+  String get productsRegistered => 'Registered Products';
 
   @override
   String get ordersPlaced => 'Orders Placed';
@@ -486,7 +486,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxStockValue => 'Maximum stock is 999999';
 
   @override
-  String get validStockRequired => 'Enter a valid stock';
+  String get validStockRequired => 'Enter valid stock';
 
   @override
   String get minPriceValue => 'Minimum price is 0.01';
@@ -495,7 +495,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxPriceValue => 'Maximum price is 99999999';
 
   @override
-  String get validPriceRequired => 'Enter a valid price';
+  String get validPriceRequired => 'Enter valid price';
 
   @override
   String get customerNameMinLength => 'Name must be at least 2 characters';
@@ -525,10 +525,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginSubtitle => 'Management System';
 
   @override
-  String get loginAsEmployee => 'Enter as Employee';
+  String get loginAsEmployee => 'Login as Employee';
 
   @override
-  String get loginAsAdmin => 'Enter as Admin';
+  String get loginAsAdmin => 'Login as Admin';
 
   @override
   String get administrator => 'Administrator';
@@ -543,7 +543,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get defaultPassword => 'Default password: 1234';
 
   @override
-  String get pleaseEnterPassword => 'Please enter the password';
+  String get pleaseEnterPassword => 'Please enter password';
 
   @override
   String get incorrectPassword => 'Incorrect password';
@@ -597,7 +597,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get thisMonth => 'This month';
 
   @override
-  String get allTime => 'Total';
+  String get allTime => 'All time';
 
   @override
   String invoicesCount(int count) {
@@ -712,10 +712,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noBilletsInPeriodShort => 'No receipts in this period';
 
   @override
-  String get getStarted => 'Let\'s get started!';
+  String get getStarted => 'Get Started!';
 
   @override
-  String get setupYourBusiness => 'Set up your business to begin';
+  String get setupYourBusiness => 'Set up your business to get started';
 
   @override
   String get businessSetup => 'Initial Setup';
@@ -730,10 +730,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businessInfo => 'Business Information';
 
   @override
-  String get enterBusinessName => 'Business name';
+  String get enterBusinessName => 'Your business name';
 
   @override
-  String get businessNameHint => 'Ex: My Store';
+  String get businessNameHint => 'E.g: My Store';
 
   @override
   String get businessLogo => 'Logo (Optional)';
@@ -748,7 +748,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNumber => 'Phone';
 
   @override
-  String get phoneHint => 'Ex: +1 555 123 4567';
+  String get phoneHint => 'E.g: +1 555 123 4567';
 
   @override
   String get emailAddress => 'Email';
@@ -784,7 +784,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get security => 'Security';
 
   @override
-  String get createAdminPassword => 'Create admin password';
+  String get createAdminPassword => 'Create administrator password';
 
   @override
   String get passwordHint => 'Minimum 6 characters';
@@ -796,13 +796,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmPasswordHint => 'Repeat password';
 
   @override
-  String get passwordMismatch => 'Passwords don\'t match';
+  String get passwordMismatch => 'Passwords do not match';
 
   @override
   String get passwordTooShort => 'Minimum 6 characters';
 
   @override
-  String get adminPasswordInfo => 'Protects administrator functions';
+  String get adminPasswordInfo => 'Protect administrator functions';
 
   @override
   String get finish => 'Finish';
@@ -817,19 +817,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previous => 'Previous';
 
   @override
-  String get allSet => 'All set!';
+  String get allSet => 'All Set!';
 
   @override
   String get readyToStart => 'Your business is ready to start';
 
   @override
-  String get startNow => 'Start now';
+  String get startNow => 'Start Now';
 
   @override
   String get proioApp => 'Proio';
 
   @override
-  String get businessManagementSystem => 'Business Management System';
+  String get businessManagementSystem => 'Management System';
 
   @override
   String get loginAsAdministrator => 'Login as Administrator';
@@ -844,7 +844,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueAsUser => 'Continue as User';
 
   @override
-  String get userOnlyMode => 'User: View-only and order creation';
+  String get userOnlyMode => 'User: View only and create orders';
 
   @override
   String get adminAccessRequired => 'Administrator Access';
@@ -853,5 +853,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminLoginRequired => 'You need to login as administrator';
 
   @override
-  String get tryAgain => 'Try again';
+  String get tryAgain => 'Try Again';
+
+  @override
+  String get completeAllFields => 'Please complete all fields';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 4 characters';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get passwordConfiguredSuccessfully =>
+      'Password configured successfully';
+
+  @override
+  String get errorConfiguringPassword => 'Error configuring password';
+
+  @override
+  String get initialSetup => 'Initial Setup';
+
+  @override
+  String get configureAdminPassword => 'Configure your administrator password';
+
+  @override
+  String get firstTimeMessage =>
+      'This is the first time you use the application. Please configure a secure password.';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get minimumCharacters => 'Minimum 4 characters';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm Password';
+
+  @override
+  String get repeatPassword => 'Repeat password';
+
+  @override
+  String get configureAndContinue => 'Configure and Continue';
+
+  @override
+  String get savePasswordSecurely => '🔒 Save this password in a safe place';
 }

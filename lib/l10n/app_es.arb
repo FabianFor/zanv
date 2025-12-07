@@ -412,5 +412,19 @@
   "userOnlyMode": "Usuario: Solo visualización y creación de órdenes",
   "adminAccessRequired": "Acceso de Administrador",
   "adminLoginRequired": "Necesitas iniciar sesión como administrador",
-  "tryAgain": "Intentar de nuevo"
+  "tryAgain": "Intentar de nuevo",
+  "completeAllFields": "Por favor complete todos los campos",
+  "passwordMinLength": "La contraseña debe tener al menos 4 caracteres",
+  "passwordsDoNotMatch": "Las contraseñas no coinciden",
+  "passwordConfiguredSuccessfully": "Contraseña configurada exitosamente",
+  "errorConfiguringPassword": "Error al configurar la contraseña",
+  "initialSetup": "Configuración Inicial",
+  "configureAdminPassword": "Configure su contraseña de administrador",
+  "firstTimeMessage": "Esta es la primera vez que usa la aplicación. Por favor configure una contraseña segura.",
+  "newPassword": "Nueva Contraseña",
+  "minimumCharacters": "Mínimo 4 caracteres",
+  "confirmPasswordLabel": "Confirmar Contraseña",
+  "repeatPassword": "Repita la contraseña",
+  "configureAndContinue": "Configurar y Continuar",
+  "savePasswordSecurely": "🔒 Guarde esta contraseña en un lugar seguro"
 }

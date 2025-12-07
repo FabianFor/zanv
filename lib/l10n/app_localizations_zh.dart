@@ -850,4 +850,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tryAgain => '重试';
+
+  @override
+  String get completeAllFields => '请填写所有字段';
+
+  @override
+  String get passwordMinLength => '密码必须至少4个字符';
+
+  @override
+  String get passwordsDoNotMatch => '密码不匹配';
+
+  @override
+  String get passwordConfiguredSuccessfully => '密码配置成功';
+
+  @override
+  String get errorConfiguringPassword => '配置密码时出错';
+
+  @override
+  String get initialSetup => '初始设置';
+
+  @override
+  String get configureAdminPassword => '配置您的管理员密码';
+
+  @override
+  String get firstTimeMessage => '这是您第一次使用该应用程序。请配置一个安全密码。';
+
+  @override
+  String get newPassword => '新密码';
+
+  @override
+  String get minimumCharacters => '最少4个字符';
+
+  @override
+  String get confirmPasswordLabel => '确认密码';
+
+  @override
+  String get repeatPassword => '重复密码';
+
+  @override
+  String get configureAndContinue => '配置并继续';
+
+  @override
+  String get savePasswordSecurely => '🔒 请将此密码保存在安全的地方';
 }
