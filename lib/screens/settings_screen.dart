@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../providers/settings_provider.dart';
+import '../providers/auth_provider.dart'; // ✅ AGREGADO
 import 'profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = context.watch<SettingsProvider>();
+    final authProvider = context.watch<AuthProvider>(); // ✅ AGREGADO
     
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
@@ -58,25 +60,26 @@ class SettingsScreen extends StatelessWidget {
               
               SizedBox(height: isTablet ? 14.h : 16.h),
 
-              // PERFIL DEL NEGOCIO
-              _buildSettingCard(
-                context: context,
-                theme: theme,
-                icon: Icons.store,
-                iconColor: theme.primary,
-                title: l10n.businessProfile,
-                subtitle: l10n.businessProfileSubtitle,
-                trailing: Icon(Icons.chevron_right, color: theme.iconColor),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              // ✅✅ PERFIL DEL NEGOCIO - SOLO ADMIN ✅✅
+              if (authProvider.esAdmin)
+                _buildSettingCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.store,
+                  iconColor: theme.primary,
+                  title: l10n.businessProfile,
+                  subtitle: l10n.businessProfileSubtitle,
+                  trailing: Icon(Icons.chevron_right, color: theme.iconColor),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  ),
+                  isTablet: isTablet,
                 ),
-                isTablet: isTablet,
-              ),
 
-              SizedBox(height: isTablet ? 14.h : 16.h),
+              if (authProvider.esAdmin) SizedBox(height: isTablet ? 14.h : 16.h),
 
-              // IDIOMA (SIN BANDERA)
+              // IDIOMA (TODOS PUEDEN CAMBIAR)
               _buildSettingCard(
                 context: context,
                 theme: theme,
@@ -91,7 +94,7 @@ class SettingsScreen extends StatelessWidget {
 
               SizedBox(height: isTablet ? 14.h : 16.h),
 
-              // MONEDA (CON BANDERA)
+              // ✅✅ MONEDA - SOLO ADMIN PUEDE CAMBIAR ✅✅
               _buildSettingCard(
                 context: context,
                 theme: theme,
@@ -99,14 +102,18 @@ class SettingsScreen extends StatelessWidget {
                 iconColor: const Color(0xFF9C27B0),
                 title: l10n.currency,
                 subtitle: '${settingsProvider.currentCurrencyFlag} ${settingsProvider.currentCurrencyName}',
-                trailing: Icon(Icons.chevron_right, color: theme.iconColor),
-                onTap: () => _showCurrencyDialog(context, isTablet, theme),
+                trailing: authProvider.esAdmin 
+                    ? Icon(Icons.chevron_right, color: theme.iconColor)
+                    : Icon(Icons.lock, color: theme.textHint, size: 20.sp),
+                onTap: authProvider.esAdmin 
+                    ? () => _showCurrencyDialog(context, isTablet, theme)
+                    : () => _showAdminOnlyDialog(context, theme, l10n),
                 isTablet: isTablet,
               ),
 
               SizedBox(height: isTablet ? 14.h : 16.h),
 
-              // FORMATO DE DESCARGA
+              // FORMATO DE DESCARGA (TODOS PUEDEN CAMBIAR)
               _buildSettingCard(
                 context: context,
                 theme: theme,
@@ -231,7 +238,40 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // DIÁLOGO DE IDIOMA (SIN BANDERAS)
+  // ✅✅ DIÁLOGO "SOLO ADMIN" ✅✅
+  void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Row(
+          children: [
+            Icon(Icons.lock, color: theme.warning, size: 24.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'Solo Administrador',
+                style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Solo el Administrador puede cambiar la moneda del negocio.',
+          style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Entendido', style: TextStyle(fontSize: 14.sp)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // DIÁLOGO DE IDIOMA (SIN CAMBIOS - TODOS PUEDEN USAR)
   void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -280,7 +320,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               
-              // Lista de idiomas (SIN BANDERAS)
+              // Lista de idiomas
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -328,7 +368,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // ✅ DIÁLOGO DE MONEDA (CORREGIDO)
+  // DIÁLOGO DE MONEDA (SOLO ADMIN PUEDE ACCEDER)
   void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -377,7 +417,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               
-              // Lista de monedas (CON NOMBRES CORRECTOS)
+              // Lista de monedas
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -388,7 +428,6 @@ class SettingsScreen extends StatelessWidget {
                     final currencyCode = entry.key;
                     final isSelected = settingsProvider.currencyCode == currencyCode;
                     
-                    // ✅ FIX: Obtener el nombre ESPECÍFICO de cada moneda
                     final currencyName = settingsProvider.getCurrencyNameForCode(
                       currencyCode,
                       settingsProvider.locale.languageCode,
@@ -404,7 +443,7 @@ class SettingsScreen extends StatelessWidget {
                         style: TextStyle(fontSize: isTablet ? 28.sp : 28.sp),
                       ),
                       title: Text(
-                        currencyName, // ✅ AHORA MUESTRA EL NOMBRE CORRECTO
+                        currencyName,
                         style: TextStyle(
                           fontSize: isTablet ? 16.sp : 16.sp,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -443,7 +482,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // DIÁLOGO DE FORMATO DE DESCARGA
+  // DIÁLOGO DE FORMATO DE DESCARGA (SIN CAMBIOS - TODOS PUEDEN USAR)
   void _showDownloadFormatDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();

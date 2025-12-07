@@ -9,6 +9,7 @@ import '../core/utils/theme_helper.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/business_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/auth_provider.dart'; // ✅ AGREGADO
 import '../models/business_profile.dart';
 import '../services/invoice_image_generator.dart';
 import '../services/invoice_pdf_generator.dart';
@@ -396,6 +397,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     final theme = ThemeHelper(context);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     final businessProvider = Provider.of<BusinessProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false); // ✅ AGREGADO
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -641,19 +643,21 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                       ),
                     ),
                     SizedBox(width: 8.w),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _confirmDeleteInvoice(context, invoice);
-                      },
-                      icon: Icon(Icons.delete, size: 24.sp),
-                      color: theme.error,
-                      tooltip: l10n.delete,
-                      style: IconButton.styleFrom(
-                        backgroundColor: theme.errorWithOpacity(0.1),
-                        padding: EdgeInsets.all(12.w),
+                    // ✅✅ BOTÓN DE BORRAR SOLO PARA ADMIN ✅✅
+                    if (authProvider.esAdmin)
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _confirmDeleteInvoice(context, invoice);
+                        },
+                        icon: Icon(Icons.delete, size: 24.sp),
+                        color: theme.error,
+                        tooltip: l10n.delete,
+                        style: IconButton.styleFrom(
+                          backgroundColor: theme.errorWithOpacity(0.1),
+                          padding: EdgeInsets.all(12.w),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),

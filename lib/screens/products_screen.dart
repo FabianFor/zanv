@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
+import '../providers/auth_provider.dart'; // ✅ AGREGADO
 import '../widgets/product_card.dart';
 import '../services/permission_handler.dart';
 
@@ -19,11 +20,9 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  // ✅ AGREGADO: Controller para el TextField
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
-  // ✅ AGREGADO: dispose para limpiar el controller
   @override
   void dispose() {
     _searchController.dispose();
@@ -35,6 +34,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final productProvider = context.watch<ProductProvider>();
+    final authProvider = context.watch<AuthProvider>(); // ✅ AGREGADO
     final screenWidth = MediaQuery.of(context).size.width;
     
     final isVerySmall = screenWidth < 360;
@@ -112,12 +112,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
       body: Column(
         children: [
-          // ✅ BUSCADOR ARREGLADO
+          // Buscador
           Container(
             padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
             color: theme.cardBackground,
             child: TextField(
-              controller: _searchController, // ✅ AGREGADO
+              controller: _searchController,
               onChanged: (value) => setState(() => _searchQuery = value),
               style: TextStyle(
                 fontSize: isVerySmall ? 12.sp : 14.sp,
@@ -144,7 +144,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         onPressed: () {
                           setState(() {
                             _searchQuery = '';
-                            _searchController.clear(); // ✅ AGREGADO
+                            _searchController.clear();
                           });
                         },
                       )
@@ -216,12 +216,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     : ListView.builder(
                         padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
                         itemCount: filteredProducts.length,
-                        // ✅✅ OPTIMIZACIONES DE LISTVIEW ✅✅
                         cacheExtent: 500,
                         addAutomaticKeepAlives: false,
                         addRepaintBoundaries: true,
                         physics: const BouncingScrollPhysics(),
-                        // ✅✅ FIN OPTIMIZACIONES ✅✅
                         itemBuilder: (context, index) {
                           return ProductCard(product: filteredProducts[index]);
                         },
@@ -229,24 +227,28 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const AddProductDialog(),
-          );
-        },
-        backgroundColor: theme.buttonPrimary,
-        icon: Icon(Icons.add, size: isVerySmall ? 20.sp : 24.sp),
-        label: Text(
-          l10n.add,
-          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
-        ),
-      ),
+      // ✅✅ BOTÓN FLOTANTE SOLO PARA ADMIN ✅✅
+      floatingActionButton: authProvider.esAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const AddProductDialog(),
+                );
+              },
+              backgroundColor: theme.buttonPrimary,
+              icon: Icon(Icons.add, size: isVerySmall ? 20.sp : 24.sp),
+              label: Text(
+                l10n.add,
+                style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+              ),
+            )
+          : null, // ❌ Usuario no ve el botón
     );
   }
 }
 
+// El resto del código del AddProductDialog NO cambia
 class AddProductDialog extends StatefulWidget {
   final Product? product;
 

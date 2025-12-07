@@ -7,6 +7,7 @@ import '../core/utils/theme_helper.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/auth_provider.dart'; // ✅ AGREGADO
 import '../screens/products_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -19,6 +20,7 @@ class ProductCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = context.read<SettingsProvider>();
+    final authProvider = context.watch<AuthProvider>(); // ✅ AGREGADO
     final screenWidth = MediaQuery.of(context).size.width;
     
     final isVerySmall = screenWidth < 360;
@@ -121,30 +123,33 @@ class ProductCard extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: () => _editProduct(context),
-                        icon: const Icon(Icons.edit),
-                        color: theme.primary,
-                        iconSize: isVerySmall ? 18.sp : 20.sp,
-                        padding: EdgeInsets.all(isVerySmall ? 6.w : 8.w),
-                        constraints: const BoxConstraints(),
-                        tooltip: l10n.edit,
-                      ),
-                      SizedBox(width: 4.w),
-                      IconButton(
-                        onPressed: () => _confirmDelete(context),
-                        icon: const Icon(Icons.delete),
-                        color: theme.error,
-                        iconSize: isVerySmall ? 18.sp : 20.sp,
-                        padding: EdgeInsets.all(isVerySmall ? 6.w : 8.w),
-                        constraints: const BoxConstraints(),
-                        tooltip: l10n.delete,
-                      ),
-                    ],
-                  ),
+                  // ✅✅ BOTONES SOLO PARA ADMIN ✅✅
+                  if (authProvider.esAdmin)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => _editProduct(context),
+                          icon: const Icon(Icons.edit),
+                          color: theme.primary,
+                          iconSize: isVerySmall ? 18.sp : 20.sp,
+                          padding: EdgeInsets.all(isVerySmall ? 6.w : 8.w),
+                          constraints: const BoxConstraints(),
+                          tooltip: l10n.edit,
+                        ),
+                        SizedBox(width: 4.w),
+                        IconButton(
+                          onPressed: () => _confirmDelete(context),
+                          icon: const Icon(Icons.delete),
+                          color: theme.error,
+                          iconSize: isVerySmall ? 18.sp : 20.sp,
+                          padding: EdgeInsets.all(isVerySmall ? 6.w : 8.w),
+                          constraints: const BoxConstraints(),
+                          tooltip: l10n.delete,
+                        ),
+                      ],
+                    ),
+                  // ❌ Usuario no ve botones de editar/borrar
                 ],
               ),
             ],
@@ -158,6 +163,7 @@ class ProductCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false); // ✅ AGREGADO
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isVerySmall = screenWidth < 360;
@@ -282,52 +288,54 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             
-            Padding(
-              padding: EdgeInsets.all(isVerySmall ? 16.w : 20.w),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _editProduct(context);
-                      },
-                      icon: Icon(Icons.edit, size: isVerySmall ? 18.sp : 20.sp),
-                      label: Text(
-                        l10n.edit,
-                        style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.primary,
-                        side: BorderSide(color: theme.borderColor),
-                        padding: EdgeInsets.symmetric(vertical: isVerySmall ? 14.h : 16.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _confirmDelete(context);
-                      },
-                      icon: Icon(Icons.delete, size: isVerySmall ? 18.sp : 20.sp),
-                      label: Text(
-                        l10n.delete,
-                        style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.error,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: isVerySmall ? 14.h : 16.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            // ✅✅ BOTONES SOLO PARA ADMIN ✅✅
+            if (authProvider.esAdmin)
+              Padding(
+                padding: EdgeInsets.all(isVerySmall ? 16.w : 20.w),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _editProduct(context);
+                        },
+                        icon: Icon(Icons.edit, size: isVerySmall ? 18.sp : 20.sp),
+                        label: Text(
+                          l10n.edit,
+                          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.primary,
+                          side: BorderSide(color: theme.borderColor),
+                          padding: EdgeInsets.symmetric(vertical: isVerySmall ? 14.h : 16.h),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _confirmDelete(context);
+                        },
+                        icon: Icon(Icons.delete, size: isVerySmall ? 18.sp : 20.sp),
+                        label: Text(
+                          l10n.delete,
+                          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.error,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: isVerySmall ? 14.h : 16.h),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
