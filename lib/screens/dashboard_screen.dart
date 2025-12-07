@@ -207,22 +207,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   SizedBox(height: verticalSpacing),
 
                   // ✅✅ ESTADÍSTICAS - SOLO VISIBLE PARA ADMIN ✅✅
-                  if (authProvider.esAdmin) ...[
-                    _QuickAccessTile(
-                      label: '📊 Estadísticas',
-                      icon: Icons.analytics,
-                      color: const Color(0xFF9C27B0), // Morado
-                      isTablet: isTablet,
-                      theme: theme,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ReportsScreen()),
-                        );
-                      },
-                    ),
-                    SizedBox(height: verticalSpacing),
-                  ],
+if (authProvider.esAdmin) ...[
+  _QuickAccessTile(
+    label: l10n.statistics,  // ✅ CAMBIADO de '📊 Estadísticas' a l10n.statistics
+    icon: Icons.analytics,
+    color: const Color(0xFF9C27B0), // Morado
+    isTablet: isTablet,
+    theme: theme,
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ReportsScreen()),
+      );
+    },
+  ),
+  SizedBox(height: verticalSpacing),
+],
 
                   // CONFIGURACIÓN
                   _QuickAccessTile(

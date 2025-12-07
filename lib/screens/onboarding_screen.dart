@@ -58,7 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < 3) {
+    if (_currentPage < 5) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -75,8 +75,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // Cambiar idioma inmediatamente
+  Future<void> _changeLanguage(String languageCode) async {
+    setState(() {
+      _selectedLanguage = languageCode;
+    });
+    
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    await settingsProvider.setLanguage(languageCode);
+  }
+
   Future<void> _finishOnboarding() async {
     final l10n = AppLocalizations.of(context)!;
+
+    // Validar nombre del negocio
+    if (_businessNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.businessNameHint),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     // Validar contraseña
     if (_passwordController.text.length < 6) {
@@ -103,8 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final businessProvider = Provider.of<BusinessProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Guardar configuración
-    await settingsProvider.setLanguage(_selectedLanguage);
+    // Guardar configuración (idioma ya está guardado)
     await settingsProvider.setCurrency(_selectedCurrency);
 
     // Guardar perfil de negocio
@@ -140,35 +160,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Progress Indicator
-            Padding(
-              padding: EdgeInsets.all(20.w),
-              child: Row(
-                children: [
-                  Text(
-                    '${l10n.step} ${_currentPage + 1} ${l10n.ofPreposition} 4',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: theme.textSecondary,
+            // Progress Indicator (oculto en página de bienvenida)
+            if (_currentPage > 0)
+              Padding(
+                padding: EdgeInsets.all(20.w),
+                child: Row(
+                  children: [
+                    Text(
+                      '${l10n.step} $_currentPage ${l10n.ofPreposition} 5',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: theme.textSecondary,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  if (_currentPage < 3)
-                    TextButton(
-                      onPressed: () {
-                        _pageController.jumpToPage(3);
-                      },
-                      child: Text(l10n.skip, style: TextStyle(fontSize: 14.sp)),
-                    ),
-                ],
+                    const Spacer(),
+                    if (_currentPage < 5)
+                      TextButton(
+                        onPressed: () {
+                          _pageController.jumpToPage(5);
+                        },
+                        child: Text(l10n.skip, style: TextStyle(fontSize: 14.sp)),
+                      ),
+                  ],
+                ),
               ),
-            ),
 
-            LinearProgressIndicator(
-              value: (_currentPage + 1) / 4,
-              backgroundColor: theme.dividerColor,
-              valueColor: AlwaysStoppedAnimation<Color>(theme.primary),
-            ),
+            if (_currentPage > 0)
+              LinearProgressIndicator(
+                value: _currentPage / 5,
+                backgroundColor: theme.dividerColor,
+                valueColor: AlwaysStoppedAnimation<Color>(theme.primary),
+              ),
 
             Expanded(
               child: PageView(
@@ -179,9 +201,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   });
                 },
                 children: [
+                  _buildWelcomePage(l10n, theme),
+                  _buildLanguageSelectionPage(l10n, theme),
                   _buildBusinessInfoPage(l10n, theme),
                   _buildContactInfoPage(l10n, theme),
-                  _buildPreferencesPage(l10n, theme),
+                  _buildCurrencyPage(l10n, theme),
                   _buildSecurityPage(l10n, theme),
                 ],
               ),
@@ -220,7 +244,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                       child: Text(
-                        _currentPage == 3 ? l10n.finish : l10n.next,
+                        _currentPage == 0 ? l10n.getStarted : (_currentPage == 5 ? l10n.finish : l10n.next),
                         style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -234,14 +258,91 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // PÁGINA 1: BIENVENIDA
+  Widget _buildWelcomePage(AppLocalizations l10n, ThemeHelper theme) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.business_center_rounded,
+              size: 120.sp,
+              color: theme.primary,
+            ),
+            SizedBox(height: 40.h),
+            Text(
+              'Proio',
+              style: TextStyle(
+                fontSize: 48.sp,
+                fontWeight: FontWeight.bold,
+                color: theme.textPrimary,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              l10n.setupYourBusiness,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18.sp,
+                color: theme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // PÁGINA 2: SELECCIÓN DE IDIOMA
+  Widget _buildLanguageSelectionPage(AppLocalizations l10n, ThemeHelper theme) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(24.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 20.h),
+          Text(
+            l10n.selectYourLanguage,
+            style: TextStyle(
+              fontSize: 28.sp,
+              fontWeight: FontWeight.bold,
+              color: theme.textPrimary,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            l10n.preferences,
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: theme.textSecondary,
+            ),
+          ),
+          SizedBox(height: 40.h),
+
+          _buildLanguageOption('es', l10n.spanish, '🇪🇸', theme),
+          SizedBox(height: 12.h),
+          _buildLanguageOption('en', l10n.english, '🇺🇸', theme),
+          SizedBox(height: 12.h),
+          _buildLanguageOption('pt', l10n.portuguese, '🇧🇷', theme),
+          SizedBox(height: 12.h),
+          _buildLanguageOption('zh', l10n.chinese, '🇨🇳', theme),
+        ],
+      ),
+    );
+  }
+
+  // PÁGINA 3: INFORMACIÓN DEL NEGOCIO
   Widget _buildBusinessInfoPage(AppLocalizations l10n, ThemeHelper theme) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 20.h),
           Text(
-            l10n.getStarted,
+            l10n.businessInfo,
             style: TextStyle(
               fontSize: 28.sp,
               fontWeight: FontWeight.bold,
@@ -257,16 +358,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           SizedBox(height: 40.h),
-
-          Text(
-            l10n.businessInfo,
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: theme.textPrimary,
-            ),
-          ),
-          SizedBox(height: 20.h),
 
           TextField(
             controller: _businessNameController,
@@ -334,12 +425,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // PÁGINA 4: INFORMACIÓN DE CONTACTO
   Widget _buildContactInfoPage(AppLocalizations l10n, ThemeHelper theme) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 20.h),
           Text(
             l10n.contactInfo,
             style: TextStyle(
@@ -403,70 +496,64 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPreferencesPage(AppLocalizations l10n, ThemeHelper theme) {
+  // PÁGINA 5: MONEDA
+  Widget _buildCurrencyPage(AppLocalizations l10n, ThemeHelper theme) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 20.h),
           Text(
-            l10n.preferences,
+            l10n.selectYourCurrency,
             style: TextStyle(
               fontSize: 28.sp,
               fontWeight: FontWeight.bold,
               color: theme.textPrimary,
             ),
           ),
+          SizedBox(height: 8.h),
+          Text(
+            l10n.preferences,
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: theme.textSecondary,
+            ),
+          ),
           SizedBox(height: 40.h),
 
-          Text(
-            l10n.selectYourLanguage,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w600,
-              color: theme.textPrimary,
-            ),
-          ),
-          SizedBox(height: 16.h),
-
-          _buildLanguageOption('en', l10n.english, '🇺🇸', theme),
-          SizedBox(height: 12.h),
-          _buildLanguageOption('es', l10n.spanish, '🇪🇸', theme),
-          SizedBox(height: 12.h),
-          _buildLanguageOption('pt', l10n.portuguese, '🇧🇷', theme),
-          SizedBox(height: 12.h),
-          _buildLanguageOption('zh', l10n.chinese, '🇨🇳', theme),
-
-          SizedBox(height: 32.h),
-
-          Text(
-            l10n.selectYourCurrency,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w600,
-              color: theme.textPrimary,
-            ),
-          ),
-          SizedBox(height: 16.h),
-
-          _buildCurrencyOption('USD', 'US Dollar', '\$', theme),
-          SizedBox(height: 12.h),
-          _buildCurrencyOption('EUR', 'Euro', '€', theme),
-          SizedBox(height: 12.h),
-          _buildCurrencyOption('COP', 'Peso Colombiano', '\$', theme),
-          SizedBox(height: 12.h),
-          _buildCurrencyOption('BRL', 'Real Brasileño', 'R\$', theme),
+          // Todas las monedas
+          ...SettingsProvider.supportedCurrencies.entries.map((entry) {
+            final code = entry.key;
+            final currencyData = entry.value;
+            final name = settingsProvider.getCurrencyNameForCode(code, _selectedLanguage);
+            
+            return Padding(
+              padding: EdgeInsets.only(bottom: 12.h),
+              child: _buildCurrencyOption(
+                code,
+                name,
+                currencyData['symbol']!,
+                currencyData['flag']!,
+                theme,
+              ),
+            );
+          }).toList(),
         ],
       ),
     );
   }
 
+  // PÁGINA 6: SEGURIDAD
   Widget _buildSecurityPage(AppLocalizations l10n, ThemeHelper theme) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 20.h),
           Text(
             l10n.security,
             style: TextStyle(
@@ -547,6 +634,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
+          SizedBox(height: 24.h),
+          
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: theme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: theme.primary.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: theme.primary, size: 24.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    l10n.passwordTooShort,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: theme.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -555,10 +667,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildLanguageOption(String code, String name, String flag, ThemeHelper theme) {
     final isSelected = _selectedLanguage == code;
     return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedLanguage = code;
-        });
+      onTap: () async {
+        await _changeLanguage(code);
       },
       child: Container(
         padding: EdgeInsets.all(16.w),
@@ -592,7 +702,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildCurrencyOption(String code, String name, String symbol, ThemeHelper theme) {
+  Widget _buildCurrencyOption(String code, String name, String symbol, String flag, ThemeHelper theme) {
     final isSelected = _selectedCurrency == code;
     return InkWell(
       onTap: () {
@@ -612,6 +722,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         child: Row(
           children: [
+            Text(flag, style: TextStyle(fontSize: 24.sp)),
+            SizedBox(width: 12.w),
             Container(
               width: 40.w,
               height: 40.w,
@@ -623,7 +735,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Text(
                   symbol,
                   style: TextStyle(
-                    fontSize: 18.sp,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: theme.primary,
                   ),
