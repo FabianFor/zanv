@@ -53,15 +53,35 @@ enum DateFilter { today, thisWeek, thisMonth, all, custom }
 
 class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController(); // ✅ NUEVO
   String _searchQuery = '';
   DateFilter _selectedFilter = DateFilter.today;
   DateTime? _customStartDate;
   DateTime? _customEndDate;
 
   @override
+  void initState() {
+    super.initState();
+    // ✅ NUEVO: Detectar scroll para cargar más
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose(); // ✅ NUEVO
     super.dispose();
+  }
+
+  // ✅ NUEVO: Función para scroll infinito
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent * 0.8) {
+      final invoiceProvider = context.read<InvoiceProvider>();
+      if (!invoiceProvider.isLoadingMore && invoiceProvider.hasMorePages) {
+        invoiceProvider.loadNextPage();
+      }
+    }
   }
 
   List<dynamic> _getFilteredInvoices(List<dynamic> allInvoices) {
@@ -319,13 +339,37 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                   ),
                 )
               : ListView.builder(
+                  controller: _scrollController, // ✅ AGREGADO
                   padding: EdgeInsets.all(16.w),
-                  itemCount: filteredInvoices.length,
+                  itemCount: filteredInvoices.length + 
+                      (invoiceProvider.isLoadingMore ? 1 : 0), // ✅ +1 para indicador
                   cacheExtent: 500,
                   addAutomaticKeepAlives: false,
                   addRepaintBoundaries: true,
                   physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
+                    // ✅ NUEVO: Indicador de carga al final
+                    if (index == filteredInvoices.length) {
+                      return Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.h),
+                          child: Column(
+                            children: [
+                              CircularProgressIndicator(color: theme.primary),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Cargando más facturas...',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: theme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    
                     final invoice = filteredInvoices[index];
                     return Card(
                       margin: EdgeInsets.only(bottom: 16.h),

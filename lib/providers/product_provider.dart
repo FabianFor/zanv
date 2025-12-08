@@ -11,14 +11,25 @@ class ProductProvider with ChangeNotifier {
   String? _error;
   bool _isInitialized = false;
   
+  // ✅ NUEVAS VARIABLES PARA PAGINACIÓN
+  int _currentPage = 0;
+  final int _itemsPerPage = 50;
+  bool _hasMorePages = true;
+  bool _isLoadingMore = false;
+  
   // ✅ CACHE DE BÚSQUEDA (evita recalcular en cada keystroke)
   String _lastSearchQuery = '';
   List<Product> _lastSearchResults = [];
 
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
-  int get totalProducts => _products.length;
+  int get totalProducts => _box?.length ?? 0;
+  int get currentPage => _currentPage;
+  int get totalPages => (totalProducts / _itemsPerPage).ceil();
+  bool get hasMorePages => _hasMorePages;
+  int get itemsPerPage => _itemsPerPage;
 
   List<Product> get lowStockProducts => 
       _products.where((p) => p.stock <= 5).toList();
@@ -39,10 +50,8 @@ class ProductProvider with ChangeNotifier {
     try {
       _box = await Hive.openBox<Product>('products');
       
-      // ✅ LAZY LOADING: Solo carga los primeros 50
-      final allKeys = _box!.keys.toList();
-      final limitedKeys = allKeys.take(50).toList();
-      _products = limitedKeys.map((key) => _box!.get(key)!).toList();
+      // ✅ Cargar primera página
+      await _loadPage(0);
       
       _isInitialized = true;
     } catch (e) {
@@ -52,6 +61,80 @@ class ProductProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // ✅ NUEVA: Cargar página específica
+  Future<void> _loadPage(int page) async {
+    if (_box == null) return;
+    
+    final allKeys = _box!.keys.toList();
+    final startIndex = page * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, allKeys.length);
+    
+    if (startIndex >= allKeys.length) {
+      _hasMorePages = false;
+      return;
+    }
+    
+    final pageKeys = allKeys.sublist(startIndex, endIndex);
+    final pageProducts = pageKeys.map((key) => _box!.get(key)!).toList();
+    
+    if (page == 0) {
+      _products = pageProducts;
+    } else {
+      _products.addAll(pageProducts);
+    }
+    
+    _currentPage = page;
+    _hasMorePages = endIndex < allKeys.length;
+  }
+
+  // ✅ NUEVA: Cargar siguiente página (para scroll infinito)
+  Future<void> loadNextPage() async {
+    if (_isLoadingMore || !_hasMorePages || _lastSearchQuery.isNotEmpty) return;
+    
+    _isLoadingMore = true;
+    notifyListeners();
+    
+    try {
+      await _loadPage(_currentPage + 1);
+    } catch (e) {
+      _error = 'Error al cargar más productos: $e';
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  // ✅ NUEVA: Ir a página específica (para botones de paginación)
+  Future<void> goToPage(int page) async {
+    if (page < 0 || page >= totalPages) return;
+    
+    _isLoading = true;
+    _currentPage = page;
+    _products = [];
+    notifyListeners();
+    
+    try {
+      await _loadPage(page);
+    } catch (e) {
+      _error = 'Error al cargar página: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ✅ NUEVA: Reset para volver a scroll infinito
+  Future<void> resetToScrollMode() async {
+    _lastSearchQuery = '';
+    _lastSearchResults = [];
+    _currentPage = 0;
+    _products = [];
+    _hasMorePages = true;
+    
+    await _loadPage(0);
+    notifyListeners();
   }
 
   bool _validateProductName(String name) {
@@ -84,11 +167,10 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<bool> addProduct(Product product) async {
-    // ✅ VALIDACIÓN SIN notifyListeners() innecesario
     if (!_validateProductName(product.name) ||
         !_validateProductPrice(product.price) ||
         !_validateProductStock(product.stock)) {
-      return false; // ← No llama notifyListeners()
+      return false;
     }
 
     try {
@@ -101,16 +183,19 @@ class ProductProvider with ChangeNotifier {
         imagePath: product.imagePath,
       );
       
-      // ✅ Escribir primero en Hive
       await _box!.put(sanitizedProduct.id, sanitizedProduct);
       
-      // ✅ Solo agregar a memoria si no excede límite
-      if (_products.length < 200) {
-        _products.insert(0, sanitizedProduct); // Más reciente primero
+      // ✅ Agregar al inicio de la primera página
+      if (_currentPage == 0) {
+        _products.insert(0, sanitizedProduct);
+        // Mantener límite de página
+        if (_products.length > _itemsPerPage) {
+          _products.removeLast();
+        }
       }
       
       _error = null;
-      notifyListeners(); // Solo UNA llamada al final
+      notifyListeners();
       return true;
     } catch (e) {
       _error = 'Error al agregar producto: $e';
@@ -140,7 +225,6 @@ class ProductProvider with ChangeNotifier {
       
       await _box!.put(sanitizedProduct.id, sanitizedProduct);
       
-      // ✅ Actualizar solo si está en memoria
       if (index != -1) {
         _products[index] = sanitizedProduct;
       }
@@ -181,7 +265,6 @@ class ProductProvider with ChangeNotifier {
         await _box!.put(productId, updatedProduct);
         _products[index] = updatedProduct;
       } else {
-        // ✅ Cargar desde Hive si no está en memoria
         final product = _box!.get(productId);
         if (product != null) {
           final updatedProduct = product.copyWith(stock: newStock);
@@ -199,33 +282,24 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // ✅ BÚSQUEDA CON CACHE (mucho más rápida)
+  // ✅ MEJORADA: Búsqueda con soporte para paginación
   List<Product> searchProducts(String query) {
-    if (query.isEmpty) return _products;
+    if (query.isEmpty) {
+      return _products;
+    }
     
-    // Si es la misma búsqueda, devolver resultado cacheado
     if (query == _lastSearchQuery) {
       return _lastSearchResults;
     }
     
     final lowerQuery = _sanitizeInput(query.toLowerCase());
     
-    // ✅ BUSCAR PRIMERO EN MEMORIA (rápido)
-    final memoryResults = _products.where((product) {
+    // Buscar en toda la base de datos cuando hay búsqueda
+    final allProducts = _box!.values.toList();
+    _lastSearchResults = allProducts.where((product) {
       return product.name.toLowerCase().contains(lowerQuery) ||
              product.description.toLowerCase().contains(lowerQuery);
     }).toList();
-    
-    // ✅ Si hay pocos resultados, buscar en Hive también
-    if (memoryResults.length < 5) {
-      final allProducts = _box!.values.toList();
-      _lastSearchResults = allProducts.where((product) {
-        return product.name.toLowerCase().contains(lowerQuery) ||
-               product.description.toLowerCase().contains(lowerQuery);
-      }).toList();
-    } else {
-      _lastSearchResults = memoryResults;
-    }
     
     _lastSearchQuery = query;
     return _lastSearchResults;
@@ -237,13 +311,14 @@ class ProductProvider with ChangeNotifier {
 
   void clearError() {
     _error = null;
-    // ❌ NO llamar notifyListeners() aquí
   }
 
   Future<void> reload() async {
     _isInitialized = false;
     _lastSearchQuery = '';
     _lastSearchResults = [];
+    _currentPage = 0;
+    _hasMorePages = true;
     await loadProducts();
   }
 

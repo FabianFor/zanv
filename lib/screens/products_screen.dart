@@ -8,8 +8,9 @@ import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
-import '../providers/auth_provider.dart'; // ✅ AGREGADO
-import '../widgets/product_card.dart';
+import '../providers/auth_provider.dart';
+import '../widgets/optimized_product_card.dart'; // ✅ NUEVO
+import '../widgets/pagination_controls.dart'; // ✅ NUEVO
 import '../services/permission_handler.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -21,12 +22,95 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController(); // ✅ NUEVO
+  final _pageController = TextEditingController(); // ✅ NUEVO para ir a página
   String _searchQuery = '';
+  bool _showPagination = false; // ✅ NUEVO: controla modo paginación vs scroll
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ NUEVO: Detectar cuando llega al final para scroll infinito
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  // ✅ NUEVO: Función para scroll infinito
+  void _onScroll() {
+    if (_showPagination || _searchQuery.isNotEmpty) return; // Solo en modo scroll
+    
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent * 0.8) {
+      // Cuando está al 80% del scroll, cargar más
+      final productProvider = context.read<ProductProvider>();
+      if (!productProvider.isLoadingMore && productProvider.hasMorePages) {
+        productProvider.loadNextPage();
+      }
+    }
+  }
+
+  // ✅ NUEVO: Alternar entre modo scroll y paginación
+  void _togglePaginationMode() {
+    setState(() {
+      _showPagination = !_showPagination;
+      if (!_showPagination) {
+        // Volver a modo scroll infinito
+        context.read<ProductProvider>().resetToScrollMode();
+      }
+    });
+  }
+
+  // ✅ NUEVO: Ir a página específica
+  void _goToSpecificPage() {
+    final l10n = AppLocalizations.of(context)!;
+    final productProvider = context.read<ProductProvider>();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Ir a página'),
+        content: TextField(
+          controller: _pageController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Número de página (1-${productProvider.totalPages})',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final page = int.tryParse(_pageController.text);
+              if (page != null && page > 0 && page <= productProvider.totalPages) {
+                setState(() => _showPagination = true);
+                productProvider.goToPage(page - 1);
+                Navigator.pop(context);
+                _pageController.clear();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Página inválida'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: Text('Ir'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -34,7 +118,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final productProvider = context.watch<ProductProvider>();
-    final authProvider = context.watch<AuthProvider>(); // ✅ AGREGADO
+    final authProvider = context.watch<AuthProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
     
     final isVerySmall = screenWidth < 360;
@@ -109,6 +193,45 @@ class _ProductsScreenState extends State<ProductsScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        actions: [
+          // ✅ NUEVO: Botón para alternar modo
+          if (productProvider.totalProducts > 50)
+            PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, size: 24.sp),
+              onSelected: (value) {
+                if (value == 'toggle_mode') {
+                  _togglePaginationMode();
+                } else if (value == 'go_to_page') {
+                  _goToSpecificPage();
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'toggle_mode',
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showPagination ? Icons.view_stream : Icons.grid_view,
+                        size: 20.sp,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(_showPagination ? 'Modo Scroll' : 'Modo Páginas'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'go_to_page',
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, size: 20.sp),
+                      SizedBox(width: 8.w),
+                      Text('Ir a página...'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -116,58 +239,89 @@ class _ProductsScreenState extends State<ProductsScreen> {
           Container(
             padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
             color: theme.cardBackground,
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
-              style: TextStyle(
-                fontSize: isVerySmall ? 12.sp : 14.sp,
-                color: theme.textPrimary,
-              ),
-              decoration: InputDecoration(
-                hintText: l10n.searchProducts,
-                hintStyle: TextStyle(
-                  fontSize: isVerySmall ? 12.sp : 14.sp,
-                  color: theme.textHint,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                  style: TextStyle(
+                    fontSize: isVerySmall ? 12.sp : 14.sp,
+                    color: theme.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: l10n.searchProducts,
+                    hintStyle: TextStyle(
+                      fontSize: isVerySmall ? 12.sp : 14.sp,
+                      color: theme.textHint,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      size: isVerySmall ? 18.sp : 20.sp,
+                      color: theme.iconColor,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              size: isVerySmall ? 18.sp : 20.sp,
+                              color: theme.iconColor,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _searchQuery = '';
+                                _searchController.clear();
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(color: theme.borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(color: theme.borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(color: theme.primary, width: 2),
+                    ),
+                    filled: true,
+                    fillColor: theme.inputFillColor,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: isVerySmall ? 10.h : 12.h,
+                    ),
+                  ),
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  size: isVerySmall ? 18.sp : 20.sp,
-                  color: theme.iconColor,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          size: isVerySmall ? 18.sp : 20.sp,
-                          color: theme.iconColor,
+                
+                // ✅ NUEVO: Indicador de cantidad y página
+                if (_searchQuery.isEmpty && productProvider.totalProducts > 0)
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.h),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${productProvider.totalProducts} productos totales',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: theme.textSecondary,
+                          ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = '';
-                            _searchController.clear();
-                          });
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: theme.borderColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: theme.borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: theme.primary, width: 2),
-                ),
-                filled: true,
-                fillColor: theme.inputFillColor,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: isVerySmall ? 10.h : 12.h,
-                ),
-              ),
+                        if (_showPagination)
+                          Text(
+                            'Página ${productProvider.currentPage + 1}/${productProvider.totalPages}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: theme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
 
@@ -201,6 +355,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   )
                 : isLarge
                     ? GridView.builder(
+                        controller: _scrollController,
                         padding: EdgeInsets.all(16.w),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: screenWidth > 1200 ? 4 : 3,
@@ -208,26 +363,85 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           crossAxisSpacing: 16.w,
                           mainAxisSpacing: 16.h,
                         ),
-                        itemCount: filteredProducts.length,
+                        itemCount: filteredProducts.length + 
+                            (productProvider.isLoadingMore && !_showPagination ? 1 : 0),
                         itemBuilder: (context, index) {
-                          return ProductCard(product: filteredProducts[index]);
+                          if (index == filteredProducts.length) {
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.w),
+                                child: CircularProgressIndicator(color: theme.primary),
+                              ),
+                            );
+                          }
+                          return OptimizedProductCard(
+                            product: filteredProducts[index],
+                            onTap: () {
+                              // Aquí puedes agregar navegación a detalles
+                            },
+                          );
                         },
                       )
                     : ListView.builder(
+                        controller: _scrollController,
                         padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
-                        itemCount: filteredProducts.length,
+                        itemCount: filteredProducts.length + 
+                            (productProvider.isLoadingMore && !_showPagination ? 1 : 0),
                         cacheExtent: 500,
                         addAutomaticKeepAlives: false,
                         addRepaintBoundaries: true,
                         physics: const BouncingScrollPhysics(),
                         itemBuilder: (context, index) {
-                          return ProductCard(product: filteredProducts[index]);
+                          // ✅ NUEVO: Indicador de carga al final
+                          if (index == filteredProducts.length) {
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.h),
+                                child: Column(
+                                  children: [
+                                    CircularProgressIndicator(color: theme.primary),
+                                    SizedBox(height: 8.h),
+                                    Text(
+                                      'Cargando más productos...',
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: theme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          return OptimizedProductCard(
+                            product: filteredProducts[index],
+                            onTap: () {
+                              // Aquí puedes agregar navegación a detalles
+                            },
+                          );
                         },
                       ),
           ),
+          
+          // ✅ NUEVO: Controles de paginación (solo en modo paginación)
+          if (_showPagination && _searchQuery.isEmpty)
+            PaginationControls(
+              currentPage: productProvider.currentPage,
+              totalPages: productProvider.totalPages,
+              isLoading: productProvider.isLoading,
+              onPageChanged: (page) {
+                productProvider.goToPage(page);
+                // Scroll al inicio
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                );
+              },
+            ),
         ],
       ),
-      // ✅✅ BOTÓN FLOTANTE SOLO PARA ADMIN ✅✅
       floatingActionButton: authProvider.esAdmin
           ? FloatingActionButton.extended(
               onPressed: () {
@@ -243,12 +457,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
               ),
             )
-          : null, // ❌ Usuario no ve el botón
+          : null,
     );
   }
 }
 
-// El resto del código del AddProductDialog NO cambia
+// El AddProductDialog NO cambia - mantén el código que ya tienes
 class AddProductDialog extends StatefulWidget {
   final Product? product;
 

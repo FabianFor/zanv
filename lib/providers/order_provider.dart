@@ -11,20 +11,30 @@ class OrderProvider with ChangeNotifier {
   String? _error;
   bool _isInitialized = false;
   
-  // ✅ CACHE DE BÚSQUEDA (evita recalcular en cada keystroke)
+  // ✅ NUEVAS VARIABLES PARA PAGINACIÓN (igual que productos)
+  int _currentPage = 0;
+  final int _itemsPerPage = 30; // 30 pedidos por página
+  bool _hasMorePages = true;
+  bool _isLoadingMore = false;
+  
+  // ✅ CACHE DE BÚSQUEDA
   String _lastSearchQuery = '';
   List<Order> _lastSearchResults = [];
 
   List<Order> get orders => _orders;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
-  int get totalOrders => _orders.length;
+  int get totalOrders => _box?.length ?? 0;
+  int get currentPage => _currentPage;
+  int get totalPages => (totalOrders / _itemsPerPage).ceil();
+  bool get hasMorePages => _hasMorePages;
+  int get itemsPerPage => _itemsPerPage;
 
-  // ✅✅ NUEVO MÉTODO PARA OBTENER EL SIGUIENTE NÚMERO DE ORDEN ✅✅
+  // ✅ NUEVO MÉTODO PARA OBTENER EL SIGUIENTE NÚMERO DE ORDEN
   int getNextOrderNumber() {
     if (_box == null || _box!.isEmpty) return 1;
     
-    // Buscar el número más alto en todas las órdenes
     int maxNumber = 0;
     for (var order in _box!.values) {
       if (order.orderNumber > maxNumber) {
@@ -35,7 +45,6 @@ class OrderProvider with ChangeNotifier {
     return maxNumber + 1;
   }
 
-  // ✅ CÁLCULOS OPTIMIZADOS CON LAZY EVALUATION
   List<Order> get pendingOrders =>
       _orders.where((o) => o.status == 'pending').toList();
 
@@ -64,13 +73,8 @@ class OrderProvider with ChangeNotifier {
     try {
       _box = await Hive.openBox<Order>('orders');
       
-      // ✅ LAZY LOADING: Solo carga los últimos 100 pedidos
-      final allKeys = _box!.keys.toList();
-      final limitedKeys = allKeys.take(100).toList();
-      _orders = limitedKeys.map((key) => _box!.get(key)!).toList();
-      
-      // ✅ ORDENAR POR FECHA (más reciente primero)
-      _orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // ✅ Cargar primera página
+      await _loadPage(0);
       
       _isInitialized = true;
     } catch (e) {
@@ -82,12 +86,88 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
+  // ✅ NUEVA: Cargar página específica
+  Future<void> _loadPage(int page) async {
+    if (_box == null) return;
+    
+    final allKeys = _box!.keys.toList();
+    final startIndex = page * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, allKeys.length);
+    
+    if (startIndex >= allKeys.length) {
+      _hasMorePages = false;
+      return;
+    }
+    
+    final pageKeys = allKeys.sublist(startIndex, endIndex);
+    final pageOrders = pageKeys.map((key) => _box!.get(key)!).toList();
+    
+    // ✅ ORDENAR POR FECHA (más reciente primero)
+    pageOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    
+    if (page == 0) {
+      _orders = pageOrders;
+    } else {
+      _orders.addAll(pageOrders);
+    }
+    
+    _currentPage = page;
+    _hasMorePages = endIndex < allKeys.length;
+  }
+
+  // ✅ NUEVA: Cargar siguiente página (scroll infinito)
+  Future<void> loadNextPage() async {
+    if (_isLoadingMore || !_hasMorePages || _lastSearchQuery.isNotEmpty) return;
+    
+    _isLoadingMore = true;
+    notifyListeners();
+    
+    try {
+      await _loadPage(_currentPage + 1);
+    } catch (e) {
+      _error = 'Error al cargar más pedidos: $e';
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  // ✅ NUEVA: Ir a página específica
+  Future<void> goToPage(int page) async {
+    if (page < 0 || page >= totalPages) return;
+    
+    _isLoading = true;
+    _currentPage = page;
+    _orders = [];
+    notifyListeners();
+    
+    try {
+      await _loadPage(page);
+    } catch (e) {
+      _error = 'Error al cargar página: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ✅ NUEVA: Reset para volver a scroll infinito
+  Future<void> resetToScrollMode() async {
+    _lastSearchQuery = '';
+    _lastSearchResults = [];
+    _currentPage = 0;
+    _orders = [];
+    _hasMorePages = true;
+    
+    await _loadPage(0);
+    notifyListeners();
+  }
+
   Future<bool> addOrder(Order order) async {
-    // ✅ VALIDACIONES SIN notifyListeners() innecesario
     if (order.customerName.trim().isEmpty || 
         order.customerName.trim().length < ValidationLimits.minCustomerNameLength) {
       _error = 'El nombre del cliente debe tener al menos ${ValidationLimits.minCustomerNameLength} caracteres';
-      return false; // No llama notifyListeners()
+      return false;
     }
 
     if (order.items.isEmpty) {
@@ -101,24 +181,22 @@ class OrderProvider with ChangeNotifier {
     }
 
     try {
-      // ✅ Guardar en Hive primero
       await _box!.put(order.id, order);
       
-      // ✅ Solo agregar a memoria si no excede límite
-      if (_orders.length < 100) {
-        _orders.insert(0, order); // Más reciente al inicio
-      } else {
-        // Reemplazar el más antiguo
-        _orders.removeLast();
+      // ✅ Agregar al inicio de la primera página
+      if (_currentPage == 0) {
         _orders.insert(0, order);
+        // Mantener límite de página
+        if (_orders.length > _itemsPerPage) {
+          _orders.removeLast();
+        }
       }
       
-      // ✅ Limpiar cache de búsqueda
       _lastSearchQuery = '';
       _lastSearchResults = [];
       
       _error = null;
-      notifyListeners(); // Solo UNA llamada al final
+      notifyListeners();
       return true;
     } catch (e) {
       _error = 'Error al agregar orden: $e';
@@ -131,7 +209,6 @@ class OrderProvider with ChangeNotifier {
     try {
       final index = _orders.indexWhere((o) => o.id == orderId);
       
-      // ✅ Si no está en memoria, cargar desde Hive
       Order? order;
       if (index != -1) {
         order = _orders[index];
@@ -146,15 +223,12 @@ class OrderProvider with ChangeNotifier {
 
       final updatedOrder = order.copyWith(status: newStatus);
       
-      // Actualizar en Hive
       await _box!.put(orderId, updatedOrder);
       
-      // Actualizar en memoria solo si está cargada
       if (index != -1) {
         _orders[index] = updatedOrder;
       }
       
-      // ✅ Limpiar cache de búsqueda
       _lastSearchQuery = '';
       _lastSearchResults = [];
       
@@ -170,13 +244,9 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> deleteOrder(String orderId) async {
     try {
-      // Eliminar de Hive
       await _box!.delete(orderId);
-      
-      // Eliminar de memoria
       _orders.removeWhere((o) => o.id == orderId);
       
-      // ✅ Limpiar cache de búsqueda
       _lastSearchQuery = '';
       _lastSearchResults = [];
       
@@ -188,49 +258,33 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  // ✅ BÚSQUEDA OPTIMIZADA CON CACHE
   List<Order> searchOrders(String query) {
     if (query.isEmpty) return _orders;
     
-    // Si es la misma búsqueda, devolver resultado cacheado
     if (query == _lastSearchQuery) {
       return _lastSearchResults;
     }
     
     final lowerQuery = query.toLowerCase();
     
-    // ✅ BUSCAR PRIMERO EN MEMORIA (rápido)
-    final memoryResults = _orders.where((order) {
+    // Buscar en toda la base de datos
+    final allOrders = _box!.values.toList();
+    _lastSearchResults = allOrders.where((order) {
       return order.customerName.toLowerCase().contains(lowerQuery) ||
              order.orderNumber.toString().contains(query) ||
              order.customerPhone.contains(query);
     }).toList();
     
-    // ✅ Si hay pocos resultados, buscar en Hive también
-    if (memoryResults.length < 5) {
-      final allOrders = _box!.values.toList();
-      _lastSearchResults = allOrders.where((order) {
-        return order.customerName.toLowerCase().contains(lowerQuery) ||
-               order.orderNumber.toString().contains(query) ||
-               order.customerPhone.contains(query);
-      }).toList();
-    } else {
-      _lastSearchResults = memoryResults;
-    }
-    
-    // Ordenar por fecha (más reciente primero)
     _lastSearchResults.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     
     _lastSearchQuery = query;
     return _lastSearchResults;
   }
 
-  // ✅ BÚSQUEDA POR ID (instantánea O(1))
   Order? getOrderById(String id) {
     return _box?.get(id);
   }
 
-  // ✅ FILTROS OPTIMIZADOS
   List<Order> filterByStatus(String status) {
     return _orders.where((o) => o.status == status).toList();
   }
@@ -241,25 +295,16 @@ class OrderProvider with ChangeNotifier {
     }).toList();
   }
 
-  // ✅ PAGINACIÓN PARA LISTAS LARGAS
-  List<Order> getOrdersPaginated(int page, int itemsPerPage) {
-    final startIndex = page * itemsPerPage;
-    final endIndex = (startIndex + itemsPerPage).clamp(0, _orders.length);
-    
-    if (startIndex >= _orders.length) return [];
-    
-    return _orders.sublist(startIndex, endIndex);
-  }
-
   void clearError() {
     _error = null;
-    // ❌ NO llamar notifyListeners() aquí
   }
 
   Future<void> reload() async {
     _isInitialized = false;
     _lastSearchQuery = '';
     _lastSearchResults = [];
+    _currentPage = 0;
+    _hasMorePages = true;
     await loadOrders();
   }
 }

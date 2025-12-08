@@ -11,23 +11,30 @@ class InvoiceProvider with ChangeNotifier {
   String? _error;
   bool _isInitialized = false;
   
+  // ✅ NUEVAS VARIABLES PARA PAGINACIÓN (igual que productos)
+  int _currentPage = 0;
+  final int _itemsPerPage = 30; // 30 facturas por página
+  bool _hasMorePages = true;
+  bool _isLoadingMore = false;
+  
   // ✅ CACHE DE BÚSQUEDA
   String _lastSearchQuery = '';
   List<Invoice> _lastSearchResults = [];
-  
-  // ✅ LÍMITE EN MEMORIA
-  static const int _memoryLimit = 100;
 
   List<Invoice> get invoices => _invoices;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   int get totalInvoices => _box?.length ?? 0;
+  int get currentPage => _currentPage;
+  int get totalPages => (totalInvoices / _itemsPerPage).ceil();
+  bool get hasMorePages => _hasMorePages;
+  int get itemsPerPage => _itemsPerPage;
 
-  // ✅✅ NUEVO MÉTODO PARA OBTENER EL SIGUIENTE NÚMERO DE FACTURA ✅✅
+  // ✅ MÉTODO PARA OBTENER EL SIGUIENTE NÚMERO DE FACTURA
   int getNextInvoiceNumber() {
     if (_box == null || _box!.isEmpty) return 1;
     
-    // Buscar el número más alto en todas las facturas
     int maxNumber = 0;
     for (var invoice in _box!.values) {
       if (invoice.invoiceNumber > maxNumber) {
@@ -67,13 +74,8 @@ class InvoiceProvider with ChangeNotifier {
     try {
       _box = await Hive.openBox<Invoice>('invoices');
       
-      // ✅ LAZY LOADING
-      final allKeys = _box!.keys.toList();
-      final limitedKeys = allKeys.take(_memoryLimit).toList();
-      _invoices = limitedKeys.map((key) => _box!.get(key)!).toList();
-      
-      // ✅ ORDENAR POR FECHA
-      _invoices.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // ✅ Cargar primera página
+      await _loadPage(0);
       
       _isInitialized = true;
     } catch (e) {
@@ -83,6 +85,83 @@ class InvoiceProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // ✅ NUEVA: Cargar página específica
+  Future<void> _loadPage(int page) async {
+    if (_box == null) return;
+    
+    final allKeys = _box!.keys.toList();
+    final startIndex = page * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, allKeys.length);
+    
+    if (startIndex >= allKeys.length) {
+      _hasMorePages = false;
+      return;
+    }
+    
+    final pageKeys = allKeys.sublist(startIndex, endIndex);
+    final pageInvoices = pageKeys.map((key) => _box!.get(key)!).toList();
+    
+    // ✅ ORDENAR POR FECHA (más reciente primero)
+    pageInvoices.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    
+    if (page == 0) {
+      _invoices = pageInvoices;
+    } else {
+      _invoices.addAll(pageInvoices);
+    }
+    
+    _currentPage = page;
+    _hasMorePages = endIndex < allKeys.length;
+  }
+
+  // ✅ NUEVA: Cargar siguiente página (scroll infinito)
+  Future<void> loadNextPage() async {
+    if (_isLoadingMore || !_hasMorePages || _lastSearchQuery.isNotEmpty) return;
+    
+    _isLoadingMore = true;
+    notifyListeners();
+    
+    try {
+      await _loadPage(_currentPage + 1);
+    } catch (e) {
+      _error = 'Error al cargar más facturas: $e';
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  // ✅ NUEVA: Ir a página específica
+  Future<void> goToPage(int page) async {
+    if (page < 0 || page >= totalPages) return;
+    
+    _isLoading = true;
+    _currentPage = page;
+    _invoices = [];
+    notifyListeners();
+    
+    try {
+      await _loadPage(page);
+    } catch (e) {
+      _error = 'Error al cargar página: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ✅ NUEVA: Reset para volver a scroll infinito
+  Future<void> resetToScrollMode() async {
+    _lastSearchQuery = '';
+    _lastSearchResults = [];
+    _currentPage = 0;
+    _invoices = [];
+    _hasMorePages = true;
+    
+    await _loadPage(0);
+    notifyListeners();
   }
 
   Future<bool> addInvoice(Invoice invoice) async {
@@ -105,10 +184,14 @@ class InvoiceProvider with ChangeNotifier {
     try {
       await _box!.put(invoice.id, invoice);
       
-      if (_invoices.length >= _memoryLimit) {
-        _invoices.removeLast();
+      // ✅ Agregar al inicio de la primera página
+      if (_currentPage == 0) {
+        _invoices.insert(0, invoice);
+        // Mantener límite de página
+        if (_invoices.length > _itemsPerPage) {
+          _invoices.removeLast();
+        }
       }
-      _invoices.insert(0, invoice);
       
       _lastSearchQuery = '';
       _lastSearchResults = [];
@@ -148,22 +231,15 @@ class InvoiceProvider with ChangeNotifier {
     
     final lowerQuery = query.toLowerCase();
     
-    final memoryResults = _invoices.where((invoice) {
+    // Buscar en toda la base de datos
+    final allInvoices = _box!.values.toList();
+    _lastSearchResults = allInvoices.where((invoice) {
       return invoice.customerName.toLowerCase().contains(lowerQuery) ||
              invoice.invoiceNumber.toString().contains(query) ||
              invoice.customerPhone.contains(query);
     }).toList();
     
-    if (memoryResults.length < 5 && _box != null) {
-      _lastSearchResults = _box!.values.where((invoice) {
-        return invoice.customerName.toLowerCase().contains(lowerQuery) ||
-               invoice.invoiceNumber.toString().contains(query) ||
-               invoice.customerPhone.contains(query);
-      }).toList();
-      _lastSearchResults.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    } else {
-      _lastSearchResults = memoryResults;
-    }
+    _lastSearchResults.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     
     _lastSearchQuery = query;
     return _lastSearchResults;
@@ -188,6 +264,8 @@ class InvoiceProvider with ChangeNotifier {
     _isInitialized = false;
     _lastSearchQuery = '';
     _lastSearchResults = [];
+    _currentPage = 0;
+    _hasMorePages = true;
     await loadInvoices();
   }
 }
