@@ -341,7 +341,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get productDeleted => '产品删除成功';
 
   @override
-  String get permissionsNeeded => '您需要授予权限才能选择图像';
+  String get permissionsNeeded => '需要权限';
 
   @override
   String get permissionsMessage =>
@@ -937,4 +937,139 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get errorSavingProfile => '保存个人资料时出错';
+
+  @override
+  String get sortBy => '排序方式';
+
+  @override
+  String get sortByName => '名称';
+
+  @override
+  String get sortByPrice => '价格';
+
+  @override
+  String get sortByStock => '库存';
+
+  @override
+  String get sortByDate => '日期';
+
+  @override
+  String get sortByTotal => '总计';
+
+  @override
+  String get sortByInvoiceNumber => '收据编号';
+
+  @override
+  String get ascending => '升序';
+
+  @override
+  String get descending => '降序';
+
+  @override
+  String get backup => '备份';
+
+  @override
+  String get backupAndRestore => '备份与恢复';
+
+  @override
+  String get exportData => '导出数据';
+
+  @override
+  String get importData => '导入数据';
+
+  @override
+  String get exportInvoices => '导出收据';
+
+  @override
+  String get importInvoices => '导入收据';
+
+  @override
+  String get backupType => '备份类型';
+
+  @override
+  String get quickBackup => '快速（仅数据）';
+
+  @override
+  String get quickBackupDesc => '~100 KB • 即时 • 无图片';
+
+  @override
+  String get fullBackup => '完整（包含图片）';
+
+  @override
+  String get fullBackupDesc => '~5-10 MB • 包括照片 • 较慢';
+
+  @override
+  String exportSuccessMessage(int count) {
+    return '已导出 $count 项';
+  }
+
+  @override
+  String get exportFailed => '导出失败';
+
+  @override
+  String importSuccessMessage(int imported, int replaced) {
+    return '$imported 个新项，$replaced 个已替换';
+  }
+
+  @override
+  String get importFailed => '导入失败';
+
+  @override
+  String get fileLocation => '文件位置';
+
+  @override
+  String get fileSize => '大小';
+
+  @override
+  String get itemsExported => '已导出项目';
+
+  @override
+  String get itemsImported => '已导入项目';
+
+  @override
+  String get itemsReplaced => '已替换项目';
+
+  @override
+  String get itemsSkipped => '已跳过项目';
+
+  @override
+  String get itemsFailed => '失败项目';
+
+  @override
+  String get selectBackupFile => '选择备份文件';
+
+  @override
+  String get invalidBackupFile => '无效的备份文件';
+
+  @override
+  String get backupFileNotFound => '文件未找到';
+
+  @override
+  String get confirmImport => '确认导入？';
+
+  @override
+  String confirmImportMessage(int count) {
+    return '将导入 $count 项。重复项将被替换。';
+  }
+
+  @override
+  String get lastBackup => '上次备份';
+
+  @override
+  String get neverBackedUp => '从未';
+
+  @override
+  String get backupNow => '立即备份';
+
+  @override
+  String get restoreNow => '立即恢复';
+
+  @override
+  String get openFolder => '打开文件夹';
+
+  @override
+  String get backupInProgress => '正在备份...';
+
+  @override
+  String get importInProgress => '正在导入...';
 }

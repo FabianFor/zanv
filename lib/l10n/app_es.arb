@@ -433,34 +433,98 @@
   "adminOnlyCurrencyMessage": "Solo el Administrador puede cambiar la moneda del negocio.",
   "understood": "Entendido",
   "minNameCharacters": "El nombre debe tener al menos {count} caracteres",
-"@minNameCharacters": {
-  "placeholders": {
-    "count": {
-      "type": "int"
+  "@minNameCharacters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
-  }
-},
-"nameTooLong": "El nombre es demasiado largo",
-"invalidPhoneNumber": "Número de teléfono inválido",
-"unexpectedError": "Error inesperado: {error}",
-"@unexpectedError": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "nameTooLong": "El nombre es demasiado largo",
+  "invalidPhoneNumber": "Número de teléfono inválido",
+  "unexpectedError": "Error inesperado: {error}",
+  "@unexpectedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"permissionsNeeded": "Necesitas dar permisos para elegir una imagen",
-"logoSelectedSuccess": "Logo seleccionado correctamente",
-"errorSelectingImage": "Error al seleccionar imagen: {error}",
-"@errorSelectingImage": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "logoSelectedSuccess": "Logo seleccionado correctamente",
+  "errorSelectingImage": "Error al seleccionar imagen: {error}",
+  "@errorSelectingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"profileUpdatedSuccess": "Perfil actualizado correctamente",
-"errorSavingProfile": "Error al guardar el perfil"
-
+  },
+  "profileUpdatedSuccess": "Perfil actualizado correctamente",
+  "errorSavingProfile": "Error al guardar el perfil",
+  
+  "sortBy": "Ordenar por",
+  "sortByName": "Nombre",
+  "sortByPrice": "Precio",
+  "sortByStock": "Stock",
+  "sortByDate": "Fecha",
+  "sortByTotal": "Total",
+  "sortByInvoiceNumber": "Número de recibo",
+  "ascending": "Ascendente",
+  "descending": "Descendente",
+  
+  "backup": "Respaldo",
+  "backupAndRestore": "Respaldo y Restauración",
+  "exportData": "Exportar Datos",
+  "importData": "Importar Datos",
+  "exportInvoices": "Exportar Recibos",
+  "importInvoices": "Importar Recibos",
+  
+  "backupType": "Tipo de Respaldo",
+  "quickBackup": "Rápido (solo datos)",
+  "quickBackupDesc": "~100 KB • Instantáneo • Sin imágenes",
+  "fullBackup": "Completo (con imágenes)",
+  "fullBackupDesc": "~5-10 MB • Incluye fotos • Más lento",
+  
+  "exportSuccessMessage": "{count} elementos exportados",
+  "@exportSuccessMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "exportFailed": "Error al exportar",
+  "importSuccessMessage": "{imported} nuevos, {replaced} reemplazados",
+  "@importSuccessMessage": {
+    "placeholders": {
+      "imported": {"type": "int"},
+      "replaced": {"type": "int"}
+    }
+  },
+  "importFailed": "Error al importar",
+  
+  "fileLocation": "Ubicación del archivo",
+  "fileSize": "Tamaño",
+  "itemsExported": "Elementos exportados",
+  "itemsImported": "Elementos importados",
+  "itemsReplaced": "Elementos reemplazados",
+  "itemsSkipped": "Elementos omitidos",
+  "itemsFailed": "Elementos fallidos",
+  
+  "selectBackupFile": "Seleccionar archivo de respaldo",
+  "invalidBackupFile": "Archivo de respaldo inválido",
+  "backupFileNotFound": "Archivo no encontrado",
+  "confirmImport": "¿Confirmar importación?",
+  "confirmImportMessage": "Se importarán {count} elementos. Los duplicados serán reemplazados.",
+  "@confirmImportMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  
+  "lastBackup": "Último respaldo",
+  "neverBackedUp": "Nunca",
+  "backupNow": "Respaldar ahora",
+  "restoreNow": "Restaurar ahora",
+  "openFolder": "Abrir carpeta",
+  "backupInProgress": "Respaldando...",
+  "importInProgress": "Importando..."
 }

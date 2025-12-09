@@ -433,35 +433,98 @@
   "adminOnlyCurrencyMessage": "只有管理员可以更改业务货币。",
   "understood": "明白了",
   "minNameCharacters": "名称必须至少 {count} 个字符",
-"@minNameCharacters": {
-  "placeholders": {
-    "count": {
-      "type": "int"
+  "@minNameCharacters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
-  }
-},
-"nameTooLong": "名称太长",
-"invalidPhoneNumber": "电话号码无效",
-"unexpectedError": "意外错误：{error}",
-"@unexpectedError": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "nameTooLong": "名称太长",
+  "invalidPhoneNumber": "电话号码无效",
+  "unexpectedError": "意外错误：{error}",
+  "@unexpectedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"permissionsNeeded": "您需要授予权限才能选择图像",
-"logoSelectedSuccess": "成功选择徽标",
-"errorSelectingImage": "选择图像时出错：{error}",
-"@errorSelectingImage": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "logoSelectedSuccess": "成功选择徽标",
+  "errorSelectingImage": "选择图像时出错：{error}",
+  "@errorSelectingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"profileUpdatedSuccess": "个人资料已成功更新",
-"errorSavingProfile": "保存个人资料时出错"
-
-
+  },
+  "profileUpdatedSuccess": "个人资料已成功更新",
+  "errorSavingProfile": "保存个人资料时出错",
+  
+  "sortBy": "排序方式",
+  "sortByName": "名称",
+  "sortByPrice": "价格",
+  "sortByStock": "库存",
+  "sortByDate": "日期",
+  "sortByTotal": "总计",
+  "sortByInvoiceNumber": "收据编号",
+  "ascending": "升序",
+  "descending": "降序",
+  
+  "backup": "备份",
+  "backupAndRestore": "备份与恢复",
+  "exportData": "导出数据",
+  "importData": "导入数据",
+  "exportInvoices": "导出收据",
+  "importInvoices": "导入收据",
+  
+  "backupType": "备份类型",
+  "quickBackup": "快速（仅数据）",
+  "quickBackupDesc": "~100 KB • 即时 • 无图片",
+  "fullBackup": "完整（包含图片）",
+  "fullBackupDesc": "~5-10 MB • 包括照片 • 较慢",
+  
+  "exportSuccessMessage": "已导出 {count} 项",
+  "@exportSuccessMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "exportFailed": "导出失败",
+  "importSuccessMessage": "{imported} 个新项，{replaced} 个已替换",
+  "@importSuccessMessage": {
+    "placeholders": {
+      "imported": {"type": "int"},
+      "replaced": {"type": "int"}
+    }
+  },
+  "importFailed": "导入失败",
+  
+  "fileLocation": "文件位置",
+  "fileSize": "大小",
+  "itemsExported": "已导出项目",
+  "itemsImported": "已导入项目",
+  "itemsReplaced": "已替换项目",
+  "itemsSkipped": "已跳过项目",
+  "itemsFailed": "失败项目",
+  
+  "selectBackupFile": "选择备份文件",
+  "invalidBackupFile": "无效的备份文件",
+  "backupFileNotFound": "文件未找到",
+  "confirmImport": "确认导入？",
+  "confirmImportMessage": "将导入 {count} 项。重复项将被替换。",
+  "@confirmImportMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  
+  "lastBackup": "上次备份",
+  "neverBackedUp": "从未",
+  "backupNow": "立即备份",
+  "restoreNow": "立即恢复",
+  "openFolder": "打开文件夹",
+  "backupInProgress": "正在备份...",
+  "importInProgress": "正在导入..."
 }

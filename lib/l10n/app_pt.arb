@@ -433,35 +433,98 @@
   "adminOnlyCurrencyMessage": "Apenas o Administrador pode alterar a moeda do negócio.",
   "understood": "Entendido",
   "minNameCharacters": "O nome deve ter pelo menos {count} caracteres",
-"@minNameCharacters": {
-  "placeholders": {
-    "count": {
-      "type": "int"
+  "@minNameCharacters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
-  }
-},
-"nameTooLong": "O nome é muito longo",
-"invalidPhoneNumber": "Número de telefone inválido",
-"unexpectedError": "Erro inesperado: {error}",
-"@unexpectedError": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "nameTooLong": "O nome é muito longo",
+  "invalidPhoneNumber": "Número de telefone inválido",
+  "unexpectedError": "Erro inesperado: {error}",
+  "@unexpectedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"permissionsNeeded": "Você precisa conceder permissões para escolher uma imagem",
-"logoSelectedSuccess": "Logo selecionado com sucesso",
-"errorSelectingImage": "Erro ao selecionar imagem: {error}",
-"@errorSelectingImage": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "logoSelectedSuccess": "Logo selecionado com sucesso",
+  "errorSelectingImage": "Erro ao selecionar imagem: {error}",
+  "@errorSelectingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"profileUpdatedSuccess": "Perfil atualizado com sucesso",
-"errorSavingProfile": "Erro ao salvar o perfil"
-
-
+  },
+  "profileUpdatedSuccess": "Perfil atualizado com sucesso",
+  "errorSavingProfile": "Erro ao salvar o perfil",
+  
+  "sortBy": "Ordenar por",
+  "sortByName": "Nome",
+  "sortByPrice": "Preço",
+  "sortByStock": "Estoque",
+  "sortByDate": "Data",
+  "sortByTotal": "Total",
+  "sortByInvoiceNumber": "Número do recibo",
+  "ascending": "Ascendente",
+  "descending": "Descendente",
+  
+  "backup": "Backup",
+  "backupAndRestore": "Backup e Restauração",
+  "exportData": "Exportar Dados",
+  "importData": "Importar Dados",
+  "exportInvoices": "Exportar Recibos",
+  "importInvoices": "Importar Recibos",
+  
+  "backupType": "Tipo de Backup",
+  "quickBackup": "Rápido (apenas dados)",
+  "quickBackupDesc": "~100 KB • Instantâneo • Sem imagens",
+  "fullBackup": "Completo (com imagens)",
+  "fullBackupDesc": "~5-10 MB • Inclui fotos • Mais lento",
+  
+  "exportSuccessMessage": "{count} itens exportados",
+  "@exportSuccessMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "exportFailed": "Erro ao exportar",
+  "importSuccessMessage": "{imported} novos, {replaced} substituídos",
+  "@importSuccessMessage": {
+    "placeholders": {
+      "imported": {"type": "int"},
+      "replaced": {"type": "int"}
+    }
+  },
+  "importFailed": "Erro ao importar",
+  
+  "fileLocation": "Localização do arquivo",
+  "fileSize": "Tamanho",
+  "itemsExported": "Itens exportados",
+  "itemsImported": "Itens importados",
+  "itemsReplaced": "Itens substituídos",
+  "itemsSkipped": "Itens ignorados",
+  "itemsFailed": "Itens com falha",
+  
+  "selectBackupFile": "Selecionar arquivo de backup",
+  "invalidBackupFile": "Arquivo de backup inválido",
+  "backupFileNotFound": "Arquivo não encontrado",
+  "confirmImport": "Confirmar importação?",
+  "confirmImportMessage": "{count} itens serão importados. Duplicados serão substituídos.",
+  "@confirmImportMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  
+  "lastBackup": "Último backup",
+  "neverBackedUp": "Nunca",
+  "backupNow": "Fazer backup agora",
+  "restoreNow": "Restaurar agora",
+  "openFolder": "Abrir pasta",
+  "backupInProgress": "Fazendo backup...",
+  "importInProgress": "Importando..."
 }

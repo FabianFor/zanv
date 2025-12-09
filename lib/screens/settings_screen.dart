@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../providers/settings_provider.dart';
-import '../providers/auth_provider.dart'; // ✅ AGREGADO
+import '../providers/auth_provider.dart';
+import '../providers/product_provider.dart'; // ✅ NUEVO
+import '../providers/invoice_provider.dart'; // ✅ NUEVO
+import '../services/backup_service.dart'; // ✅ NUEVO
 import 'profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -15,7 +18,7 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = context.watch<SettingsProvider>();
-    final authProvider = context.watch<AuthProvider>(); // ✅ AGREGADO
+    final authProvider = context.watch<AuthProvider>();
     
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
@@ -128,6 +131,81 @@ class SettingsScreen extends StatelessWidget {
                 isTablet: isTablet,
               ),
 
+              // ✅✅✅ NUEVA SECCIÓN: RESPALDO Y RESTAURACIÓN ✅✅✅
+              if (authProvider.esAdmin) ...[
+                SizedBox(height: isTablet ? 24.h : 28.h),
+                
+                Padding(
+                  padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
+                  child: Text(
+                    l10n.backupAndRestore,
+                    style: TextStyle(
+                      fontSize: isTablet ? 15.sp : 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: theme.textSecondary,
+                    ),
+                  ),
+                ),
+
+                // Exportar Productos
+                _buildSettingCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.upload_file,
+                  iconColor: const Color(0xFF4CAF50),
+                  title: l10n.exportProducts,
+                  subtitle: l10n.quickBackup,
+                  trailing: Icon(Icons.chevron_right, color: theme.iconColor),
+                  onTap: () => _exportProducts(context, theme, isTablet),
+                  isTablet: isTablet,
+                ),
+
+                SizedBox(height: isTablet ? 14.h : 16.h),
+
+                // Importar Productos
+                _buildSettingCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.file_download,
+                  iconColor: const Color(0xFF2196F3),
+                  title: l10n.importProducts,
+                  subtitle: l10n.importData,
+                  trailing: Icon(Icons.chevron_right, color: theme.iconColor),
+                  onTap: () => _importProducts(context, theme, isTablet),
+                  isTablet: isTablet,
+                ),
+
+                SizedBox(height: isTablet ? 14.h : 16.h),
+
+                // Exportar Recibos
+                _buildSettingCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.receipt_long,
+                  iconColor: const Color(0xFFFF9800),
+                  title: l10n.exportInvoices,
+                  subtitle: l10n.quickBackup,
+                  trailing: Icon(Icons.chevron_right, color: theme.iconColor),
+                  onTap: () => _exportInvoices(context, theme, isTablet),
+                  isTablet: isTablet,
+                ),
+
+                SizedBox(height: isTablet ? 14.h : 16.h),
+
+                // Importar Recibos
+                _buildSettingCard(
+                  context: context,
+                  theme: theme,
+                  icon: Icons.cloud_download,
+                  iconColor: const Color(0xFF9C27B0),
+                  title: l10n.importInvoices,
+                  subtitle: l10n.importData,
+                  trailing: Icon(Icons.chevron_right, color: theme.iconColor),
+                  onTap: () => _importInvoices(context, theme, isTablet),
+                  isTablet: isTablet,
+                ),
+              ],
+
               SizedBox(height: isTablet ? 36.h : 32.h),
 
               // INFO DE LA APP
@@ -160,6 +238,361 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==================== EXPORTAR PRODUCTOS ====================
+  Future<void> _exportProducts(BuildContext context, ThemeHelper theme, bool isTablet) async {
+    final l10n = AppLocalizations.of(context)!;
+    final productProvider = context.read<ProductProvider>();
+    
+    // Mostrar loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Center(
+        child: Container(
+          padding: EdgeInsets.all(24.w),
+          decoration: BoxDecoration(
+            color: theme.cardBackground,
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: theme.primary),
+              SizedBox(height: 16.h),
+              Text(
+                l10n.backupInProgress,
+                style: TextStyle(color: theme.textPrimary, fontSize: 16.sp),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await BackupService.exportProducts(productProvider.products);
+      
+      if (context.mounted) Navigator.pop(context); // Cerrar loading
+      
+      if (result.success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.exportSuccessMessage(productProvider.products.length)),
+            backgroundColor: theme.success,
+            action: SnackBarAction(
+              label: l10n.openFolder,
+              textColor: Colors.white,
+              onPressed: () async {
+                if (result.filePath != null) {
+                  await BackupService.openFileLocation(result.filePath!);
+                }
+              },
+            ),
+          ),
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.exportFailed}: ${result.error}'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Cerrar loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  // ==================== IMPORTAR PRODUCTOS ====================
+  Future<void> _importProducts(BuildContext context, ThemeHelper theme, bool isTablet) async {
+    final l10n = AppLocalizations.of(context)!;
+    final productProvider = context.read<ProductProvider>();
+    
+    try {
+      final result = await BackupService.importProducts();
+      
+      if (result.success && result.data != null && context.mounted) {
+        // Mostrar diálogo de confirmación
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: theme.cardBackground,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+            title: Text(l10n.confirmImport, style: TextStyle(color: theme.textPrimary)),
+            content: Text(
+              l10n.confirmImportMessage(result.data!.length),
+              style: TextStyle(color: theme.textPrimary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(backgroundColor: theme.primary),
+                child: Text(l10n.confirm),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm == true && context.mounted) {
+          // Mostrar loading
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => Center(
+              child: Container(
+                padding: EdgeInsets.all(24.w),
+                decoration: BoxDecoration(
+                  color: theme.cardBackground,
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: theme.primary),
+                    SizedBox(height: 16.h),
+                    Text(
+                      l10n.importInProgress,
+                      style: TextStyle(color: theme.textPrimary, fontSize: 16.sp),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+          // Importar productos
+          int imported = 0;
+          int replaced = 0;
+
+          for (var product in result.data!) {
+            final exists = productProvider.products.any((p) => p.id == product.id);
+            if (exists) {
+              await productProvider.updateProduct(product);
+              replaced++;
+            } else {
+              await productProvider.addProduct(product);
+              imported++;
+            }
+          }
+
+          if (context.mounted) {
+            Navigator.pop(context); // Cerrar loading
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.importSuccessMessage(imported, replaced)),
+                backgroundColor: theme.success,
+              ),
+            );
+          }
+        }
+      } else if (result.error != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.importFailed}: ${result.error}'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  // ==================== EXPORTAR RECIBOS ====================
+  Future<void> _exportInvoices(BuildContext context, ThemeHelper theme, bool isTablet) async {
+    final l10n = AppLocalizations.of(context)!;
+    final invoiceProvider = context.read<InvoiceProvider>();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Center(
+        child: Container(
+          padding: EdgeInsets.all(24.w),
+          decoration: BoxDecoration(
+            color: theme.cardBackground,
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: theme.primary),
+              SizedBox(height: 16.h),
+              Text(
+                l10n.backupInProgress,
+                style: TextStyle(color: theme.textPrimary, fontSize: 16.sp),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await BackupService.exportInvoices(invoiceProvider.invoices);
+      
+      if (context.mounted) Navigator.pop(context);
+      
+      if (result.success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.exportSuccessMessage(invoiceProvider.invoices.length)),
+            backgroundColor: theme.success,
+            action: SnackBarAction(
+              label: l10n.openFolder,
+              textColor: Colors.white,
+              onPressed: () async {
+                if (result.filePath != null) {
+                  await BackupService.openFileLocation(result.filePath!);
+                }
+              },
+            ),
+          ),
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.exportFailed}: ${result.error}'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  // ==================== IMPORTAR RECIBOS ====================
+  Future<void> _importInvoices(BuildContext context, ThemeHelper theme, bool isTablet) async {
+    final l10n = AppLocalizations.of(context)!;
+    final invoiceProvider = context.read<InvoiceProvider>();
+    
+    try {
+      final result = await BackupService.importInvoices();
+      
+      if (result.success && result.data != null && context.mounted) {
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: theme.cardBackground,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+            title: Text(l10n.confirmImport, style: TextStyle(color: theme.textPrimary)),
+            content: Text(
+              l10n.confirmImportMessage(result.data!.length),
+              style: TextStyle(color: theme.textPrimary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(backgroundColor: theme.primary),
+                child: Text(l10n.confirm),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm == true && context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => Center(
+              child: Container(
+                padding: EdgeInsets.all(24.w),
+                decoration: BoxDecoration(
+                  color: theme.cardBackground,
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: theme.primary),
+                    SizedBox(height: 16.h),
+                    Text(
+                      l10n.importInProgress,
+                      style: TextStyle(color: theme.textPrimary, fontSize: 16.sp),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+          int imported = 0;
+          int replaced = 0;
+
+          for (var invoice in result.data!) {
+            final exists = invoiceProvider.invoices.any((i) => i.id == invoice.id);
+            if (exists) {
+              await invoiceProvider.updateInvoice(invoice);
+              replaced++;
+            } else {
+              await invoiceProvider.addInvoice(invoice);
+              imported++;
+            }
+          }
+
+          if (context.mounted) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.importSuccessMessage(imported, replaced)),
+                backgroundColor: theme.success,
+              ),
+            );
+          }
+        }
+      } else if (result.error != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.importFailed}: ${result.error}'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            backgroundColor: theme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  // ==================== WIDGETS Y DIÁLOGOS EXISTENTES ====================
   Widget _buildSettingCard({
     required BuildContext context,
     required ThemeHelper theme,
@@ -238,40 +671,40 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizations l10n) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: theme.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-      title: Row(
-        children: [
-          Icon(Icons.lock, color: theme.warning, size: 24.sp),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              l10n.adminOnly, // ✅ TRADUCIDO
-              style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
+  void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Row(
+          children: [
+            Icon(Icons.lock, color: theme.warning, size: 24.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                l10n.adminOnly,
+                style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
+              ),
             ),
+          ],
+        ),
+        content: Text(
+          l10n.adminOnlyCurrencyMessage,
+          style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.understood, style: TextStyle(fontSize: 14.sp)),
           ),
         ],
       ),
-      content: Text(
-        l10n.adminOnlyCurrencyMessage, // ✅ TRADUCIDO
-        style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.understood, style: TextStyle(fontSize: 14.sp)), // ✅ TRADUCIDO
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
-
-  // DIÁLOGO DE IDIOMA (SIN CAMBIOS - TODOS PUEDEN USAR)
+  // (Los demás diálogos _showLanguageDialog, _showCurrencyDialog y _showDownloadFormatDialog se mantienen IGUAL)
+  // ... [TU CÓDIGO EXISTENTE] ...
   void _showLanguageDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -291,7 +724,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
                 decoration: BoxDecoration(
@@ -320,7 +752,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
                 ),
               ),
               
-              // Lista de idiomas
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -368,7 +799,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
     );
   }
 
-  // DIÁLOGO DE MONEDA (SOLO ADMIN PUEDE ACCEDER)
   void _showCurrencyDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -388,7 +818,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
                 decoration: BoxDecoration(
@@ -417,7 +846,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
                 ),
               ),
               
-              // Lista de monedas
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -482,7 +910,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
     );
   }
 
-  // DIÁLOGO DE FORMATO DE DESCARGA (SIN CAMBIOS - TODOS PUEDEN USAR)
   void _showDownloadFormatDialog(BuildContext context, bool isTablet, ThemeHelper theme) {
     final l10n = AppLocalizations.of(context)!;
     final settingsProvider = context.read<SettingsProvider>();
@@ -500,7 +927,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 padding: EdgeInsets.all(isTablet ? 20.w : 20.w),
                 decoration: BoxDecoration(
@@ -529,12 +955,10 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
                 ),
               ),
               
-              // Opciones de formato
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.h),
                 child: Column(
                   children: [
-                    // Opción Imagen
                     ListTile(
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: isTablet ? 24.w : 24.w,
@@ -570,7 +994,6 @@ void _showAdminOnlyDialog(BuildContext context, ThemeHelper theme, AppLocalizati
                       },
                     ),
                     
-                    // Opción PDF
                     ListTile(
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: isTablet ? 24.w : 24.w,

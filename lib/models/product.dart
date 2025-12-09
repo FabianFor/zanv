@@ -22,6 +22,12 @@ class Product {
   @HiveField(5)
   final String imagePath;
 
+  @HiveField(6)
+  final Map<String, String>? nameTranslations;
+
+  @HiveField(7)
+  final Map<String, String>? descriptionTranslations;
+
   Product({
     required this.id,
     required this.name,
@@ -29,6 +35,8 @@ class Product {
     required this.price,
     required this.stock,
     required this.imagePath,
+    this.nameTranslations,
+    this.descriptionTranslations,
   });
 
   Product copyWith({
@@ -38,6 +46,8 @@ class Product {
     double? price,
     int? stock,
     String? imagePath,
+    Map<String, String>? nameTranslations,
+    Map<String, String>? descriptionTranslations,
   }) {
     return Product(
       id: id ?? this.id,
@@ -46,6 +56,55 @@ class Product {
       price: price ?? this.price,
       stock: stock ?? this.stock,
       imagePath: imagePath ?? this.imagePath,
+      nameTranslations: nameTranslations ?? this.nameTranslations,
+      descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
+    );
+  }
+
+  // Obtener nombre traducido
+  String getTranslatedName(String languageCode) {
+    if (nameTranslations == null || nameTranslations!.isEmpty) {
+      return name;
+    }
+    return nameTranslations![languageCode] ?? name;
+  }
+
+  // Obtener descripción traducida
+  String getTranslatedDescription(String languageCode) {
+    if (descriptionTranslations == null || descriptionTranslations!.isEmpty) {
+      return description;
+    }
+    return descriptionTranslations![languageCode] ?? description;
+  }
+
+  // ✅✅✅ MÉTODOS PARA JSON EXPORT/IMPORT ✅✅✅
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'price': price,
+      'stock': stock,
+      'imagePath': imagePath,
+      'nameTranslations': nameTranslations,
+      'descriptionTranslations': descriptionTranslations,
+    };
+  }
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      price: (json['price'] as num).toDouble(),
+      stock: json['stock'] as int,
+      imagePath: json['imagePath'] as String,
+      nameTranslations: json['nameTranslations'] != null 
+          ? Map<String, String>.from(json['nameTranslations'] as Map)
+          : null,
+      descriptionTranslations: json['descriptionTranslations'] != null
+          ? Map<String, String>.from(json['descriptionTranslations'] as Map)
+          : null,
     );
   }
 }

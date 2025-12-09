@@ -344,8 +344,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get productDeleted => 'Produto excluído com sucesso';
 
   @override
-  String get permissionsNeeded =>
-      'Você precisa conceder permissões para escolher uma imagem';
+  String get permissionsNeeded => 'Permissões necessárias';
 
   @override
   String get permissionsMessage =>
@@ -949,4 +948,139 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get errorSavingProfile => 'Erro ao salvar o perfil';
+
+  @override
+  String get sortBy => 'Ordenar por';
+
+  @override
+  String get sortByName => 'Nome';
+
+  @override
+  String get sortByPrice => 'Preço';
+
+  @override
+  String get sortByStock => 'Estoque';
+
+  @override
+  String get sortByDate => 'Data';
+
+  @override
+  String get sortByTotal => 'Total';
+
+  @override
+  String get sortByInvoiceNumber => 'Número do recibo';
+
+  @override
+  String get ascending => 'Ascendente';
+
+  @override
+  String get descending => 'Descendente';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get backupAndRestore => 'Backup e Restauração';
+
+  @override
+  String get exportData => 'Exportar Dados';
+
+  @override
+  String get importData => 'Importar Dados';
+
+  @override
+  String get exportInvoices => 'Exportar Recibos';
+
+  @override
+  String get importInvoices => 'Importar Recibos';
+
+  @override
+  String get backupType => 'Tipo de Backup';
+
+  @override
+  String get quickBackup => 'Rápido (apenas dados)';
+
+  @override
+  String get quickBackupDesc => '~100 KB • Instantâneo • Sem imagens';
+
+  @override
+  String get fullBackup => 'Completo (com imagens)';
+
+  @override
+  String get fullBackupDesc => '~5-10 MB • Inclui fotos • Mais lento';
+
+  @override
+  String exportSuccessMessage(int count) {
+    return '$count itens exportados';
+  }
+
+  @override
+  String get exportFailed => 'Erro ao exportar';
+
+  @override
+  String importSuccessMessage(int imported, int replaced) {
+    return '$imported novos, $replaced substituídos';
+  }
+
+  @override
+  String get importFailed => 'Erro ao importar';
+
+  @override
+  String get fileLocation => 'Localização do arquivo';
+
+  @override
+  String get fileSize => 'Tamanho';
+
+  @override
+  String get itemsExported => 'Itens exportados';
+
+  @override
+  String get itemsImported => 'Itens importados';
+
+  @override
+  String get itemsReplaced => 'Itens substituídos';
+
+  @override
+  String get itemsSkipped => 'Itens ignorados';
+
+  @override
+  String get itemsFailed => 'Itens com falha';
+
+  @override
+  String get selectBackupFile => 'Selecionar arquivo de backup';
+
+  @override
+  String get invalidBackupFile => 'Arquivo de backup inválido';
+
+  @override
+  String get backupFileNotFound => 'Arquivo não encontrado';
+
+  @override
+  String get confirmImport => 'Confirmar importação?';
+
+  @override
+  String confirmImportMessage(int count) {
+    return '$count itens serão importados. Duplicados serão substituídos.';
+  }
+
+  @override
+  String get lastBackup => 'Último backup';
+
+  @override
+  String get neverBackedUp => 'Nunca';
+
+  @override
+  String get backupNow => 'Fazer backup agora';
+
+  @override
+  String get restoreNow => 'Restaurar agora';
+
+  @override
+  String get openFolder => 'Abrir pasta';
+
+  @override
+  String get backupInProgress => 'Fazendo backup...';
+
+  @override
+  String get importInProgress => 'Importando...';
 }

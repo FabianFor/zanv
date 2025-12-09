@@ -67,4 +67,49 @@ class Invoice {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  // ✅✅✅ MÉTODOS PARA JSON EXPORT/IMPORT ✅✅✅
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'invoiceNumber': invoiceNumber,
+      'customerName': customerName,
+      'customerPhone': customerPhone,
+      'items': items.map((item) => {
+        'productId': item.productId,
+        'productName': item.productName,
+        'quantity': item.quantity,
+        'price': item.price,
+        'total': item.total,
+      }).toList(),
+      'subtotal': subtotal,
+      'tax': tax,
+      'total': total,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Invoice.fromJson(Map<String, dynamic> json) {
+    final itemsList = (json['items'] as List).map((item) {
+      return OrderItem(
+        productId: item['productId'] as String,
+        productName: item['productName'] as String,
+        quantity: item['quantity'] as int,
+        price: (item['price'] as num).toDouble(),
+        total: (item['total'] as num).toDouble(),
+      );
+    }).toList();
+
+    return Invoice(
+      id: json['id'] as String,
+      invoiceNumber: json['invoiceNumber'] as int,
+      customerName: json['customerName'] as String,
+      customerPhone: json['customerPhone'] as String,
+      items: itemsList,
+      subtotal: (json['subtotal'] as num).toDouble(),
+      tax: (json['tax'] as num).toDouble(),
+      total: (json['total'] as num).toDouble(),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
 }

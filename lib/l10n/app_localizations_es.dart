@@ -342,8 +342,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get productDeleted => 'Producto eliminado exitosamente';
 
   @override
-  String get permissionsNeeded =>
-      'Necesitas dar permisos para elegir una imagen';
+  String get permissionsNeeded => 'Permisos necesarios';
 
   @override
   String get permissionsMessage =>
@@ -952,4 +951,139 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get errorSavingProfile => 'Error al guardar el perfil';
+
+  @override
+  String get sortBy => 'Ordenar por';
+
+  @override
+  String get sortByName => 'Nombre';
+
+  @override
+  String get sortByPrice => 'Precio';
+
+  @override
+  String get sortByStock => 'Stock';
+
+  @override
+  String get sortByDate => 'Fecha';
+
+  @override
+  String get sortByTotal => 'Total';
+
+  @override
+  String get sortByInvoiceNumber => 'Número de recibo';
+
+  @override
+  String get ascending => 'Ascendente';
+
+  @override
+  String get descending => 'Descendente';
+
+  @override
+  String get backup => 'Respaldo';
+
+  @override
+  String get backupAndRestore => 'Respaldo y Restauración';
+
+  @override
+  String get exportData => 'Exportar Datos';
+
+  @override
+  String get importData => 'Importar Datos';
+
+  @override
+  String get exportInvoices => 'Exportar Recibos';
+
+  @override
+  String get importInvoices => 'Importar Recibos';
+
+  @override
+  String get backupType => 'Tipo de Respaldo';
+
+  @override
+  String get quickBackup => 'Rápido (solo datos)';
+
+  @override
+  String get quickBackupDesc => '~100 KB • Instantáneo • Sin imágenes';
+
+  @override
+  String get fullBackup => 'Completo (con imágenes)';
+
+  @override
+  String get fullBackupDesc => '~5-10 MB • Incluye fotos • Más lento';
+
+  @override
+  String exportSuccessMessage(int count) {
+    return '$count elementos exportados';
+  }
+
+  @override
+  String get exportFailed => 'Error al exportar';
+
+  @override
+  String importSuccessMessage(int imported, int replaced) {
+    return '$imported nuevos, $replaced reemplazados';
+  }
+
+  @override
+  String get importFailed => 'Error al importar';
+
+  @override
+  String get fileLocation => 'Ubicación del archivo';
+
+  @override
+  String get fileSize => 'Tamaño';
+
+  @override
+  String get itemsExported => 'Elementos exportados';
+
+  @override
+  String get itemsImported => 'Elementos importados';
+
+  @override
+  String get itemsReplaced => 'Elementos reemplazados';
+
+  @override
+  String get itemsSkipped => 'Elementos omitidos';
+
+  @override
+  String get itemsFailed => 'Elementos fallidos';
+
+  @override
+  String get selectBackupFile => 'Seleccionar archivo de respaldo';
+
+  @override
+  String get invalidBackupFile => 'Archivo de respaldo inválido';
+
+  @override
+  String get backupFileNotFound => 'Archivo no encontrado';
+
+  @override
+  String get confirmImport => '¿Confirmar importación?';
+
+  @override
+  String confirmImportMessage(int count) {
+    return 'Se importarán $count elementos. Los duplicados serán reemplazados.';
+  }
+
+  @override
+  String get lastBackup => 'Último respaldo';
+
+  @override
+  String get neverBackedUp => 'Nunca';
+
+  @override
+  String get backupNow => 'Respaldar ahora';
+
+  @override
+  String get restoreNow => 'Restaurar ahora';
+
+  @override
+  String get openFolder => 'Abrir carpeta';
+
+  @override
+  String get backupInProgress => 'Respaldando...';
+
+  @override
+  String get importInProgress => 'Importando...';
 }

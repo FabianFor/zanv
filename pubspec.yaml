@@ -28,6 +28,7 @@ dependencies:
 
   # Images
   image_picker: ^1.1.2
+  image: ^4.1.7   # Compresión / manejo de imágenes
 
   # Sharing
   share_plus: ^7.2.1
@@ -52,10 +53,10 @@ dependencies:
   pdf: ^3.10.4
   open_filex: ^4.5.0
   printing: ^5.11.1
-  
-  # File picker para seleccionar archivos JSON
+
+  # File picker
   file_picker: ^8.0.3
-  
+
   # Cryptography
   crypto: ^3.0.3
 
@@ -84,6 +85,6 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   generate: true
-  
+
   assets:
     - assets/icon/

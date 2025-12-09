@@ -343,8 +343,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productDeleted => 'Product deleted successfully';
 
   @override
-  String get permissionsNeeded =>
-      'You need to grant permissions to choose an image';
+  String get permissionsNeeded => 'Permissions needed';
 
   @override
   String get permissionsMessage =>
@@ -946,4 +945,139 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorSavingProfile => 'Error saving profile';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortByPrice => 'Price';
+
+  @override
+  String get sortByStock => 'Stock';
+
+  @override
+  String get sortByDate => 'Date';
+
+  @override
+  String get sortByTotal => 'Total';
+
+  @override
+  String get sortByInvoiceNumber => 'Receipt number';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get backupAndRestore => 'Backup & Restore';
+
+  @override
+  String get exportData => 'Export Data';
+
+  @override
+  String get importData => 'Import Data';
+
+  @override
+  String get exportInvoices => 'Export Receipts';
+
+  @override
+  String get importInvoices => 'Import Receipts';
+
+  @override
+  String get backupType => 'Backup Type';
+
+  @override
+  String get quickBackup => 'Quick (data only)';
+
+  @override
+  String get quickBackupDesc => '~100 KB • Instant • No images';
+
+  @override
+  String get fullBackup => 'Full (with images)';
+
+  @override
+  String get fullBackupDesc => '~5-10 MB • Includes photos • Slower';
+
+  @override
+  String exportSuccessMessage(int count) {
+    return '$count items exported';
+  }
+
+  @override
+  String get exportFailed => 'Export failed';
+
+  @override
+  String importSuccessMessage(int imported, int replaced) {
+    return '$imported new, $replaced replaced';
+  }
+
+  @override
+  String get importFailed => 'Import failed';
+
+  @override
+  String get fileLocation => 'File location';
+
+  @override
+  String get fileSize => 'Size';
+
+  @override
+  String get itemsExported => 'Items exported';
+
+  @override
+  String get itemsImported => 'Items imported';
+
+  @override
+  String get itemsReplaced => 'Items replaced';
+
+  @override
+  String get itemsSkipped => 'Items skipped';
+
+  @override
+  String get itemsFailed => 'Items failed';
+
+  @override
+  String get selectBackupFile => 'Select backup file';
+
+  @override
+  String get invalidBackupFile => 'Invalid backup file';
+
+  @override
+  String get backupFileNotFound => 'File not found';
+
+  @override
+  String get confirmImport => 'Confirm import?';
+
+  @override
+  String confirmImportMessage(int count) {
+    return '$count items will be imported. Duplicates will be replaced.';
+  }
+
+  @override
+  String get lastBackup => 'Last backup';
+
+  @override
+  String get neverBackedUp => 'Never';
+
+  @override
+  String get backupNow => 'Backup now';
+
+  @override
+  String get restoreNow => 'Restore now';
+
+  @override
+  String get openFolder => 'Open folder';
+
+  @override
+  String get backupInProgress => 'Backing up...';
+
+  @override
+  String get importInProgress => 'Importing...';
 }

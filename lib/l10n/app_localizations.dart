@@ -753,7 +753,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionsNeeded.
   ///
   /// In es, this message translates to:
-  /// **'Necesitas dar permisos para elegir una imagen'**
+  /// **'Permisos necesarios'**
   String get permissionsNeeded;
 
   /// No description provided for @permissionsMessage.
@@ -1871,6 +1871,264 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Error al guardar el perfil'**
   String get errorSavingProfile;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In es, this message translates to:
+  /// **'Ordenar por'**
+  String get sortBy;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get sortByName;
+
+  /// No description provided for @sortByPrice.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio'**
+  String get sortByPrice;
+
+  /// No description provided for @sortByStock.
+  ///
+  /// In es, this message translates to:
+  /// **'Stock'**
+  String get sortByStock;
+
+  /// No description provided for @sortByDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get sortByDate;
+
+  /// No description provided for @sortByTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get sortByTotal;
+
+  /// No description provided for @sortByInvoiceNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de recibo'**
+  String get sortByInvoiceNumber;
+
+  /// No description provided for @ascending.
+  ///
+  /// In es, this message translates to:
+  /// **'Ascendente'**
+  String get ascending;
+
+  /// No description provided for @descending.
+  ///
+  /// In es, this message translates to:
+  /// **'Descendente'**
+  String get descending;
+
+  /// No description provided for @backup.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo'**
+  String get backup;
+
+  /// No description provided for @backupAndRestore.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo y Restauración'**
+  String get backupAndRestore;
+
+  /// No description provided for @exportData.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar Datos'**
+  String get exportData;
+
+  /// No description provided for @importData.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar Datos'**
+  String get importData;
+
+  /// No description provided for @exportInvoices.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar Recibos'**
+  String get exportInvoices;
+
+  /// No description provided for @importInvoices.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar Recibos'**
+  String get importInvoices;
+
+  /// No description provided for @backupType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de Respaldo'**
+  String get backupType;
+
+  /// No description provided for @quickBackup.
+  ///
+  /// In es, this message translates to:
+  /// **'Rápido (solo datos)'**
+  String get quickBackup;
+
+  /// No description provided for @quickBackupDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'~100 KB • Instantáneo • Sin imágenes'**
+  String get quickBackupDesc;
+
+  /// No description provided for @fullBackup.
+  ///
+  /// In es, this message translates to:
+  /// **'Completo (con imágenes)'**
+  String get fullBackup;
+
+  /// No description provided for @fullBackupDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'~5-10 MB • Incluye fotos • Más lento'**
+  String get fullBackupDesc;
+
+  /// No description provided for @exportSuccessMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} elementos exportados'**
+  String exportSuccessMessage(int count);
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al exportar'**
+  String get exportFailed;
+
+  /// No description provided for @importSuccessMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'{imported} nuevos, {replaced} reemplazados'**
+  String importSuccessMessage(int imported, int replaced);
+
+  /// No description provided for @importFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al importar'**
+  String get importFailed;
+
+  /// No description provided for @fileLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación del archivo'**
+  String get fileLocation;
+
+  /// No description provided for @fileSize.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño'**
+  String get fileSize;
+
+  /// No description provided for @itemsExported.
+  ///
+  /// In es, this message translates to:
+  /// **'Elementos exportados'**
+  String get itemsExported;
+
+  /// No description provided for @itemsImported.
+  ///
+  /// In es, this message translates to:
+  /// **'Elementos importados'**
+  String get itemsImported;
+
+  /// No description provided for @itemsReplaced.
+  ///
+  /// In es, this message translates to:
+  /// **'Elementos reemplazados'**
+  String get itemsReplaced;
+
+  /// No description provided for @itemsSkipped.
+  ///
+  /// In es, this message translates to:
+  /// **'Elementos omitidos'**
+  String get itemsSkipped;
+
+  /// No description provided for @itemsFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'Elementos fallidos'**
+  String get itemsFailed;
+
+  /// No description provided for @selectBackupFile.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar archivo de respaldo'**
+  String get selectBackupFile;
+
+  /// No description provided for @invalidBackupFile.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivo de respaldo inválido'**
+  String get invalidBackupFile;
+
+  /// No description provided for @backupFileNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivo no encontrado'**
+  String get backupFileNotFound;
+
+  /// No description provided for @confirmImport.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Confirmar importación?'**
+  String get confirmImport;
+
+  /// No description provided for @confirmImportMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Se importarán {count} elementos. Los duplicados serán reemplazados.'**
+  String confirmImportMessage(int count);
+
+  /// No description provided for @lastBackup.
+  ///
+  /// In es, this message translates to:
+  /// **'Último respaldo'**
+  String get lastBackup;
+
+  /// No description provided for @neverBackedUp.
+  ///
+  /// In es, this message translates to:
+  /// **'Nunca'**
+  String get neverBackedUp;
+
+  /// No description provided for @backupNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldar ahora'**
+  String get backupNow;
+
+  /// No description provided for @restoreNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar ahora'**
+  String get restoreNow;
+
+  /// No description provided for @openFolder.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir carpeta'**
+  String get openFolder;
+
+  /// No description provided for @backupInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldando...'**
+  String get backupInProgress;
+
+  /// No description provided for @importInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Importando...'**
+  String get importInProgress;
 }
 
 class _AppLocalizationsDelegate

@@ -433,35 +433,98 @@
   "adminOnlyCurrencyMessage": "Only the Administrator can change the business currency.",
   "understood": "Understood",
   "minNameCharacters": "Name must be at least {count} characters",
-"@minNameCharacters": {
-  "placeholders": {
-    "count": {
-      "type": "int"
+  "@minNameCharacters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
-  }
-},
-"nameTooLong": "Name is too long",
-"invalidPhoneNumber": "Invalid phone number",
-"unexpectedError": "Unexpected error: {error}",
-"@unexpectedError": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "nameTooLong": "Name is too long",
+  "invalidPhoneNumber": "Invalid phone number",
+  "unexpectedError": "Unexpected error: {error}",
+  "@unexpectedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"permissionsNeeded": "You need to grant permissions to choose an image",
-"logoSelectedSuccess": "Logo selected successfully",
-"errorSelectingImage": "Error selecting image: {error}",
-"@errorSelectingImage": {
-  "placeholders": {
-    "error": {
-      "type": "String"
+  },
+  "logoSelectedSuccess": "Logo selected successfully",
+  "errorSelectingImage": "Error selecting image: {error}",
+  "@errorSelectingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
     }
-  }
-},
-"profileUpdatedSuccess": "Profile updated successfully",
-"errorSavingProfile": "Error saving profile"
-
-
+  },
+  "profileUpdatedSuccess": "Profile updated successfully",
+  "errorSavingProfile": "Error saving profile",
+  
+  "sortBy": "Sort by",
+  "sortByName": "Name",
+  "sortByPrice": "Price",
+  "sortByStock": "Stock",
+  "sortByDate": "Date",
+  "sortByTotal": "Total",
+  "sortByInvoiceNumber": "Receipt number",
+  "ascending": "Ascending",
+  "descending": "Descending",
+  
+  "backup": "Backup",
+  "backupAndRestore": "Backup & Restore",
+  "exportData": "Export Data",
+  "importData": "Import Data",
+  "exportInvoices": "Export Receipts",
+  "importInvoices": "Import Receipts",
+  
+  "backupType": "Backup Type",
+  "quickBackup": "Quick (data only)",
+  "quickBackupDesc": "~100 KB • Instant • No images",
+  "fullBackup": "Full (with images)",
+  "fullBackupDesc": "~5-10 MB • Includes photos • Slower",
+  
+  "exportSuccessMessage": "{count} items exported",
+  "@exportSuccessMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "exportFailed": "Export failed",
+  "importSuccessMessage": "{imported} new, {replaced} replaced",
+  "@importSuccessMessage": {
+    "placeholders": {
+      "imported": {"type": "int"},
+      "replaced": {"type": "int"}
+    }
+  },
+  "importFailed": "Import failed",
+  
+  "fileLocation": "File location",
+  "fileSize": "Size",
+  "itemsExported": "Items exported",
+  "itemsImported": "Items imported",
+  "itemsReplaced": "Items replaced",
+  "itemsSkipped": "Items skipped",
+  "itemsFailed": "Items failed",
+  
+  "selectBackupFile": "Select backup file",
+  "invalidBackupFile": "Invalid backup file",
+  "backupFileNotFound": "File not found",
+  "confirmImport": "Confirm import?",
+  "confirmImportMessage": "{count} items will be imported. Duplicates will be replaced.",
+  "@confirmImportMessage": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  
+  "lastBackup": "Last backup",
+  "neverBackedUp": "Never",
+  "backupNow": "Backup now",
+  "restoreNow": "Restore now",
+  "openFolder": "Open folder",
+  "backupInProgress": "Backing up...",
+  "importInProgress": "Importing..."
 }

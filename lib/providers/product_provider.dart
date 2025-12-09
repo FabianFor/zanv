@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/product.dart';
 import '../core/constants/validation_limits.dart';
+import '../services/backup_service.dart';
 
 class ProductProvider with ChangeNotifier {
   Box<Product>? _box;
@@ -11,16 +14,21 @@ class ProductProvider with ChangeNotifier {
   String? _error;
   bool _isInitialized = false;
   
-  // ✅ NUEVAS VARIABLES PARA PAGINACIÓN
+  // Paginación
   int _currentPage = 0;
   final int _itemsPerPage = 50;
   bool _hasMorePages = true;
   bool _isLoadingMore = false;
   
-  // ✅ CACHE DE BÚSQUEDA (evita recalcular en cada keystroke)
+  // Cache de búsqueda
   String _lastSearchQuery = '';
   List<Product> _lastSearchResults = [];
+  
+  // Ordenamiento
+  String _sortField = 'name';
+  bool _sortAscending = true;
 
+  // Getters
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -30,6 +38,8 @@ class ProductProvider with ChangeNotifier {
   int get totalPages => (totalProducts / _itemsPerPage).ceil();
   bool get hasMorePages => _hasMorePages;
   int get itemsPerPage => _itemsPerPage;
+  String get sortField => _sortField;
+  bool get sortAscending => _sortAscending;
 
   List<Product> get lowStockProducts => 
       _products.where((p) => p.stock <= 5).toList();
@@ -49,10 +59,7 @@ class ProductProvider with ChangeNotifier {
 
     try {
       _box = await Hive.openBox<Product>('products');
-      
-      // ✅ Cargar primera página
       await _loadPage(0);
-      
       _isInitialized = true;
     } catch (e) {
       _error = 'Error al cargar productos: $e';
@@ -63,7 +70,6 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // ✅ NUEVA: Cargar página específica
   Future<void> _loadPage(int page) async {
     if (_box == null) return;
     
@@ -87,9 +93,9 @@ class ProductProvider with ChangeNotifier {
     
     _currentPage = page;
     _hasMorePages = endIndex < allKeys.length;
+    _applySorting();
   }
 
-  // ✅ NUEVA: Cargar siguiente página (para scroll infinito)
   Future<void> loadNextPage() async {
     if (_isLoadingMore || !_hasMorePages || _lastSearchQuery.isNotEmpty) return;
     
@@ -106,7 +112,6 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // ✅ NUEVA: Ir a página específica (para botones de paginación)
   Future<void> goToPage(int page) async {
     if (page < 0 || page >= totalPages) return;
     
@@ -125,18 +130,45 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // ✅ NUEVA: Reset para volver a scroll infinito
   Future<void> resetToScrollMode() async {
     _lastSearchQuery = '';
     _lastSearchResults = [];
     _currentPage = 0;
     _products = [];
     _hasMorePages = true;
-    
     await _loadPage(0);
     notifyListeners();
   }
 
+  // ORDENAMIENTO
+  void sortProducts(String field, bool ascending) {
+    _sortField = field;
+    _sortAscending = ascending;
+    _applySorting();
+    notifyListeners();
+  }
+  
+  void _applySorting() {
+    _products.sort((a, b) {
+      int comparison = 0;
+      
+      switch (_sortField) {
+        case 'name':
+          comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          break;
+        case 'price':
+          comparison = a.price.compareTo(b.price);
+          break;
+        case 'stock':
+          comparison = a.stock.compareTo(b.stock);
+          break;
+      }
+      
+      return _sortAscending ? comparison : -comparison;
+    });
+  }
+
+  // VALIDACIONES
   bool _validateProductName(String name) {
     final sanitized = _sanitizeInput(name.trim());
     if (sanitized.isEmpty) {
@@ -166,6 +198,15 @@ class ProductProvider with ChangeNotifier {
     return true;
   }
 
+  String _sanitizeInput(String input) {
+    input = input.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
+    if (input.length > ValidationLimits.maxInputLength) {
+      input = input.substring(0, ValidationLimits.maxInputLength);
+    }
+    return input;
+  }
+
+  // CRUD OPERATIONS
   Future<bool> addProduct(Product product) async {
     if (!_validateProductName(product.name) ||
         !_validateProductPrice(product.price) ||
@@ -181,14 +222,14 @@ class ProductProvider with ChangeNotifier {
         price: product.price,
         stock: product.stock,
         imagePath: product.imagePath,
+        nameTranslations: product.nameTranslations,
+        descriptionTranslations: product.descriptionTranslations,
       );
       
       await _box!.put(sanitizedProduct.id, sanitizedProduct);
       
-      // ✅ Agregar al inicio de la primera página
       if (_currentPage == 0) {
         _products.insert(0, sanitizedProduct);
-        // Mantener límite de página
         if (_products.length > _itemsPerPage) {
           _products.removeLast();
         }
@@ -221,6 +262,8 @@ class ProductProvider with ChangeNotifier {
         price: updatedProduct.price,
         stock: updatedProduct.stock,
         imagePath: updatedProduct.imagePath,
+        nameTranslations: updatedProduct.nameTranslations,
+        descriptionTranslations: updatedProduct.descriptionTranslations,
       );
       
       await _box!.put(sanitizedProduct.id, sanitizedProduct);
@@ -243,7 +286,6 @@ class ProductProvider with ChangeNotifier {
     try {
       await _box!.delete(productId);
       _products.removeWhere((p) => p.id == productId);
-      
       _error = null;
       notifyListeners();
     } catch (e) {
@@ -253,9 +295,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<bool> updateStock(String productId, int newStock) async {
-    if (!_validateProductStock(newStock)) {
-      return false;
-    }
+    if (!_validateProductStock(newStock)) return false;
 
     try {
       final index = _products.indexWhere((p) => p.id == productId);
@@ -282,20 +322,14 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // ✅ MEJORADA: Búsqueda con soporte para paginación
+  // BÚSQUEDA
   List<Product> searchProducts(String query) {
-    if (query.isEmpty) {
-      return _products;
-    }
-    
-    if (query == _lastSearchQuery) {
-      return _lastSearchResults;
-    }
+    if (query.isEmpty) return _products;
+    if (query == _lastSearchQuery) return _lastSearchResults;
     
     final lowerQuery = _sanitizeInput(query.toLowerCase());
-    
-    // Buscar en toda la base de datos cuando hay búsqueda
     final allProducts = _box!.values.toList();
+    
     _lastSearchResults = allProducts.where((product) {
       return product.name.toLowerCase().contains(lowerQuery) ||
              product.description.toLowerCase().contains(lowerQuery);
@@ -305,10 +339,162 @@ class ProductProvider with ChangeNotifier {
     return _lastSearchResults;
   }
 
-  Product? getProductById(String id) {
-    return _box?.get(id);
+  Product? getProductById(String id) => _box?.get(id);
+
+  // EXPORTACIÓN
+  Future<Map<String, dynamic>> exportProducts({required bool includeImages}) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final products = _box!.values.toList();
+      final List<Map<String, dynamic>> items = [];
+      
+      for (var product in products) {
+        final productMap = {
+          'name': product.name,
+          'price': product.price,
+          'stock': product.stock,
+          'description': product.description,
+          'nameTranslations': product.nameTranslations ?? {},
+          'descriptionTranslations': product.descriptionTranslations ?? {},
+        };
+        
+        // ✅ CORREGIDO: Verificar que imagePath no esté vacío
+        if (includeImages && product.imagePath.isNotEmpty) {
+          final imageBase64 = await BackupService.compressImageToBase64(product.imagePath);
+          if (imageBase64 != null) {
+            productMap['imageBase64'] = imageBase64;
+          }
+        }
+        
+        items.add(productMap);
+      }
+      
+      final backupData = {
+        'version': 1,
+        'backupType': includeImages ? 'full' : 'quick',
+        'exportedAt': DateTime.now().toIso8601String(),
+        'itemCount': items.length,
+        'items': items,
+      };
+      
+      final directory = await BackupService.getBackupDirectory();
+      final fileName = BackupService.generateBackupFileName('products');
+      final file = File('${directory.path}/$fileName');
+      
+      await file.writeAsString(jsonEncode(backupData), flush: true);
+      
+      _isLoading = false;
+      notifyListeners();
+      
+      return {
+        'success': true,
+        'file': file,
+        'count': items.length,
+        'size': await file.length(),
+        'path': file.path,
+      };
+    } catch (e) {
+      _error = 'Error al exportar: $e';
+      _isLoading = false;
+      notifyListeners();
+      return {'success': false, 'error': e.toString()};
+    }
   }
 
+  // IMPORTACIÓN
+  Future<Map<String, dynamic>> importProducts(File file) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final jsonString = await file.readAsString();
+      final Map<String, dynamic> backupData = jsonDecode(jsonString);
+      
+      if (!BackupService.validateBackupFormat(backupData)) {
+        throw Exception('Formato de archivo inválido');
+      }
+      
+      final List items = backupData['items'];
+      final bool hasImages = backupData['backupType'] == 'full';
+      
+      int imported = 0;
+      int replaced = 0;
+      int failed = 0;
+      
+      for (var item in items) {
+        try {
+          final productName = item['name'] as String;
+          
+          Product? existingProduct;
+          for (var p in _box!.values) {
+            if (p.name.toLowerCase() == productName.toLowerCase()) {
+              existingProduct = p;
+              break;
+            }
+          }
+          
+          final newId = DateTime.now().millisecondsSinceEpoch.toString() + imported.toString();
+          
+          // ✅ CORREGIDO: Manejar imagePath correctamente
+          String imagePath = '';
+          if (hasImages && item.containsKey('imageBase64')) {
+            final savedPath = await BackupService.saveBase64ToImage(item['imageBase64'], newId);
+            imagePath = savedPath ?? '';
+          }
+          
+          final product = Product(
+            id: newId,
+            name: item['name'],
+            price: (item['price'] as num).toDouble(),
+            stock: item['stock'] as int,
+            description: item['description'] ?? '',
+            imagePath: imagePath,
+            nameTranslations: item['nameTranslations'] != null 
+                ? Map<String, String>.from(item['nameTranslations'])
+                : null,
+            descriptionTranslations: item['descriptionTranslations'] != null
+                ? Map<String, String>.from(item['descriptionTranslations'])
+                : null,
+          );
+          
+          if (existingProduct != null) {
+            await _box!.delete(existingProduct.id);
+            replaced++;
+          } else {
+            imported++;
+          }
+          
+          await _box!.put(newId, product);
+        } catch (e) {
+          print('Error importando producto: $e');
+          failed++;
+        }
+      }
+      
+      await reload();
+      _isLoading = false;
+      notifyListeners();
+      
+      return {
+        'success': true,
+        'imported': imported,
+        'replaced': replaced,
+        'failed': failed,
+        'total': items.length,
+      };
+    } catch (e) {
+      _error = 'Error al importar: $e';
+      _isLoading = false;
+      notifyListeners();
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // UTILIDADES
   void clearError() {
     _error = null;
   }
@@ -319,14 +505,7 @@ class ProductProvider with ChangeNotifier {
     _lastSearchResults = [];
     _currentPage = 0;
     _hasMorePages = true;
+    _products = [];
     await loadProducts();
-  }
-
-  String _sanitizeInput(String input) {
-    input = input.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
-    if (input.length > ValidationLimits.maxInputLength) {
-      input = input.substring(0, ValidationLimits.maxInputLength);
-    }
-    return input;
   }
 }

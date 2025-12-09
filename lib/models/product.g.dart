@@ -23,13 +23,15 @@ class ProductAdapter extends TypeAdapter<Product> {
       price: fields[3] as double,
       stock: fields[4] as int,
       imagePath: fields[5] as String,
+      nameTranslations: (fields[6] as Map?)?.cast<String, String>(),
+      descriptionTranslations: (fields[7] as Map?)?.cast<String, String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Product obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +43,11 @@ class ProductAdapter extends TypeAdapter<Product> {
       ..writeByte(4)
       ..write(obj.stock)
       ..writeByte(5)
-      ..write(obj.imagePath);
+      ..write(obj.imagePath)
+      ..writeByte(6)
+      ..write(obj.nameTranslations)
+      ..writeByte(7)
+      ..write(obj.descriptionTranslations);
   }
 
   @override
