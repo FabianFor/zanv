@@ -1,22 +1,48 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.proion.zavx">
-    
-    <!-- ✅ PERMISOS OPTIMIZADOS (SIN MANAGE_EXTERNAL_STORAGE) -->
+    package="com.proion.zavx">
+
+    <!-- =========================
+         PERMISOS BÁSICOS
+         ========================= -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    
-    <!-- Lectura de imágenes según versión de Android -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" 
-        android:minSdkVersion="33"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+
+    <!-- =========================
+         PERMISOS DE ALMACENAMIENTO
+         ========================= -->
+
+    <!-- Android 13+ (API 33+) - SIN minSdkVersion -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- Android 10–12 (API 29–32) -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"/>
 
+    <!-- Android 7–9 (API 24–28) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+
+    <!-- =========================
+         PERMISOS OPCIONALES
+         ========================= -->
+
+    <!-- Cámara -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false"/>
+
+    <!-- =========================
+         APLICACIÓN
+         ========================= -->
     <application
         android:label="Proïon"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
-        
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -25,20 +51,22 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
-            
+
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme"/>
-            
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        
-        <meta-data android:name="flutterEmbedding" android:value="2"/>
-        
-        <!-- FileProvider para compartir archivos -->
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2"/>
+
+        <!-- Compartir archivos de forma segura -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -48,16 +76,28 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"/>
         </provider>
+
     </application>
-    
+
+    <!-- =========================
+         QUERIES (Android 11+)
+         ========================= -->
     <queries>
+
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="content"/>
         </intent>
+
         <intent>
             <action android:name="android.intent.action.PICK"/>
             <data android:mimeType="image/*"/>
         </intent>
+
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT"/>
+        </intent>
+
     </queries>
+
 </manifest>

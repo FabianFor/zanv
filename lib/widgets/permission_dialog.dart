@@ -141,9 +141,10 @@ class PermanentlyDeniedDialog extends StatelessWidget {
           ),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             Navigator.of(context).pop();
-            PermissionService.openAppSettings();
+            // ✅ CORREGIDO: Cambiar de openAppSettings() a openSettings()
+            await PermissionService.openSettings();
           },
           child: Text(
             'Abrir Configuración',

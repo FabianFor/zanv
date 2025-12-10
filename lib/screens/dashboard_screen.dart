@@ -132,31 +132,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           // ✅ MOSTRAR ROL ACTUAL (INFORMATIVO, NO BOTÓN)
                           SizedBox(height: 4.h),
-                          Row(
-                            children: [
-                              Icon(
-                                authProvider.esAdmin 
-                                    ? Icons.admin_panel_settings 
-                                    : Icons.person,
-                                size: 14.sp,
-                                color: theme.appBarForeground.withOpacity(0.7),
-                              ),
-                              SizedBox(width: 6.w),
-                              Text(
-                                authProvider.esAdmin 
-                                    ? l10n.administrator 
-                                    : l10n.user,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: theme.appBarForeground.withOpacity(0.7),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
-
                     // ✅ SOLO BOTÓN DE LOGOUT
                     const LogoutButton(),
                   ],
