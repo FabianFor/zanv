@@ -19,13 +19,14 @@ class MediaStorePlugin {
             
             channel.setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "saveToMediaStore" -> {
+                    "saveToPublicStorage" -> {
                         try {
                             val fileName = call.argument<String>("fileName") ?: ""
-                            val mimeType = call.argument<String>("mimeType") ?: "image/png"
+                            val subfolder = call.argument<String>("subfolder") ?: "Invoices"
+                            val mimeType = call.argument<String>("mimeType") ?: "application/pdf"
                             val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
                             
-                            val savedPath = saveToMediaStore(context, fileName, mimeType, bytes)
+                            val savedPath = saveToPublicStorage(context, fileName, subfolder, mimeType, bytes)
                             result.success(savedPath)
                         } catch (e: Exception) {
                             result.error("SAVE_ERROR", e.message, null)
@@ -36,55 +37,74 @@ class MediaStorePlugin {
             }
         }
 
-        private fun saveToMediaStore(
+        private fun saveToPublicStorage(
             context: Context,
             fileName: String,
+            subfolder: String,
             mimeType: String,
             bytes: ByteArray
         ): String {
-            val isPdf = mimeType.contains("pdf")
+            // Determinar si es imagen
+            val isImage = mimeType.startsWith("image/")
             
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10+ - Usar MediaStore
+                val baseFolder = if (isImage) {
+                    Environment.DIRECTORY_PICTURES
+                } else {
+                    Environment.DIRECTORY_DOCUMENTS
+                }
                 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+
-                    val relativePath = if (isPdf) {
-                        Environment.DIRECTORY_DOCUMENTS + "/Proion"
-                    } else {
-                        Environment.DIRECTORY_DCIM + "/Proion"
-                    }
+                val relativePath = "$baseFolder/Proion/$subfolder"
+                
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
                     put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
-            }
 
-            val collection = if (isPdf) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val collection = if (isImage) {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 } else {
-                    MediaStore.Files.getContentUri("external")
+                    MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 }
-            } else {
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            }
 
-            val uri = context.contentResolver.insert(collection, contentValues)
-                ?: throw Exception("Failed to create MediaStore entry")
+                val uri = context.contentResolver.insert(collection, contentValues)
+                    ?: throw Exception("Failed to create MediaStore entry")
 
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(bytes)
-                outputStream.flush()
-            } ?: throw Exception("Failed to open output stream")
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(bytes)
+                    outputStream.flush()
+                } ?: throw Exception("Failed to open output stream")
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 contentValues.clear()
                 contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
                 context.contentResolver.update(uri, contentValues, null, null)
-            }
 
-            return uri.toString()
+                return uri.toString()
+            } else {
+                // Android 9 o menos - Acceso directo
+                val baseDir = if (isImage) {
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                } else {
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                }
+                
+                val proionDir = File(baseDir, "Proion/$subfolder")
+                
+                if (!proionDir.exists()) {
+                    proionDir.mkdirs()
+                }
+                
+                val file = File(proionDir, fileName)
+                FileOutputStream(file).use { outputStream ->
+                    outputStream.write(bytes)
+                    outputStream.flush()
+                }
+                
+                return file.absolutePath
+            }
         }
     }
 }

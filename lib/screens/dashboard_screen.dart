@@ -7,8 +7,7 @@ import '../core/utils/theme_helper.dart';
 import '../providers/business_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/logout_button.dart';  // ✅ NUEVO
-import '../widgets/role_selector.dart';  // ✅ NUEVO
+import '../widgets/logout_button.dart';
 import 'products_screen.dart';
 import 'orders_screen.dart';
 import 'invoices_screen.dart';
@@ -40,7 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: theme.scaffoldBackground,
       body: Column(
         children: [
-          // ✅✅ HEADER MODIFICADO CON LOGOUT Y SELECTOR DE ROL ✅✅
+          // ✅ HEADER LIMPIO Y ARREGLADO
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -113,7 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
 
-                    // NOMBRE DEL NEGOCIO
+                    // NOMBRE DEL NEGOCIO + ROL ACTUAL
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,16 +130,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          // ✅ MOSTRAR ROL ACTUAL (INFORMATIVO, NO BOTÓN)
+                          SizedBox(height: 4.h),
+                          Row(
+                            children: [
+                              Icon(
+                                authProvider.esAdmin 
+                                    ? Icons.admin_panel_settings 
+                                    : Icons.person,
+                                size: 14.sp,
+                                color: theme.appBarForeground.withOpacity(0.7),
+                              ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                authProvider.esAdmin 
+                                    ? l10n.administrator 
+                                    : l10n.user,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: theme.appBarForeground.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
 
-                    // ✅ NUEVO: SELECTOR DE ROL
-                    const RoleSelector(),
-                    
-                    SizedBox(width: 12.w),
-
-                    // ✅ NUEVO: BOTÓN DE LOGOUT
+                    // ✅ SOLO BOTÓN DE LOGOUT
                     const LogoutButton(),
                   ],
                 ),
@@ -221,7 +238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _QuickAccessTile(
                       label: l10n.statistics,
                       icon: Icons.analytics,
-                      color: const Color(0xFF9C27B0), // Morado
+                      color: const Color(0xFF9C27B0),
                       isTablet: isTablet,
                       theme: theme,
                       onTap: () {
