@@ -22,28 +22,76 @@ class AppPermissionHandler {
       // ANDROID 13+ (API 33+)
       // ==========================================
       if (sdkInt >= 33) {
-        // En Android 13+, se usa READ_MEDIA_IMAGES
-        // PERO para escribir en DCIM NO se necesita permiso
+        // Pedir READ_MEDIA_IMAGES para acceder a la galería
+        status = await Permission.photos.status;
+        
         if (kDebugMode) {
-          print('✅ Android 13+: No se necesita permiso para DCIM');
+          print('📋 Estado actual de photos: $status');
         }
-        return true;
+        
+        if (status.isGranted) {
+          if (kDebugMode) {
+            print('✅ Permiso photos ya concedido');
+          }
+          return true;
+        }
+        
+        // Pedir permiso
+        status = await Permission.photos.request();
+        
+        if (kDebugMode) {
+          print('📋 Nuevo estado de photos: $status');
+        }
+        
+        if (status.isPermanentlyDenied && context.mounted) {
+          _showSettingsDialog(context);
+          return false;
+        }
+        
+        return status.isGranted;
         
       // ==========================================
-      // ANDROID 10-12 (API 29-32)
+      // ANDROID 11-12 (API 30-32)
       // ==========================================
-      } else if (sdkInt >= 29) {
-        // Scoped Storage: NO se necesita permiso para DCIM/Pictures
+      } else if (sdkInt >= 30) {
+        // Intentar con MANAGE_EXTERNAL_STORAGE primero
+        status = await Permission.manageExternalStorage.status;
+        
         if (kDebugMode) {
-          print('✅ Android 10-12: No se necesita permiso para DCIM');
+          print('📋 Estado MANAGE_EXTERNAL_STORAGE: $status');
         }
-        return true;
+        
+        if (status.isGranted) {
+          if (kDebugMode) {
+            print('✅ MANAGE_EXTERNAL_STORAGE ya concedido');
+          }
+          return true;
+        }
+        
+        status = await Permission.manageExternalStorage.request();
+        
+        if (kDebugMode) {
+          print('📋 Nuevo estado MANAGE_EXTERNAL_STORAGE: $status');
+        }
+        
+        if (status.isGranted) {
+          return true;
+        }
+        
+        // Fallback a storage normal
+        status = await Permission.storage.request();
+        
+        if (status.isPermanentlyDenied && context.mounted) {
+          _showSettingsDialog(context);
+          return false;
+        }
+        
+        return status.isGranted;
         
       // ==========================================
-      // ANDROID 6-9 (API 23-28)
+      // ANDROID 6-9 (API 23-29)
       // ==========================================
       } else if (sdkInt >= 23) {
-        // Legacy Storage: SÍ necesita WRITE_EXTERNAL_STORAGE
         status = await Permission.storage.status;
         
         if (kDebugMode) {
@@ -57,18 +105,14 @@ class AppPermissionHandler {
           return true;
         }
         
-        // Pedir permiso
         status = await Permission.storage.request();
         
         if (kDebugMode) {
           print('📋 Nuevo estado: $status');
         }
         
-        // Si fue denegado permanentemente
-        if (status.isPermanentlyDenied) {
-          if (context.mounted) {
-            _showSettingsDialog(context);
-          }
+        if (status.isPermanentlyDenied && context.mounted) {
+          _showSettingsDialog(context);
           return false;
         }
         
@@ -78,7 +122,6 @@ class AppPermissionHandler {
       // ANDROID 5 y anteriores (API < 23)
       // ==========================================
       } else {
-        // No necesita runtime permissions
         if (kDebugMode) {
           print('✅ Android < 6: No necesita runtime permissions');
         }
@@ -91,17 +134,16 @@ class AppPermissionHandler {
         print('Stack: $stackTrace');
       }
       
-      // En caso de error, intentar de todos modos
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⚠️ Continuando sin verificar permisos...'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text('⚠️ Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
-      return true;
+      return false;
     }
   }
 
@@ -127,7 +169,7 @@ class AppPermissionHandler {
         content: const Text(
           'Para guardar boletas en la galería, necesitas habilitar el permiso de almacenamiento.\n\n'
           'Ve a:\n'
-          'Configuración → Apps → MiNegocio → Permisos → Almacenamiento',
+          'Configuración → Apps → Proïon → Permisos → Almacenamiento',
           style: TextStyle(fontSize: 14),
         ),
         actions: [

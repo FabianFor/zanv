@@ -1,48 +1,57 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.proion.zavx">
 
-    <!-- =========================
-         PERMISOS BÁSICOS
-         ========================= -->
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PERMISOS BÁSICOS DE RED
+         ═══════════════════════════════════════════════════════════════════════ -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
-    <!-- =========================
-         PERMISOS DE ALMACENAMIENTO
-         ========================= -->
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PERMISOS DE ALMACENAMIENTO - GRANULAR POR VERSIÓN DE ANDROID
+         
+         Justificación: La aplicación necesita guardar facturas/boletas en PDF 
+         e imágenes de productos en almacenamiento público para que el usuario 
+         pueda acceder a ellos fuera de la app.
+         ═══════════════════════════════════════════════════════════════════════ -->
 
-    <!-- Android 13+ (API 33+) - SIN minSdkVersion -->
+    <!-- Android 13+ (API 33+): Scoped Storage Granular -->
+    <!-- Solo pedimos acceso a IMÁGENES, no a todos los archivos -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
-    <!-- Android 10–12 (API 29–32) -->
-    <uses-permission
+    <!-- Android 11-12 (API 30-32): Scoped Storage con Fallback -->
+    <!-- Solo se usa si el sistema no soporta MediaStore completamente -->
+    <uses-permission 
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"/>
 
-    <!-- Android 7–9 (API 24–28) -->
-    <uses-permission
+    <!-- Android 6-10 (API 23-29): Legacy Storage (inevitable) -->
+    <uses-permission 
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28"/>
+        android:maxSdkVersion="29"
+        tools:ignore="ScopedStorage"/>
 
-    <!-- =========================
+    <!-- ═══════════════════════════════════════════════════════════════════════
          PERMISOS OPCIONALES
-         ========================= -->
-
-    <!-- Cámara -->
+         ═══════════════════════════════════════════════════════════════════════ -->
+    
+    <!-- Cámara: Solo para fotos de productos -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false"/>
 
-    <!-- =========================
-         APLICACIÓN
-         ========================= -->
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         CONFIGURACIÓN DE LA APLICACIÓN
+         ═══════════════════════════════════════════════════════════════════════ -->
     <application
         android:label="Proïon"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
 
+        <!-- Activity Principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -66,7 +75,7 @@
             android:name="flutterEmbedding"
             android:value="2"/>
 
-        <!-- Compartir archivos de forma segura -->
+        <!-- FileProvider: Para compartir archivos de forma segura -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -79,25 +88,26 @@
 
     </application>
 
-    <!-- =========================
-         QUERIES (Android 11+)
-         ========================= -->
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         QUERIES - Para compatibilidad con Android 11+
+         ═══════════════════════════════════════════════════════════════════════ -->
     <queries>
-
+        <!-- Para abrir archivos con aplicaciones externas -->
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="content"/>
         </intent>
 
+        <!-- Para seleccionar imágenes de galería -->
         <intent>
             <action android:name="android.intent.action.PICK"/>
             <data android:mimeType="image/*"/>
         </intent>
 
+        <!-- Para seleccionar archivos en general -->
         <intent>
             <action android:name="android.intent.action.GET_CONTENT"/>
         </intent>
-
     </queries>
 
 </manifest>

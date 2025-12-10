@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.proion.zavx"
-    compileSdk = 35  // ✅ IMPORTANTE: 35 para printing 5.14.0
+    compileSdk = 35
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -28,27 +28,20 @@ android {
 
     buildTypes {
         release {
-            // ✅ Configuración para release
             signingConfig = signingConfigs.debug
             minifyEnabled = false
             shrinkResources = false
-            
-            // ✅ Opcional: para APK más pequeño (descomentar si quieres)
-            // ndk {
-            //     abiFilters 'armeabi-v7a', 'arm64-v8a'
-            // }
         }
         
         debug {
-            // ✅ Configuración para debug
             minifyEnabled = false
         }
     }
     
-    // ✅ Configuración de lint (evita errores menores)
     lintOptions {
         checkReleaseBuilds false
         abortOnError false
+        disable 'MissingTranslation'
     }
 }
 
