@@ -461,7 +461,6 @@
   },
   "profileUpdatedSuccess": "个人资料已成功更新",
   "errorSavingProfile": "保存个人资料时出错",
-  
   "sortBy": "排序方式",
   "sortByName": "名称",
   "sortByPrice": "价格",
@@ -471,20 +470,17 @@
   "sortByInvoiceNumber": "收据编号",
   "ascending": "升序",
   "descending": "降序",
-  
   "backup": "备份",
   "backupAndRestore": "备份与恢复",
   "exportData": "导出数据",
   "importData": "导入数据",
   "exportInvoices": "导出收据",
   "importInvoices": "导入收据",
-  
   "backupType": "备份类型",
   "quickBackup": "快速（仅数据）",
   "quickBackupDesc": "~100 KB • 即时 • 无图片",
   "fullBackup": "完整（包含图片）",
   "fullBackupDesc": "~5-10 MB • 包括照片 • 较慢",
-  
   "exportSuccessMessage": "已导出 {count} 项",
   "@exportSuccessMessage": {
     "placeholders": {
@@ -500,7 +496,6 @@
     }
   },
   "importFailed": "导入失败",
-  
   "fileLocation": "文件位置",
   "fileSize": "大小",
   "itemsExported": "已导出项目",
@@ -508,7 +503,6 @@
   "itemsReplaced": "已替换项目",
   "itemsSkipped": "已跳过项目",
   "itemsFailed": "失败项目",
-  
   "selectBackupFile": "选择备份文件",
   "invalidBackupFile": "无效的备份文件",
   "backupFileNotFound": "文件未找到",
@@ -519,16 +513,13 @@
       "count": {"type": "int"}
     }
   },
-  
   "lastBackup": "上次备份",
   "neverBackedUp": "从未",
   "backupNow": "立即备份",
   "restoreNow": "立即恢复",
   "openFolder": "打开文件夹",
   "backupInProgress": "正在备份...",
-  "importInProgress": "正在导入..."
-  ,
-  "logout": "登出",
+  "importInProgress": "正在导入...",
   "logoutConfirmMessage": "确定要登出吗？",
   "logoutSubtitle": "关闭当前会话",
   "admin": "管理员",
@@ -537,6 +528,18 @@
   "switchToUser": "切换到用户",
   "switchToUserSubtitle": "有限访问模式",
   "switchToAdmin": "切换到管理员",
-  "switchToAdminSubtitle": "需要密码"
-
+  "switchToAdminSubtitle": "需要密码",
+  "productNameCannotBeEmpty": "产品名称不能为空",
+  "productDuplicatePrefix": "已存在名为",
+  "anotherProductDuplicatePrefix": "已存在另一个名为",
+  "selectPage": "转到页面",
+  "pageNumber": "页码",
+  "invalidPage": "页面无效",
+  "go": "前往",
+  "scrollMode": "滚动模式",
+  "pageMode": "分页模式",
+  "goToPage": "转到页面...",
+  "totalProducts": "产品总数",
+  "page": "页面",
+  "loadingMoreProducts": "正在加载更多产品..."
 }

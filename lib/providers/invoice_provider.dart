@@ -326,9 +326,9 @@ Future<Map<String, dynamic>> exportInvoices() async {
       'items': items,
     };
     
-    final directory = await BackupService.getBackupDirectory();
+    // ✅ CAMBIO: Usar getInvoicesBackupDirectory
+    final directory = await BackupService.getInvoicesBackupDirectory();
     
-    // ✅ VERIFICAR NULL
     if (directory == null) {
       _error = 'Permisos de almacenamiento denegados';
       _isLoading = false;
@@ -336,7 +336,9 @@ Future<Map<String, dynamic>> exportInvoices() async {
       return {'success': false, 'error': 'Permisos denegados'};
     }
     
-    final fileName = BackupService.generateBackupFileName('invoices');
+    // ✅ CAMBIO: Crear nombre de archivo manualmente
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final fileName = 'invoices_backup_$timestamp.json';
     final file = File('${directory.path}/$fileName');
     
     await file.writeAsString(jsonEncode(backupData), flush: true);
@@ -358,6 +360,7 @@ Future<Map<String, dynamic>> exportInvoices() async {
     return {'success': false, 'error': e.toString()};
   }
 }
+
 
   // IMPORTACIÓN
   Future<Map<String, dynamic>> importInvoices(File file) async {

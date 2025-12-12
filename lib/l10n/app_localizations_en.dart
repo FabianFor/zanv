@@ -1107,4 +1107,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchToAdminSubtitle => 'Requires password';
+
+  @override
+  String get productNameCannotBeEmpty => 'Product name cannot be empty';
+
+  @override
+  String get productDuplicatePrefix => 'A product with the name';
+
+  @override
+  String get anotherProductDuplicatePrefix => 'Another product with the name';
+
+  @override
+  String get selectPage => 'Go to page';
+
+  @override
+  String get pageNumber => 'Page number';
+
+  @override
+  String get invalidPage => 'Invalid page';
+
+  @override
+  String get go => 'Go';
+
+  @override
+  String get scrollMode => 'Scroll Mode';
+
+  @override
+  String get pageMode => 'Page Mode';
+
+  @override
+  String get goToPage => 'Go to page...';
+
+  @override
+  String get totalProducts => 'total products';
+
+  @override
+  String get page => 'Page';
+
+  @override
+  String get loadingMoreProducts => 'Loading more products...';
 }

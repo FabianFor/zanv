@@ -575,7 +575,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fileNotSelected => '未选择文件';
 
   @override
-  String get logout => '登出';
+  String get logout => '退出';
 
   @override
   String get statistics => '统计';
@@ -1099,4 +1099,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get switchToAdminSubtitle => '需要密码';
+
+  @override
+  String get productNameCannotBeEmpty => '产品名称不能为空';
+
+  @override
+  String get productDuplicatePrefix => '已存在名为';
+
+  @override
+  String get anotherProductDuplicatePrefix => '已存在另一个名为';
+
+  @override
+  String get selectPage => '转到页面';
+
+  @override
+  String get pageNumber => '页码';
+
+  @override
+  String get invalidPage => '页面无效';
+
+  @override
+  String get go => '前往';
+
+  @override
+  String get scrollMode => '滚动模式';
+
+  @override
+  String get pageMode => '分页模式';
+
+  @override
+  String get goToPage => '转到页面...';
+
+  @override
+  String get totalProducts => '产品总数';
+
+  @override
+  String get page => '页面';
+
+  @override
+  String get loadingMoreProducts => '正在加载更多产品...';
 }

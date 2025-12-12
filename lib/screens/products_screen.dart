@@ -9,8 +9,8 @@ import '../core/utils/theme_helper.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/optimized_product_card.dart'; // ✅ NUEVO
-import '../widgets/pagination_controls.dart'; // ✅ NUEVO
+import '../widgets/optimized_product_card.dart';
+import '../widgets/pagination_controls.dart';
 import '../services/permission_handler.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -22,15 +22,14 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
-  final _scrollController = ScrollController(); // ✅ NUEVO
-  final _pageController = TextEditingController(); // ✅ NUEVO para ir a página
+  final _scrollController = ScrollController();
+  final _pageController = TextEditingController();
   String _searchQuery = '';
-  bool _showPagination = false; // ✅ NUEVO: controla modo paginación vs scroll
+  bool _showPagination = false;
 
   @override
   void initState() {
     super.initState();
-    // ✅ NUEVO: Detectar cuando llega al final para scroll infinito
     _scrollController.addListener(_onScroll);
   }
 
@@ -42,13 +41,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
     super.dispose();
   }
 
-  // ✅ NUEVO: Función para scroll infinito
   void _onScroll() {
-    if (_showPagination || _searchQuery.isNotEmpty) return; // Solo en modo scroll
+    if (_showPagination || _searchQuery.isNotEmpty) return;
     
     if (_scrollController.position.pixels >= 
         _scrollController.position.maxScrollExtent * 0.8) {
-      // Cuando está al 80% del scroll, cargar más
       final productProvider = context.read<ProductProvider>();
       if (!productProvider.isLoadingMore && productProvider.hasMorePages) {
         productProvider.loadNextPage();
@@ -56,18 +53,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
   }
 
-  // ✅ NUEVO: Alternar entre modo scroll y paginación
   void _togglePaginationMode() {
     setState(() {
       _showPagination = !_showPagination;
       if (!_showPagination) {
-        // Volver a modo scroll infinito
         context.read<ProductProvider>().resetToScrollMode();
       }
     });
   }
 
-  // ✅ NUEVO: Ir a página específica
   void _goToSpecificPage() {
     final l10n = AppLocalizations.of(context)!;
     final productProvider = context.read<ProductProvider>();
@@ -75,12 +69,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Ir a página'),
+        title: Text(l10n.selectPage),
         content: TextField(
           controller: _pageController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText: 'Número de página (1-${productProvider.totalPages})',
+            labelText: '${l10n.pageNumber} (1-${productProvider.totalPages})',
             border: OutlineInputBorder(),
           ),
         ),
@@ -100,13 +94,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Página inválida'),
+                    content: Text(l10n.invalidPage),
                     backgroundColor: Colors.red,
                   ),
                 );
               }
             },
-            child: Text('Ir'),
+            child: Text(l10n.go),
           ),
         ],
       ),
@@ -194,7 +188,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          // ✅ NUEVO: Botón para alternar modo
           if (productProvider.totalProducts > 50)
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, size: 24.sp),
@@ -215,7 +208,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         size: 20.sp,
                       ),
                       SizedBox(width: 8.w),
-                      Text(_showPagination ? 'Modo Scroll' : 'Modo Páginas'),
+                      Text(_showPagination ? l10n.scrollMode : l10n.pageMode),
                     ],
                   ),
                 ),
@@ -225,7 +218,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     children: [
                       Icon(Icons.search, size: 20.sp),
                       SizedBox(width: 8.w),
-                      Text('Ir a página...'),
+                      Text(l10n.goToPage),
                     ],
                   ),
                 ),
@@ -235,7 +228,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
       body: Column(
         children: [
-          // Buscador
           Container(
             padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
             color: theme.cardBackground,
@@ -295,7 +287,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   ),
                 ),
                 
-                // ✅ NUEVO: Indicador de cantidad y página
                 if (_searchQuery.isEmpty && productProvider.totalProducts > 0)
                   Padding(
                     padding: EdgeInsets.only(top: 8.h),
@@ -303,7 +294,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${productProvider.totalProducts} productos totales',
+                          '${productProvider.totalProducts} ${l10n.totalProducts}',
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: theme.textSecondary,
@@ -311,7 +302,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         ),
                         if (_showPagination)
                           Text(
-                            'Página ${productProvider.currentPage + 1}/${productProvider.totalPages}',
+                            '${l10n.page} ${productProvider.currentPage + 1}/${productProvider.totalPages}',
                             style: TextStyle(
                               fontSize: 12.sp,
                               color: theme.primary,
@@ -325,7 +316,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
           ),
 
-          // Lista de productos
           Expanded(
             child: filteredProducts.isEmpty
                 ? Center(
@@ -376,9 +366,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           }
                           return OptimizedProductCard(
                             product: filteredProducts[index],
-                            onTap: () {
-                              // Aquí puedes agregar navegación a detalles
-                            },
+                            onTap: () {},
                           );
                         },
                       )
@@ -392,7 +380,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         addRepaintBoundaries: true,
                         physics: const BouncingScrollPhysics(),
                         itemBuilder: (context, index) {
-                          // ✅ NUEVO: Indicador de carga al final
                           if (index == filteredProducts.length) {
                             return Center(
                               child: Padding(
@@ -402,7 +389,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     CircularProgressIndicator(color: theme.primary),
                                     SizedBox(height: 8.h),
                                     Text(
-                                      'Cargando más productos...',
+                                      l10n.loadingMoreProducts,
                                       style: TextStyle(
                                         fontSize: 12.sp,
                                         color: theme.textSecondary,
@@ -416,15 +403,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           
                           return OptimizedProductCard(
                             product: filteredProducts[index],
-                            onTap: () {
-                              // Aquí puedes agregar navegación a detalles
-                            },
+                            onTap: () {},
                           );
                         },
                       ),
           ),
           
-          // ✅ NUEVO: Controles de paginación (solo en modo paginación)
           if (_showPagination && _searchQuery.isEmpty)
             PaginationControls(
               currentPage: productProvider.currentPage,
@@ -432,7 +416,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
               isLoading: productProvider.isLoading,
               onPageChanged: (page) {
                 productProvider.goToPage(page);
-                // Scroll al inicio
                 _scrollController.animateTo(
                   0,
                   duration: const Duration(milliseconds: 300),
@@ -462,7 +445,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 }
 
-// El AddProductDialog NO cambia - mantén el código que ya tienes
 class AddProductDialog extends StatefulWidget {
   final Product? product;
 
@@ -558,6 +540,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
   Future<void> _saveProduct() async {
     final l10n = AppLocalizations.of(context)!;
+    final theme = ThemeHelper(context);
     
     if (!_formKey.currentState!.validate()) {
       return;
@@ -575,19 +558,21 @@ class _AddProductDialogState extends State<AddProductDialog> {
         price: double.parse(_priceController.text),
         stock: int.parse(_stockController.text),
         imagePath: _imagePath,
+        nameTranslations: widget.product?.nameTranslations,
+        descriptionTranslations: widget.product?.descriptionTranslations,
       );
 
-      bool success;
+      Map<String, dynamic> result;
       if (widget.product == null) {
-        success = await productProvider.addProduct(product);
+        result = await productProvider.addProduct(product);
       } else {
-        success = await productProvider.updateProduct(product);
+        result = await productProvider.updateProduct(product);
       }
 
       if (mounted) {
         setState(() => _isSubmitting = false);
 
-        if (success) {
+        if (result['success'] == true) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -596,15 +581,35 @@ class _AddProductDialogState extends State<AddProductDialog> {
                     ? l10n.productAddedSuccess
                     : l10n.productUpdatedSuccess,
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: theme.success,
+              duration: const Duration(seconds: 2),
             ),
           );
         } else {
+          String errorMessage;
+          final errorKey = result['errorKey'];
+          final productName = result['productName'] ?? '';
+
+          if (errorKey == 'productAlreadyExists') {
+            errorMessage = '${l10n.productDuplicatePrefix} "$productName"';
+          } else if (errorKey == 'anotherProductExists') {
+            errorMessage = '${l10n.anotherProductDuplicatePrefix} "$productName"';
+          } else if (errorKey == 'productNameCannotBeEmpty') {
+            errorMessage = l10n.productNameCannotBeEmpty;
+          } else {
+            errorMessage = result['error'] ?? l10n.error;
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(productProvider.error ?? l10n.error),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
+              content: Text(errorMessage),
+              backgroundColor: theme.error,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'OK',
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
             ),
           );
         }
@@ -616,7 +621,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${l10n.error}: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: theme.error,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -650,7 +655,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // HEADER
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: 20.w,
@@ -689,7 +693,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
               ),
             ),
 
-            // FORMULARIO SCROLLEABLE
             Flexible(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(isTablet ? 18.w : 20.w),
@@ -698,7 +701,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // SECCIÓN DE IMAGEN
                       Center(
                         child: GestureDetector(
                           onTap: _pickImage,
@@ -766,7 +768,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: isTablet ? 16.h : 20.h),
 
-                      // CAMPO NOMBRE
                       TextFormField(
                         controller: _nameController,
                         style: TextStyle(color: theme.textPrimary, fontSize: 15.sp),
@@ -799,7 +800,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: 14.h),
 
-                      // CAMPO DESCRIPCIÓN
                       TextFormField(
                         controller: _descriptionController,
                         style: TextStyle(color: theme.textPrimary, fontSize: 15.sp),
@@ -824,7 +824,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: 14.h),
 
-                      // FILA DE PRECIO Y STOCK
                       Row(
                         children: [
                           Expanded(
@@ -898,7 +897,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: isTablet ? 16.h : 20.h),
 
-                      // BOTONES
                       Row(
                         children: [
                           Expanded(

@@ -461,7 +461,6 @@
   },
   "profileUpdatedSuccess": "Perfil atualizado com sucesso",
   "errorSavingProfile": "Erro ao salvar o perfil",
-  
   "sortBy": "Ordenar por",
   "sortByName": "Nome",
   "sortByPrice": "Preço",
@@ -471,20 +470,17 @@
   "sortByInvoiceNumber": "Número do recibo",
   "ascending": "Ascendente",
   "descending": "Descendente",
-  
   "backup": "Backup",
   "backupAndRestore": "Backup e Restauração",
   "exportData": "Exportar Dados",
   "importData": "Importar Dados",
   "exportInvoices": "Exportar Recibos",
   "importInvoices": "Importar Recibos",
-  
   "backupType": "Tipo de Backup",
   "quickBackup": "Rápido (apenas dados)",
   "quickBackupDesc": "~100 KB • Instantâneo • Sem imagens",
   "fullBackup": "Completo (com imagens)",
   "fullBackupDesc": "~5-10 MB • Inclui fotos • Mais lento",
-  
   "exportSuccessMessage": "{count} itens exportados",
   "@exportSuccessMessage": {
     "placeholders": {
@@ -500,7 +496,6 @@
     }
   },
   "importFailed": "Erro ao importar",
-  
   "fileLocation": "Localização do arquivo",
   "fileSize": "Tamanho",
   "itemsExported": "Itens exportados",
@@ -508,7 +503,6 @@
   "itemsReplaced": "Itens substituídos",
   "itemsSkipped": "Itens ignorados",
   "itemsFailed": "Itens com falha",
-  
   "selectBackupFile": "Selecionar arquivo de backup",
   "invalidBackupFile": "Arquivo de backup inválido",
   "backupFileNotFound": "Arquivo não encontrado",
@@ -519,16 +513,13 @@
       "count": {"type": "int"}
     }
   },
-  
   "lastBackup": "Último backup",
   "neverBackedUp": "Nunca",
   "backupNow": "Fazer backup agora",
   "restoreNow": "Restaurar agora",
   "openFolder": "Abrir pasta",
   "backupInProgress": "Fazendo backup...",
-  "importInProgress": "Importando..."
-  ,
-  "logout": "Sair",
+  "importInProgress": "Importando...",
   "logoutConfirmMessage": "Tem certeza que deseja sair?",
   "logoutSubtitle": "Fechar sessão atual",
   "admin": "Administrador",
@@ -537,6 +528,18 @@
   "switchToUser": "Mudar para Usuário",
   "switchToUserSubtitle": "Modo de acesso limitado",
   "switchToAdmin": "Mudar para Administrador",
-  "switchToAdminSubtitle": "Requer senha"
-
+  "switchToAdminSubtitle": "Requer senha",
+  "productNameCannotBeEmpty": "O nome do produto não pode estar vazio",
+  "productDuplicatePrefix": "Já existe um produto com o nome",
+  "anotherProductDuplicatePrefix": "Já existe outro produto com o nome",
+  "selectPage": "Ir para página",
+  "pageNumber": "Número da página",
+  "invalidPage": "Página inválida",
+  "go": "Ir",
+  "scrollMode": "Modo Rolagem",
+  "pageMode": "Modo Páginas",
+  "goToPage": "Ir para página...",
+  "totalProducts": "produtos totais",
+  "page": "Página",
+  "loadingMoreProducts": "Carregando mais produtos..."
 }

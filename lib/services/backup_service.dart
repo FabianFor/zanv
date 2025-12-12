@@ -1,16 +1,27 @@
-// lib/services/backup_service.dart
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 import 'package:image/image.dart' as img;
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:open_filex/open_filex.dart'; // ✅ NUEVO
 import '../models/product.dart';
 import '../models/invoice.dart';
 
-// ✅✅ CLASE PARA RESULTADOS DE BACKUP ✅✅
+class BackupFile {
+  final String name;
+  final String path;
+  final DateTime date;
+  final String size;
+
+  BackupFile({
+    required this.name,
+    required this.path,
+    required this.date,
+    required this.size,
+  });
+}
+
 class BackupResult<T> {
   final bool success;
   final T? data;
@@ -28,107 +39,218 @@ class BackupResult<T> {
 }
 
 class BackupService {
-  // Configuración
   static const int _maxImageWidth = 512;
   static const int _jpegQuality = 70;
-  static const String _backupFolderName = 'Zavx_Backups';
+  static const platform = MethodChannel('com.proion.zavx/file_manager');
 
-  /// Solicita permisos de almacenamiento
   static Future<bool> requestStoragePermission() async {
     if (!Platform.isAndroid) return true;
 
-    // Android 13+ (API 33+)
-    if (await Permission.photos.isGranted || await Permission.videos.isGranted) {
-      return true;
-    }
-
-    // Android 11-12 (API 30-32)
     if (await Permission.storage.isGranted) {
       return true;
     }
 
-    // Android 11+ necesita MANAGE_EXTERNAL_STORAGE
-    if (await Permission.manageExternalStorage.isGranted) {
-      return true;
-    }
-
-    // Pedir permiso
-    final status = await Permission.manageExternalStorage.request();
-    
-    if (status.isGranted) {
-      return true;
-    }
-
-    // Si no otorga MANAGE_EXTERNAL_STORAGE, intentar con storage normal
-    final storageStatus = await Permission.storage.request();
-    return storageStatus.isGranted;
+    final status = await Permission.storage.request();
+    return status.isGranted;
   }
 
-  /// Obtiene la carpeta de backups (Downloads/Zavx_Backups)
-  static Future<Directory?> getBackupDirectory() async {
-    // Verificar y pedir permisos primero
-    if (!await requestStoragePermission()) {
-      print('❌ Permisos de almacenamiento denegados');
-      return null;
-    }
-
+  static Future<Directory?> getProductsBackupDirectory() async {
     Directory? directory;
     
     if (Platform.isAndroid) {
-      // Intentar usar Downloads público
       try {
-        directory = Directory('/storage/emulated/0/Download/$_backupFolderName');
+        final externalDir = await getExternalStorageDirectory();
+        if (externalDir == null) {
+          print('No se pudo obtener almacenamiento externo');
+          return null;
+        }
+        
+        final mediaPath = externalDir.path.replaceFirst('/Android/data/', '/Android/media/');
+        directory = Directory('$mediaPath/Proion/Products');
         
         if (!await directory.exists()) {
           await directory.create(recursive: true);
         }
         
-        print('✅ Carpeta de backups: ${directory.path}');
+        print('Carpeta de productos: ${directory.path}');
       } catch (e) {
-        print('⚠️ Error creando carpeta en Downloads, usando carpeta de app: $e');
-        // Fallback a la carpeta de la app
-        final appDir = await getApplicationDocumentsDirectory();
-        directory = Directory('${appDir.path}/$_backupFolderName');
-        
-        if (!await directory.exists()) {
-          await directory.create(recursive: true);
-        }
+        print('Error: $e');
+        return null;
       }
-    } else if (Platform.isIOS) {
-      final appDir = await getApplicationDocumentsDirectory();
-      directory = Directory('${appDir.path}/$_backupFolderName');
     } else {
       final appDir = await getApplicationDocumentsDirectory();
-      directory = Directory('${appDir.path}/$_backupFolderName');
-    }
-    
-    if (directory != null && !await directory.exists()) {
-      await directory.create(recursive: true);
+      directory = Directory('${appDir.path}/Products');
+      
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
     }
     
     return directory;
   }
 
-  /// Genera nombre de archivo de backup
-  static String generateBackupFileName(String type) {
-    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    return 'zavx_${type}_$timestamp.json';
+  static Future<Directory?> getInvoicesBackupDirectory() async {
+    Directory? directory;
+    
+    if (Platform.isAndroid) {
+      try {
+        final externalDir = await getExternalStorageDirectory();
+        if (externalDir == null) {
+          print('No se pudo obtener almacenamiento externo');
+          return null;
+        }
+        
+        final mediaPath = externalDir.path.replaceFirst('/Android/data/', '/Android/media/');
+        directory = Directory('$mediaPath/Proion/Invoices');
+        
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+        
+        print('Carpeta de invoices: ${directory.path}');
+      } catch (e) {
+        print('Error: $e');
+        return null;
+      }
+    } else {
+      final appDir = await getApplicationDocumentsDirectory();
+      directory = Directory('${appDir.path}/Invoices');
+      
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+    }
+    
+    return directory;
   }
 
-  /// Comprime imagen a Base64 optimizado
+  // ==================== LISTAR BACKUPS ====================
+  static Future<List<BackupFile>> listProductBackups() async {
+    try {
+      final directory = await getProductsBackupDirectory();
+      if (directory == null || !await directory.exists()) {
+        return [];
+      }
+
+      final files = directory.listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.json'))
+          .toList();
+
+      final backups = <BackupFile>[];
+      for (var file in files) {
+        final stat = await file.stat();
+        backups.add(BackupFile(
+          name: file.path.split('/').last,
+          path: file.path,
+          date: stat.modified,
+          size: formatFileSize(stat.size),
+        ));
+      }
+
+      backups.sort((a, b) => b.date.compareTo(a.date));
+      return backups;
+    } catch (e) {
+      print('Error listando backups de productos: $e');
+      return [];
+    }
+  }
+
+  static Future<List<BackupFile>> listInvoiceBackups() async {
+    try {
+      final directory = await getInvoicesBackupDirectory();
+      if (directory == null || !await directory.exists()) {
+        return [];
+      }
+
+      final files = directory.listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.json'))
+          .toList();
+
+      final backups = <BackupFile>[];
+      for (var file in files) {
+        final stat = await file.stat();
+        backups.add(BackupFile(
+          name: file.path.split('/').last,
+          path: file.path,
+          date: stat.modified,
+          size: formatFileSize(stat.size),
+        ));
+      }
+
+      backups.sort((a, b) => b.date.compareTo(a.date));
+      return backups;
+    } catch (e) {
+      print('Error listando backups de invoices: $e');
+      return [];
+    }
+  }
+
+  // ==================== ELIMINAR BACKUP ====================
+  static Future<void> deleteBackup(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        print('Backup eliminado: $filePath');
+      }
+    } catch (e) {
+      print('Error eliminando backup: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== IMPORTAR DESDE RUTA ESPECÍFICA ====================
+  static Future<BackupResult<List<Product>>> importProductsFromPath(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        return BackupResult.error(error: 'Archivo no existe');
+      }
+
+      final jsonString = await file.readAsString();
+      final jsonData = jsonDecode(jsonString) as List;
+      
+      final products = jsonData.map((json) => Product.fromJson(json)).toList();
+      
+      return BackupResult.success(data: products, filePath: filePath);
+    } catch (e) {
+      print('Error importando desde ruta: $e');
+      return BackupResult.error(error: e.toString());
+    }
+  }
+
+  static Future<BackupResult<List<Invoice>>> importInvoicesFromPath(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        return BackupResult.error(error: 'Archivo no existe');
+      }
+
+      final jsonString = await file.readAsString();
+      final jsonData = jsonDecode(jsonString) as List;
+      
+      final invoices = jsonData.map((json) => Invoice.fromJson(json)).toList();
+      
+      return BackupResult.success(data: invoices, filePath: filePath);
+    } catch (e) {
+      print('Error importando desde ruta: $e');
+      return BackupResult.error(error: e.toString());
+    }
+  }
+
   static Future<String?> compressImageToBase64(String imagePath) async {
     try {
       final File imageFile = File(imagePath);
       
       if (!await imageFile.exists()) return null;
       
-      // Leer imagen original
       final bytes = await imageFile.readAsBytes();
       img.Image? image = img.decodeImage(bytes);
       
       if (image == null) return null;
       
-      // Redimensionar solo si es muy grande
       if (image.width > _maxImageWidth || image.height > _maxImageWidth) {
         image = img.copyResize(
           image,
@@ -137,7 +259,6 @@ class BackupService {
         );
       }
       
-      // Comprimir a JPEG
       final compressed = img.encodeJpg(image, quality: _jpegQuality);
       
       return base64Encode(compressed);
@@ -147,7 +268,6 @@ class BackupService {
     }
   }
 
-  /// Guarda imagen de Base64 a archivo
   static Future<String?> saveBase64ToImage(
     String base64Image,
     String productId,
@@ -172,7 +292,6 @@ class BackupService {
     }
   }
 
-  /// Valida formato de backup
   static bool validateBackupFormat(Map<String, dynamic> data) {
     return data.containsKey('version') &&
            data.containsKey('backupType') &&
@@ -180,22 +299,18 @@ class BackupService {
            data['items'] is List;
   }
 
-  /// Calcula tamaño estimado del backup
   static String formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  // ✅✅✅ MÉTODOS PARA EXPORT/IMPORT ✅✅✅
-
-  /// Exportar Productos
   static Future<BackupResult<List<Product>>> exportProducts(List<Product> products) async {
     try {
-      final directory = await getBackupDirectory();
+      final directory = await getProductsBackupDirectory();
       
       if (directory == null) {
-        return BackupResult.error(error: 'Permisos de almacenamiento denegados');
+        return BackupResult.error(error: 'No se pudo crear carpeta de backups');
       }
       
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -207,21 +322,21 @@ class BackupService {
       final file = File(filePath);
       await file.writeAsString(jsonString);
       
-      print('✅ Archivo guardado en: $filePath');
+      print('Archivo guardado en: $filePath');
       
       return BackupResult.success(data: products, filePath: filePath);
     } catch (e) {
-      print('❌ Error exportando: $e');
+      print('Error exportando: $e');
       return BackupResult.error(error: e.toString());
     }
   }
 
-  /// Importar Productos
   static Future<BackupResult<List<Product>>> importProducts() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        dialogTitle: 'Seleccionar backup de productos',
       );
       
       if (result == null || result.files.isEmpty) {
@@ -241,18 +356,17 @@ class BackupService {
       
       return BackupResult.success(data: products, filePath: filePath);
     } catch (e) {
-      print('❌ Error importando: $e');
+      print('Error importando: $e');
       return BackupResult.error(error: e.toString());
     }
   }
 
-  /// Exportar Invoices
   static Future<BackupResult<List<Invoice>>> exportInvoices(List<Invoice> invoices) async {
     try {
-      final directory = await getBackupDirectory();
+      final directory = await getInvoicesBackupDirectory();
       
       if (directory == null) {
-        return BackupResult.error(error: 'Permisos de almacenamiento denegados');
+        return BackupResult.error(error: 'No se pudo crear carpeta de backups');
       }
       
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -264,21 +378,21 @@ class BackupService {
       final file = File(filePath);
       await file.writeAsString(jsonString);
       
-      print('✅ Archivo guardado en: $filePath');
+      print('Archivo guardado en: $filePath');
       
       return BackupResult.success(data: invoices, filePath: filePath);
     } catch (e) {
-      print('❌ Error exportando: $e');
+      print('Error exportando: $e');
       return BackupResult.error(error: e.toString());
     }
   }
 
-  /// Importar Invoices
   static Future<BackupResult<List<Invoice>>> importInvoices() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        dialogTitle: 'Seleccionar backup de facturas',
       );
       
       if (result == null || result.files.isEmpty) {
@@ -298,22 +412,30 @@ class BackupService {
       
       return BackupResult.success(data: invoices, filePath: filePath);
     } catch (e) {
-      print('❌ Error importando: $e');
+      print('Error importando: $e');
       return BackupResult.error(error: e.toString());
     }
   }
 
-  /// ✅✅ ABRIR ARCHIVO CON EL VISOR DEL SISTEMA ✅✅
   static Future<void> openFileLocation(String filePath) async {
     try {
-      final result = await OpenFilex.open(filePath);
-      print('📂 Resultado de abrir archivo: ${result.message}');
-      
-      if (result.type != ResultType.done) {
-        print('⚠️ No se pudo abrir el archivo: ${result.message}');
+      if (Platform.isAndroid) {
+        final directory = File(filePath).parent;
+        
+        try {
+          await platform.invokeMethod('openFolder', {
+            'path': directory.path,
+          });
+          print('Carpeta abierta: ${directory.path}');
+        } catch (e) {
+          print('Error abriendo carpeta, intentando abrir archivo: $e');
+          await platform.invokeMethod('openFile', {
+            'path': filePath,
+          });
+        }
       }
     } catch (e) {
-      print('❌ Error al abrir archivo: $e');
+      print('Error al abrir ubicación: $e');
     }
   }
 }

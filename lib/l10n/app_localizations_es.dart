@@ -1114,4 +1114,45 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get switchToAdminSubtitle => 'Requiere contraseña';
+
+  @override
+  String get productNameCannotBeEmpty =>
+      'El nombre del producto no puede estar vacío';
+
+  @override
+  String get productDuplicatePrefix => 'Ya existe un producto con el nombre';
+
+  @override
+  String get anotherProductDuplicatePrefix =>
+      'Ya existe otro producto con el nombre';
+
+  @override
+  String get selectPage => 'Ir a página';
+
+  @override
+  String get pageNumber => 'Número de página';
+
+  @override
+  String get invalidPage => 'Página inválida';
+
+  @override
+  String get go => 'Ir';
+
+  @override
+  String get scrollMode => 'Modo Scroll';
+
+  @override
+  String get pageMode => 'Modo Páginas';
+
+  @override
+  String get goToPage => 'Ir a página...';
+
+  @override
+  String get totalProducts => 'productos totales';
+
+  @override
+  String get page => 'Página';
+
+  @override
+  String get loadingMoreProducts => 'Cargando más productos...';
 }

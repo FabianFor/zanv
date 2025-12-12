@@ -2183,6 +2183,84 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Requiere contraseña'**
   String get switchToAdminSubtitle;
+
+  /// No description provided for @productNameCannotBeEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre del producto no puede estar vacío'**
+  String get productNameCannotBeEmpty;
+
+  /// No description provided for @productDuplicatePrefix.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya existe un producto con el nombre'**
+  String get productDuplicatePrefix;
+
+  /// No description provided for @anotherProductDuplicatePrefix.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya existe otro producto con el nombre'**
+  String get anotherProductDuplicatePrefix;
+
+  /// No description provided for @selectPage.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a página'**
+  String get selectPage;
+
+  /// No description provided for @pageNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de página'**
+  String get pageNumber;
+
+  /// No description provided for @invalidPage.
+  ///
+  /// In es, this message translates to:
+  /// **'Página inválida'**
+  String get invalidPage;
+
+  /// No description provided for @go.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir'**
+  String get go;
+
+  /// No description provided for @scrollMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo Scroll'**
+  String get scrollMode;
+
+  /// No description provided for @pageMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo Páginas'**
+  String get pageMode;
+
+  /// No description provided for @goToPage.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a página...'**
+  String get goToPage;
+
+  /// No description provided for @totalProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'productos totales'**
+  String get totalProducts;
+
+  /// No description provided for @page.
+  ///
+  /// In es, this message translates to:
+  /// **'Página'**
+  String get page;
+
+  /// No description provided for @loadingMoreProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando más productos...'**
+  String get loadingMoreProducts;
 }
 
 class _AppLocalizationsDelegate

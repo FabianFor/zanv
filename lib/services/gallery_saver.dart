@@ -3,8 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// 🎯 Servicio para guardar archivos en almacenamiento público
-/// - Imágenes de recibos → Galería (Pictures/Proion/Receipts)
-/// - PDFs y backups → Documentos (Documents/Proion)
 class GallerySaver {
   static const platform = MethodChannel('com.proion.zavx/media_store');
 
@@ -30,7 +28,6 @@ class GallerySaver {
         throw Exception('Archivo vacío');
       }
 
-      // Llamar al plugin nativo
       final String? savedPath = await platform.invokeMethod('saveToPublicStorage', {
         'fileName': fileName,
         'subfolder': subfolder,
@@ -59,7 +56,6 @@ class GallerySaver {
 
   /// 🖼️ Guardar IMAGEN de RECIBO
   /// Ruta: Pictures/Proion/Receipts/Recibo_XXX.png
-  /// ✅ APARECE EN GALERÍA
   static Future<String> saveReceiptImage({
     required String tempFilePath,
     required int receiptNumber,
@@ -76,11 +72,10 @@ class GallerySaver {
       final savedPath = await _saveFile(
         file: tempFile,
         fileName: fileName,
-        subfolder: 'Receipts', // ← Carpeta para recibos en Galería
+        subfolder: 'Receipts',
         mimeType: 'image/png',
       );
 
-      // Borrar archivo temporal
       try {
         await tempFile.delete();
         if (kDebugMode) {
@@ -103,7 +98,6 @@ class GallerySaver {
 
   /// 📄 Guardar PDF de RECIBO
   /// Ruta: Documents/Proion/Documents/Recibo_XXX.pdf
-  /// ✅ SOLO EN APP ARCHIVOS
   static Future<String> saveReceiptPDF({
     required String tempFilePath,
     required int receiptNumber,
@@ -120,11 +114,10 @@ class GallerySaver {
       final savedPath = await _saveFile(
         file: tempFile,
         fileName: fileName,
-        subfolder: 'Documents', // ← Carpeta para PDFs
+        subfolder: 'Documents',
         mimeType: 'application/pdf',
       );
 
-      // Borrar archivo temporal
       try {
         await tempFile.delete();
         if (kDebugMode) {
@@ -147,11 +140,10 @@ class GallerySaver {
 
   /// 💾 Guardar BACKUP de base de datos
   /// Ruta: Documents/Proion/Backups/Backup_YYYY-MM-DD.db
-  /// ✅ SOLO EN APP ARCHIVOS
   static Future<String> saveBackup(File dbFile) async {
     try {
       if (kDebugMode) {
-        print('💾 Guardando backup');
+        print('💾 Guardando backup BD');
       }
 
       final now = DateTime.now();
@@ -161,49 +153,13 @@ class GallerySaver {
       return await _saveFile(
         file: dbFile,
         fileName: fileName,
-        subfolder: 'Backups', // ← Carpeta para backups
+        subfolder: 'Backups',
         mimeType: 'application/octet-stream',
       );
       
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('❌ Error guardando backup: $e');
-        print('Stack: $stackTrace');
-      }
-      rethrow;
-    }
-  }
-
-  /// 📷 Guardar FOTO de PRODUCTO
-  /// Ruta: Pictures/Proion/Products/Producto_XXX.png
-  /// ✅ APARECE EN GALERÍA
-  static Future<String> saveProductImage({
-    required File imageFile,
-    required String productName,
-  }) async {
-    try {
-      if (kDebugMode) {
-        print('📷 Guardando foto de producto: $productName');
-      }
-
-      final cleanName = productName
-          .replaceAll(RegExp(r'[^\w\s-]'), '')
-          .replaceAll(' ', '_')
-          .substring(0, productName.length > 30 ? 30 : productName.length);
-      
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'Producto_${cleanName}_$timestamp.png';
-      
-      return await _saveFile(
-        file: imageFile,
-        fileName: fileName,
-        subfolder: 'Products', // ← Carpeta para productos en Galería
-        mimeType: 'image/png',
-      );
-      
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error guardando foto de producto: $e');
+        print('❌ Error guardando backup BD: $e');
         print('Stack: $stackTrace');
       }
       rethrow;

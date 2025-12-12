@@ -461,7 +461,6 @@
   },
   "profileUpdatedSuccess": "Profile updated successfully",
   "errorSavingProfile": "Error saving profile",
-  
   "sortBy": "Sort by",
   "sortByName": "Name",
   "sortByPrice": "Price",
@@ -471,20 +470,17 @@
   "sortByInvoiceNumber": "Receipt number",
   "ascending": "Ascending",
   "descending": "Descending",
-  
   "backup": "Backup",
   "backupAndRestore": "Backup & Restore",
   "exportData": "Export Data",
   "importData": "Import Data",
   "exportInvoices": "Export Receipts",
   "importInvoices": "Import Receipts",
-  
   "backupType": "Backup Type",
   "quickBackup": "Quick (data only)",
   "quickBackupDesc": "~100 KB • Instant • No images",
   "fullBackup": "Full (with images)",
   "fullBackupDesc": "~5-10 MB • Includes photos • Slower",
-  
   "exportSuccessMessage": "{count} items exported",
   "@exportSuccessMessage": {
     "placeholders": {
@@ -500,7 +496,6 @@
     }
   },
   "importFailed": "Import failed",
-  
   "fileLocation": "File location",
   "fileSize": "Size",
   "itemsExported": "Items exported",
@@ -508,7 +503,6 @@
   "itemsReplaced": "Items replaced",
   "itemsSkipped": "Items skipped",
   "itemsFailed": "Items failed",
-  
   "selectBackupFile": "Select backup file",
   "invalidBackupFile": "Invalid backup file",
   "backupFileNotFound": "File not found",
@@ -519,7 +513,6 @@
       "count": {"type": "int"}
     }
   },
-  
   "lastBackup": "Last backup",
   "neverBackedUp": "Never",
   "backupNow": "Backup now",
@@ -527,7 +520,6 @@
   "openFolder": "Open folder",
   "backupInProgress": "Backing up...",
   "importInProgress": "Importing...",
-  "logout": "Logout",
   "logoutConfirmMessage": "Are you sure you want to logout?",
   "logoutSubtitle": "Close current session",
   "admin": "Admin",
@@ -536,6 +528,18 @@
   "switchToUser": "Switch to User",
   "switchToUserSubtitle": "Limited access mode",
   "switchToAdmin": "Switch to Admin",
-  "switchToAdminSubtitle": "Requires password"
-
+  "switchToAdminSubtitle": "Requires password",
+  "productNameCannotBeEmpty": "Product name cannot be empty",
+  "productDuplicatePrefix": "A product with the name",
+  "anotherProductDuplicatePrefix": "Another product with the name",
+  "selectPage": "Go to page",
+  "pageNumber": "Page number",
+  "invalidPage": "Invalid page",
+  "go": "Go",
+  "scrollMode": "Scroll Mode",
+  "pageMode": "Page Mode",
+  "goToPage": "Go to page...",
+  "totalProducts": "total products",
+  "page": "Page",
+  "loadingMoreProducts": "Loading more products..."
 }

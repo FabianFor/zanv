@@ -7,6 +7,7 @@ import '../models/product.dart';
 import '../core/constants/validation_limits.dart';
 import '../services/backup_service.dart';
 
+
 class ProductProvider with ChangeNotifier {
   Box<Product>? _box;
   List<Product> _products = [];
@@ -28,6 +29,7 @@ class ProductProvider with ChangeNotifier {
   String _sortField = 'name';
   bool _sortAscending = true;
 
+
   // Getters
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
@@ -41,14 +43,17 @@ class ProductProvider with ChangeNotifier {
   String get sortField => _sortField;
   bool get sortAscending => _sortAscending;
 
+
   List<Product> get lowStockProducts => 
       _products.where((p) => p.stock <= 5).toList();
+
 
   @override
   void dispose() {
     _box?.close();
     super.dispose();
   }
+
 
   Future<void> loadProducts() async {
     if (_isInitialized) return;
@@ -69,6 +74,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 
   Future<void> _loadPage(int page) async {
     if (_box == null) return;
@@ -96,6 +102,7 @@ class ProductProvider with ChangeNotifier {
     _applySorting();
   }
 
+
   Future<void> loadNextPage() async {
     if (_isLoadingMore || !_hasMorePages || _lastSearchQuery.isNotEmpty) return;
     
@@ -111,6 +118,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 
   Future<void> goToPage(int page) async {
     if (page < 0 || page >= totalPages) return;
@@ -130,6 +138,7 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+
   Future<void> resetToScrollMode() async {
     _lastSearchQuery = '';
     _lastSearchResults = [];
@@ -139,6 +148,7 @@ class ProductProvider with ChangeNotifier {
     await _loadPage(0);
     notifyListeners();
   }
+
 
   // ORDENAMIENTO
   void sortProducts(String field, bool ascending) {
@@ -168,11 +178,12 @@ class ProductProvider with ChangeNotifier {
     });
   }
 
+
   // VALIDACIONES
   bool _validateProductName(String name) {
     final sanitized = _sanitizeInput(name.trim());
     if (sanitized.isEmpty) {
-      _error = 'El nombre del producto no puede estar vacío';
+      _error = 'productNameCannotBeEmpty';
       return false;
     }
     if (sanitized.length > ValidationLimits.maxProductNameLength) {
@@ -182,6 +193,7 @@ class ProductProvider with ChangeNotifier {
     return true;
   }
 
+
   bool _validateProductPrice(double price) {
     if (price <= 0 || price > ValidationLimits.maxProductPrice) {
       _error = 'Precio inválido';
@@ -189,6 +201,7 @@ class ProductProvider with ChangeNotifier {
     }
     return true;
   }
+
 
   bool _validateProductStock(int stock) {
     if (stock < 0 || stock > ValidationLimits.maxProductStock) {
@@ -198,6 +211,7 @@ class ProductProvider with ChangeNotifier {
     return true;
   }
 
+
   String _sanitizeInput(String input) {
     input = input.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
     if (input.length > ValidationLimits.maxInputLength) {
@@ -206,12 +220,32 @@ class ProductProvider with ChangeNotifier {
     return input;
   }
 
-  // CRUD OPERATIONS
-  Future<bool> addProduct(Product product) async {
+
+  // ==================== AGREGAR PRODUCTO ====================
+  Future<Map<String, dynamic>> addProduct(Product product) async {
+    // ✅ VALIDAR NOMBRE VACÍO
+    if (product.name.trim().isEmpty) {
+      return {'success': false, 'errorKey': 'productNameCannotBeEmpty'};
+    }
+
+    // ✅ VALIDAR DUPLICADOS
+    final duplicateExists = _box!.values.any(
+      (p) => p.name.trim().toLowerCase() == product.name.trim().toLowerCase(),
+    );
+
+    if (duplicateExists) {
+      return {
+        'success': false,
+        'errorKey': 'productAlreadyExists',
+        'productName': product.name.trim(),
+      };
+    }
+
+    // Validaciones existentes
     if (!_validateProductName(product.name) ||
         !_validateProductPrice(product.price) ||
         !_validateProductStock(product.stock)) {
-      return false;
+      return {'success': false, 'errorKey': 'validationError', 'error': _error};
     }
 
     try {
@@ -237,19 +271,40 @@ class ProductProvider with ChangeNotifier {
       
       _error = null;
       notifyListeners();
-      return true;
+      return {'success': true};
     } catch (e) {
-      _error = 'Error al agregar producto: $e';
-      notifyListeners();
-      return false;
+      return {'success': false, 'errorKey': 'exception', 'error': e.toString()};
     }
   }
 
-  Future<bool> updateProduct(Product updatedProduct) async {
+
+  // ==================== ACTUALIZAR PRODUCTO ====================
+  Future<Map<String, dynamic>> updateProduct(Product updatedProduct) async {
+    // ✅ VALIDAR NOMBRE VACÍO
+    if (updatedProduct.name.trim().isEmpty) {
+      return {'success': false, 'errorKey': 'productNameCannotBeEmpty'};
+    }
+
+    // ✅ VALIDAR DUPLICADOS
+    final duplicateExists = _box!.values.any(
+      (p) =>
+          p.id != updatedProduct.id &&
+          p.name.trim().toLowerCase() == updatedProduct.name.trim().toLowerCase(),
+    );
+
+    if (duplicateExists) {
+      return {
+        'success': false,
+        'errorKey': 'anotherProductExists',
+        'productName': updatedProduct.name.trim(),
+      };
+    }
+
+    // Validaciones existentes
     if (!_validateProductName(updatedProduct.name) ||
         !_validateProductPrice(updatedProduct.price) ||
         !_validateProductStock(updatedProduct.stock)) {
-      return false;
+      return {'success': false, 'errorKey': 'validationError', 'error': _error};
     }
 
     try {
@@ -274,13 +329,12 @@ class ProductProvider with ChangeNotifier {
       
       _error = null;
       notifyListeners();
-      return true;
+      return {'success': true};
     } catch (e) {
-      _error = 'Error al actualizar producto: $e';
-      notifyListeners();
-      return false;
+      return {'success': false, 'errorKey': 'exception', 'error': e.toString()};
     }
   }
+
 
   Future<void> deleteProduct(String productId) async {
     try {
@@ -293,6 +347,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 
   Future<bool> updateStock(String productId, int newStock) async {
     if (!_validateProductStock(newStock)) return false;
@@ -322,6 +377,7 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+
   // BÚSQUEDA
   List<Product> searchProducts(String query) {
     if (query.isEmpty) return _products;
@@ -339,7 +395,9 @@ class ProductProvider with ChangeNotifier {
     return _lastSearchResults;
   }
 
+
   Product? getProductById(String id) => _box?.get(id);
+
 
   // EXPORTACIÓN
   Future<Map<String, dynamic>> exportProducts({required bool includeImages}) async {
@@ -379,9 +437,8 @@ class ProductProvider with ChangeNotifier {
         'items': items,
       };
       
-      final directory = await BackupService.getBackupDirectory();
+      final directory = await BackupService.getProductsBackupDirectory();
       
-      // ✅ VERIFICAR NULL
       if (directory == null) {
         _error = 'Permisos de almacenamiento denegados';
         _isLoading = false;
@@ -389,7 +446,8 @@ class ProductProvider with ChangeNotifier {
         return {'success': false, 'error': 'Permisos denegados'};
       }
       
-      final fileName = BackupService.generateBackupFileName('products');
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'products_backup_$timestamp.json';
       final file = File('${directory.path}/$fileName');
       
       await file.writeAsString(jsonEncode(backupData), flush: true);
@@ -411,6 +469,7 @@ class ProductProvider with ChangeNotifier {
       return {'success': false, 'error': e.toString()};
     }
   }
+
 
   // IMPORTACIÓN
   Future<Map<String, dynamic>> importProducts(File file) async {
@@ -501,10 +560,12 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+
   // UTILIDADES
   void clearError() {
     _error = null;
   }
+
 
   Future<void> reload() async {
     _isInitialized = false;
