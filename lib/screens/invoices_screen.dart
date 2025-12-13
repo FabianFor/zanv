@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:open_filex/open_filex.dart';
 import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../providers/invoice_provider.dart';
@@ -888,29 +887,21 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
       String filePath;
       bool isPdf = settingsProvider.downloadFormat == 'pdf';
 
-      if (isPdf) {
-        filePath = await InvoicePdfGenerator.generatePdf(
-          invoice: invoice,
-          businessProfile: businessProvider.profile ??
-              BusinessProfile(
-                name: '',
-                address: '',
-                phone: '',
-                email: '',
-                logoPath: '',
-              ),
-          settingsProvider: settingsProvider,
-          languageCode: l10n.localeName,
-          translations: {
-            'productList': l10n.productList,
-            'quantity': l10n.quantity,
-            'unitPrice': l10n.unitPrice,
-            'total': l10n.totalPrice,
-            'totalLabel': l10n.totalLabel,
-            'businessName': l10n.businessNameLabel,
-          },
-        );
-      } else {
+if (isPdf) {
+  filePath = await InvoicePdfGenerator.generatePdf(
+    invoice: invoice,
+    businessProfile: businessProvider.profile ??
+        BusinessProfile(
+          name: '',
+          address: '',
+          phone: '',
+          email: '',
+          logoPath: '',
+        ),
+    settingsProvider: settingsProvider,
+    l10n: l10n, // ✅ Solo pasar AppLocalizations
+  );
+} else {
         filePath = await InvoiceImageGenerator.generateImage(
           invoice: invoice,
           businessProfile: businessProvider.profile ??
@@ -945,7 +936,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     }
   }
 
-  // ✅ DESCARGAR - SÍ PIDE PERMISOS
+  // ✅ DESCARGAR - SÍ PIDE PERMISOS (SIN BOTÓN "VER")
   Future<void> _handleDownloadInvoice(
     BuildContext context,
     dynamic invoice,
@@ -953,15 +944,16 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     SettingsProvider settingsProvider,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    final theme = ThemeHelper(context);
 
+    // Verificar permisos
     final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
-
     if (!hasPermission) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '⚠️ ${l10n.needPermissionsToDownload}',
+              l10n.needPermissionsToDownload,
               style: TextStyle(fontSize: 14.sp),
             ),
             backgroundColor: Colors.orange,
@@ -973,6 +965,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
 
     if (!context.mounted) return;
 
+    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -983,29 +976,23 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
       String filePath;
       bool isPdf = settingsProvider.downloadFormat == 'pdf';
 
-      if (isPdf) {
-        filePath = await InvoicePdfGenerator.generatePdf(
-          invoice: invoice,
-          businessProfile: businessProvider.profile ??
-              BusinessProfile(
-                name: '',
-                address: '',
-                phone: '',
-                email: '',
-                logoPath: '',
-              ),
-          settingsProvider: settingsProvider,
-          languageCode: l10n.localeName,
-          translations: {
-            'productList': l10n.productList,
-            'quantity': l10n.quantity,
-            'unitPrice': l10n.unitPrice,
-            'total': l10n.totalPrice,
-            'totalLabel': l10n.totalLabel,
-            'businessName': l10n.businessNameLabel,
-          },
-        );
-      } else {
+// ✅ DESPUÉS (correcto)
+if (isPdf) {
+  filePath = await InvoicePdfGenerator.generatePdf(
+    invoice: invoice,
+    businessProfile: businessProvider.profile ??
+        BusinessProfile(
+          name: '',
+          address: '',
+          phone: '',
+          email: '',
+          logoPath: '',
+        ),
+    settingsProvider: settingsProvider,
+    l10n: l10n, // ✅ Solo pasar AppLocalizations
+  );
+}
+ else {
         filePath = await InvoiceImageGenerator.generateImage(
           invoice: invoice,
           businessProfile: businessProvider.profile ??
@@ -1021,6 +1008,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
         );
       }
 
+      // Guardar en galería
       final savedPath = await GallerySaver.saveInvoiceToGallery(
         tempFilePath: filePath,
         invoiceNumber: invoice.invoiceNumber,
@@ -1028,7 +1016,9 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
       );
 
       if (context.mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context); // Cerrar loading
+
+        // ✅ MENSAJE SIMPLE SIN BOTÓN "VER"
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -1037,33 +1027,15 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                 SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
-                    '✅ Guardado en Galería → Álbum "Proïon"',
+                    l10n.savedSuccessfully, // ← Nueva traducción
                     style: TextStyle(fontSize: 14.sp),
                   ),
                 ),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: theme.success,
             behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: 'Ver',
-              textColor: Colors.white,
-              onPressed: () async {
-                try {
-                  await OpenFilex.open(savedPath);
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('No se pudo abrir el archivo'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -1072,7 +1044,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ ${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)),
+            content: Text('${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)),
             backgroundColor: Colors.red,
           ),
         );
