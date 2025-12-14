@@ -27,7 +27,7 @@ dependencies:
 
   # Images
   image_picker: ^1.1.2
-  image: ^4.1.7   # Compresión / manejo de imágenes
+  image: ^4.1.7
 
   # Sharing
   share_plus: ^7.2.1
@@ -42,10 +42,8 @@ dependencies:
   uuid: ^4.4.0
   intl: ^0.20.2
 
-  # PDF & File handling
+  # PDF - SOLO LA MÍNIMA NECESARIA
   pdf: ^3.10.4
-  open_filex: ^4.5.0
-  printing: ^5.11.1
 
   # File picker
   file_picker: ^8.0.3
@@ -81,3 +79,6 @@ flutter:
 
   assets:
     - assets/icon/
+
+  # ⚡ OPTIMIZACIÓN CRÍTICA: No incluir fuentes innecesarias
+  fonts: []
