@@ -550,7 +550,7 @@
   "@invoiceCount": {
     "placeholders": {"count": {"type": "int"}}
   },
-  "loadingMoreInvoices": "加载更多发票...",
+  "loadingMoreInvoices": "正在加载更多发票...",
   "confirmDeleteInvoice": "您确定要删除{receipt} #{number}吗？\n\n此操作无法撤消。",
   "@confirmDeleteInvoice": {
     "placeholders": {
@@ -558,7 +558,7 @@
       "number": {"type": "int"}
     }
   },
-  "savedSuccessfully": "✅ 文件保存成功",
+  "savedSuccessfully": "✅ 保存成功",
   "view": "查看",
   "couldNotOpenFile": "无法打开文件",
   "photosAccessTitle": "访问照片",

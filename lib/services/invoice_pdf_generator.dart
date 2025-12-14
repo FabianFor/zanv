@@ -6,14 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../models/business_profile.dart';
 import '../providers/settings_provider.dart';
+import '../l10n/app_localizations.dart'; // ✅ AGREGADO
 
 class InvoicePdfGenerator {
   static Future<String> generatePdf({
     required dynamic invoice,
     required BusinessProfile businessProfile,
     required SettingsProvider settingsProvider,
-    required Map<String, String> translations,
-    String languageCode = 'es',
+    required AppLocalizations l10n, // ✅ CAMBIADO: Recibir AppLocalizations directamente
   }) async {
     final pdf = pw.Document();
 
@@ -21,7 +21,7 @@ class InvoicePdfGenerator {
     pw.Font? fontBold;
     
     try {
-      if (languageCode == 'zh') {
+      if (l10n.localeName == 'zh') {
         try {
           font = await PdfGoogleFonts.notoSansRegular();
           fontBold = await PdfGoogleFonts.notoSansBold();
@@ -119,7 +119,7 @@ class InvoicePdfGenerator {
                 pw.Text(
                   businessProfile.name.isNotEmpty 
                     ? businessProfile.name 
-                    : translations['businessName'] ?? 'Business Name',
+                    : l10n.businessNameLabel, // ✅ TRADUCIDO
                   style: getTextStyle(fontSize: 32, bold: true),
                 ),
 
@@ -191,22 +191,14 @@ class InvoicePdfGenerator {
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            translations['productList'] ?? 'Product list',
+                            l10n.productList, // ✅ TRADUCIDO
                             style: getTextStyle(fontSize: 13, bold: true),
                           ),
                         ),
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            translations['quantity'] ?? 'Quantity',
-                            style: getTextStyle(fontSize: 13, bold: true),
-                            textAlign: pw.TextAlign.center,
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(8),
-                          child: pw.Text(
-                            translations['unitPrice'] ?? 'Price',
+                            l10n.quantity, // ✅ TRADUCIDO
                             style: getTextStyle(fontSize: 13, bold: true),
                             textAlign: pw.TextAlign.center,
                           ),
@@ -214,7 +206,15 @@ class InvoicePdfGenerator {
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            translations['total'] ?? 'Total',
+                            l10n.unitPrice, // ✅ TRADUCIDO
+                            style: getTextStyle(fontSize: 13, bold: true),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            l10n.totalPrice, // ✅ TRADUCIDO
                             style: getTextStyle(fontSize: 13, bold: true),
                             textAlign: pw.TextAlign.center,
                           ),
@@ -271,7 +271,7 @@ class InvoicePdfGenerator {
                     color: PdfColors.grey300,
                   ),
                   child: pw.Text(
-                    '${translations['totalLabel'] ?? 'Total:'} ${settingsProvider.formatPrice(invoice.total)}',
+                    '${l10n.totalLabel} ${settingsProvider.formatPrice(invoice.total)}', // ✅ TRADUCIDO
                     style: getTextStyle(fontSize: 24, bold: true),
                   ),
                 ),

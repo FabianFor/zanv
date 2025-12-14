@@ -345,7 +345,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                               CircularProgressIndicator(color: theme.primary),
                               SizedBox(height: 8.h),
                               Text(
-                                'Cargando más facturas...',
+                                l10n.loadingMoreInvoices, // ✅ TRADUCIDO
                                 style: TextStyle(fontSize: 12.sp, color: theme.textSecondary),
                               ),
                             ],
@@ -825,10 +825,14 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
             ),
           ],
         ),
-        content: Text(
-          '¿Estás seguro de eliminar la ${l10n.receipt} #${invoice.invoiceNumber}?\n\n${l10n.cannotUndo}',
-          style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
-        ),
+// ✅ DESPUÉS (CORRECTO)
+content: Text(
+  '${l10n.confirmDeleteInvoice}\n\n${l10n.cannotUndo}'
+      .replaceAll('{receipt}', l10n.receipt)
+      .replaceAll('{number}', invoice.invoiceNumber.toString()),
+  style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
+),
+
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -887,21 +891,21 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
       String filePath;
       bool isPdf = settingsProvider.downloadFormat == 'pdf';
 
-if (isPdf) {
-  filePath = await InvoicePdfGenerator.generatePdf(
-    invoice: invoice,
-    businessProfile: businessProvider.profile ??
-        BusinessProfile(
-          name: '',
-          address: '',
-          phone: '',
-          email: '',
-          logoPath: '',
-        ),
-    settingsProvider: settingsProvider,
-    l10n: l10n, // ✅ Solo pasar AppLocalizations
-  );
-} else {
+      if (isPdf) {
+        filePath = await InvoicePdfGenerator.generatePdf(
+          invoice: invoice,
+          businessProfile: businessProvider.profile ??
+              BusinessProfile(
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                logoPath: '',
+              ),
+          settingsProvider: settingsProvider,
+          l10n: l10n,
+        );
+      } else {
         filePath = await InvoiceImageGenerator.generateImage(
           invoice: invoice,
           businessProfile: businessProvider.profile ??
@@ -936,7 +940,7 @@ if (isPdf) {
     }
   }
 
-  // ✅ DESCARGAR - SÍ PIDE PERMISOS (SIN BOTÓN "VER")
+  // ✅ DESCARGAR - SÍ PIDE PERMISOS
   Future<void> _handleDownloadInvoice(
     BuildContext context,
     dynamic invoice,
@@ -946,8 +950,8 @@ if (isPdf) {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
 
-    // Verificar permisos
     final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
+
     if (!hasPermission) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -965,7 +969,6 @@ if (isPdf) {
 
     if (!context.mounted) return;
 
-    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -976,23 +979,21 @@ if (isPdf) {
       String filePath;
       bool isPdf = settingsProvider.downloadFormat == 'pdf';
 
-// ✅ DESPUÉS (correcto)
-if (isPdf) {
-  filePath = await InvoicePdfGenerator.generatePdf(
-    invoice: invoice,
-    businessProfile: businessProvider.profile ??
-        BusinessProfile(
-          name: '',
-          address: '',
-          phone: '',
-          email: '',
-          logoPath: '',
-        ),
-    settingsProvider: settingsProvider,
-    l10n: l10n, // ✅ Solo pasar AppLocalizations
-  );
-}
- else {
+      if (isPdf) {
+        filePath = await InvoicePdfGenerator.generatePdf(
+          invoice: invoice,
+          businessProfile: businessProvider.profile ??
+              BusinessProfile(
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                logoPath: '',
+              ),
+          settingsProvider: settingsProvider,
+          l10n: l10n,
+        );
+      } else {
         filePath = await InvoiceImageGenerator.generateImage(
           invoice: invoice,
           businessProfile: businessProvider.profile ??
@@ -1008,7 +1009,6 @@ if (isPdf) {
         );
       }
 
-      // Guardar en galería
       final savedPath = await GallerySaver.saveInvoiceToGallery(
         tempFilePath: filePath,
         invoiceNumber: invoice.invoiceNumber,
@@ -1016,9 +1016,7 @@ if (isPdf) {
       );
 
       if (context.mounted) {
-        Navigator.pop(context); // Cerrar loading
-
-        // ✅ MENSAJE SIMPLE SIN BOTÓN "VER"
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -1027,7 +1025,7 @@ if (isPdf) {
                 SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
-                    l10n.savedSuccessfully, // ← Nueva traducción
+                    l10n.savedSuccessfully, // ✅ TRADUCIDO
                     style: TextStyle(fontSize: 14.sp),
                   ),
                 ),
@@ -1044,7 +1042,7 @@ if (isPdf) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)),
+            content: Text('❌ ${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)),
             backgroundColor: Colors.red,
           ),
         );

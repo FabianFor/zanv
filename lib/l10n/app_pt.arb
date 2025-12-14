@@ -558,7 +558,7 @@
       "number": {"type": "int"}
     }
   },
-  "savedSuccessfully": "✅ Arquivo salvo com sucesso",
+  "savedSuccessfully": "✅ Salvo com sucesso",
   "view": "Ver",
   "couldNotOpenFile": "Não foi possível abrir o arquivo",
   "photosAccessTitle": "Acesso a Fotos",

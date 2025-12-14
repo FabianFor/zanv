@@ -1179,7 +1179,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get savedSuccessfully => '✅ File saved successfully';
+  String get savedSuccessfully => '✅ Saved successfully';
 
   @override
   String get view => 'View';

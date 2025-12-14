@@ -558,7 +558,7 @@
       "number": {"type": "int"}
     }
   },
-  "savedSuccessfully": "✅ File saved successfully",
+  "savedSuccessfully": "✅ Saved successfully",
   "view": "View",
   "couldNotOpenFile": "Could not open file",
   "photosAccessTitle": "Photos Access",

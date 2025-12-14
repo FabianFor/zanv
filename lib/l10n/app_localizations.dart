@@ -2307,7 +2307,7 @@ abstract class AppLocalizations {
   /// No description provided for @savedSuccessfully.
   ///
   /// In es, this message translates to:
-  /// **'✅ Archivo guardado exitosamente'**
+  /// **'✅ Guardado exitosamente'**
   String get savedSuccessfully;
 
   /// No description provided for @view.

@@ -1188,7 +1188,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get savedSuccessfully => '✅ Archivo guardado exitosamente';
+  String get savedSuccessfully => '✅ Guardado exitosamente';
 
   @override
   String get view => 'Ver';

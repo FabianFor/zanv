@@ -1157,7 +1157,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get loadingMoreInvoices => '加载更多发票...';
+  String get loadingMoreInvoices => '正在加载更多发票...';
 
   @override
   String confirmDeleteInvoice(String receipt, int number) {
@@ -1165,7 +1165,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get savedSuccessfully => '✅ 文件保存成功';
+  String get savedSuccessfully => '✅ 保存成功';
 
   @override
   String get view => '查看';
