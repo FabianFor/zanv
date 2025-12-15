@@ -620,5 +620,8 @@
   "invoiceBackups": "🧾 Facturas",
   "priceLabel": "Precio",
   "stockLabel": "Stock",
-  "unitsLabel": "unidades"
+  "unitsLabel": "unidades",
+  "savedInPicturesProion": "Guardado en Pictures/Proïon",
+  "savedSuccessfullyIn": "✅ Guardado en Pictures/Proïon",
+  "savedPdfInDocuments": "✅ PDF guardado en Documents/Proïon"
 }

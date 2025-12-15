@@ -1327,4 +1327,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitsLabel => 'units';
+
+  @override
+  String get savedInPicturesProion => 'Saved in Pictures/Proïon';
+
+  @override
+  String get savedSuccessfullyIn => '✅ Saved in Pictures/Proïon';
+
+  @override
+  String get savedPdfInDocuments => '✅ PDF saved in Documents/Proïon';
 }

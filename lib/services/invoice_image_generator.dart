@@ -11,10 +11,8 @@ import '../providers/settings_provider.dart';
 import '../core/utils/app_logger.dart';
 import '../l10n/app_localizations.dart';
 
-
 class InvoiceImageGenerator {
   static final GlobalKey _globalKey = GlobalKey();
-
 
   static Future<String> generateImage({
     required Invoice invoice,
@@ -25,7 +23,7 @@ class InvoiceImageGenerator {
     OverlayEntry? overlayEntry;
     
     try {
-      AppLogger.info('📸 Generando boleta...');
+      AppLogger.info('Generating receipt image...');
       
       final overlay = Overlay.of(context);
       
@@ -52,16 +50,13 @@ class InvoiceImageGenerator {
         ),
       );
 
-
       overlay.insert(overlayEntry);
       
       await Future.delayed(const Duration(milliseconds: 500));
 
-
       if (_globalKey.currentContext == null) {
-        throw Exception('No se pudo obtener el contexto del RepaintBoundary');
+        throw Exception('RepaintBoundary context not found');
       }
-
 
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -70,16 +65,14 @@ class InvoiceImageGenerator {
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       
       if (byteData == null) {
-        throw Exception('No se pudo convertir la imagen a bytes');
+        throw Exception('Image conversion failed');
       }
       
       Uint8List pngBytes = byteData.buffer.asUint8List();
-      AppLogger.success('Imagen capturada: ${pngBytes.length} bytes');
-
+      AppLogger.success('Image captured: ${pngBytes.length} bytes');
 
       overlayEntry.remove();
       overlayEntry = null;
-
 
       final directory = await getTemporaryDirectory();
       final tempPath = '${directory.path}/temp_invoice_${invoice.invoiceNumber}_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -88,33 +81,30 @@ class InvoiceImageGenerator {
       await file.writeAsBytes(pngBytes);
       
       if (!await file.exists()) {
-        throw Exception('No se pudo guardar la imagen temporal');
+        throw Exception('Temp file save failed');
       }
 
-
-      AppLogger.success('Imagen guardada: $tempPath');
+      AppLogger.success('Image saved: $tempPath');
       return tempPath;
       
     } catch (e, stackTrace) {
-      AppLogger.error('Error crítico al generar imagen', e, stackTrace);
+      AppLogger.error('Critical error generating image', e, stackTrace);
       rethrow;
     } finally {
       try {
         overlayEntry?.remove();
       } catch (e) {
-        AppLogger.warning('Error al remover overlay (no crítico)');
+        AppLogger.warning('Overlay remove error (non-critical)');
       }
     }
   }
 }
-
 
 class InvoiceContent extends StatelessWidget {
   final Invoice invoice;
   final BusinessProfile businessProfile;
   final SettingsProvider settingsProvider;
   final BuildContext context;
-
 
   const InvoiceContent({
     super.key,
@@ -123,7 +113,6 @@ class InvoiceContent extends StatelessWidget {
     required this.settingsProvider,
     required this.context,
   });
-
 
   @override
   Widget build(BuildContext ctx) {
@@ -140,8 +129,8 @@ class InvoiceContent extends StatelessWidget {
             children: [
               if (businessProfile.logoPath.isNotEmpty)
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 100,
+                  height: 100,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -151,7 +140,7 @@ class InvoiceContent extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.business, 
-                          size: 70,
+                          size: 90,
                           color: Colors.black,
                         );
                       },
@@ -160,12 +149,12 @@ class InvoiceContent extends StatelessWidget {
                 )
               else
                 Container(
-                  width: 70,
-                  height: 70,
+                  width: 100,
+                  height: 100,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: const Icon(
                     Icons.business, 
-                    size: 70,
+                    size: 90,
                     color: Colors.black,
                   ),
                 ),

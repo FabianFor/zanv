@@ -620,5 +620,8 @@
   "invoiceBackups": "🧾 发票",
   "priceLabel": "价格",
   "stockLabel": "库存",
-  "unitsLabel": "单位"
+  "unitsLabel": "单位",
+  "savedSuccessfullyIn": "✅ 已保存到 Pictures/Proïon",
+  "savedPdfInDocuments": "✅ PDF 已保存到 Documents/Proïon"
+
 }

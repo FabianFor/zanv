@@ -620,5 +620,11 @@
   "invoiceBackups": "🧾 Invoices",
   "priceLabel": "Price",
   "stockLabel": "Stock",
-  "unitsLabel": "units"
+  "unitsLabel": "units",
+  "savedInPicturesProion": "Saved in Pictures/Proïon",
+  "savedSuccessfullyIn": "✅ Saved in Pictures/Proïon",
+  "savedPdfInDocuments": "✅ PDF saved in Documents/Proïon"
+
+
+
 }

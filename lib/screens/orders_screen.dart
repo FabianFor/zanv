@@ -95,7 +95,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   Future<void> _showCustomerDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
-    final isTablet = MediaQuery.of(context).size.width > 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR PANTALLAS PEQUEÑAS
     
     return showDialog(
       context: context,
@@ -106,127 +108,182 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         return Dialog(
           backgroundColor: theme.cardBackground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-          child: Padding(
-            padding: EdgeInsets.all(isTablet ? 18.w : 20.w),
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    l10n.customerData,
-                    style: TextStyle(
-                      fontSize: isTablet ? 18.sp : 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: theme.textPrimary,
+          child: SingleChildScrollView( // ✅ HACER SCROLLABLE
+            child: Padding(
+              padding: EdgeInsets.all(isVerySmall ? 16.w : (isTablet ? 18.w : 20.w)),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.customerData,
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 18.sp : (isTablet ? 18.sp : 20.sp),
+                        fontWeight: FontWeight.bold,
+                        color: theme.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: isTablet ? 16.h : 20.h),
-                  
-                  TextFormField(
-                    controller: _customerNameController,
-                    autofocus: true,
-                    style: TextStyle(color: theme.textPrimary, fontSize: 16.sp),
-                    decoration: InputDecoration(
-                      labelText: l10n.nameField,
-                      labelStyle: TextStyle(color: theme.textSecondary, fontSize: 14.sp),
-                      prefixIcon: Icon(Icons.person, color: theme.iconColor, size: 20.sp),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: theme.borderColor),
+                    SizedBox(height: isTablet ? 16.h : 20.h),
+                    
+                    TextFormField(
+                      controller: _customerNameController,
+                      autofocus: !isVerySmall, // ✅ DESACTIVAR AUTOFOCUS EN PANTALLAS PEQUEÑAS
+                      style: TextStyle(
+                        color: theme.textPrimary, 
+                        fontSize: isVerySmall ? 14.sp : 16.sp,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: theme.primary, width: 2),
-                      ),
-                      filled: true,
-                      fillColor: theme.inputFillColor,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return l10n.nameRequiredField;
-                      }
-                      if (value.trim().length < ValidationLimits.minCustomerNameLength) {
-                        return l10n.minNameCharacters(ValidationLimits.minCustomerNameLength); // ✅ TRADUCIDO
-                      }
-                      if (value.trim().length > ValidationLimits.maxCustomerNameLength) {
-                        return l10n.nameTooLong; // ✅ TRADUCIDO
-                      }
-                      return null;
-                    },
-                    textCapitalization: TextCapitalization.words,
-                    maxLength: ValidationLimits.maxCustomerNameLength,
-                  ),
-                  SizedBox(height: 16.h),
-                  
-                  TextFormField(
-                    controller: _customerPhoneController,
-                    style: TextStyle(color: theme.textPrimary, fontSize: 16.sp),
-                    decoration: InputDecoration(
-                      labelText: l10n.phoneField,
-                      labelStyle: TextStyle(color: theme.textSecondary, fontSize: 14.sp),
-                      prefixIcon: Icon(Icons.phone, color: theme.iconColor, size: 20.sp),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: theme.borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: theme.primary, width: 2),
-                      ),
-                      filled: true,
-                      fillColor: theme.inputFillColor,
-                    ),
-                    keyboardType: TextInputType.phone,
-                    maxLength: ValidationLimits.maxPhoneLength,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty && value.length < ValidationLimits.minPhoneLength) {
-                        return l10n.invalidPhoneNumber; // ✅ TRADUCIDO
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: isTablet ? 20.h : 24.h),
-                  
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: theme.textPrimary,
-                            side: BorderSide(color: theme.borderColor),
-                            padding: EdgeInsets.symmetric(vertical: 16.h),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                          ),
-                          child: Text(l10n.cancel, style: TextStyle(fontSize: 16.sp)),
+                      decoration: InputDecoration(
+                        labelText: l10n.nameField,
+                        labelStyle: TextStyle(
+                          color: theme.textSecondary, 
+                          fontSize: isVerySmall ? 12.sp : 14.sp,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.person, 
+                          color: theme.iconColor, 
+                          size: isVerySmall ? 18.sp : 20.sp,
+                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: theme.borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: theme.primary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: theme.inputFillColor,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: isVerySmall ? 12.h : 14.h,
                         ),
                       ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (formKey.currentState!.validate()) {
-                              Navigator.pop(context);
-                              _createOrderAndInvoice();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.success,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 16.h),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                          ),
-                          child: Text(l10n.confirm, style: TextStyle(fontSize: 16.sp)),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return l10n.nameRequiredField;
+                        }
+                        if (value.trim().length < ValidationLimits.minCustomerNameLength) {
+                          return l10n.minNameCharacters(ValidationLimits.minCustomerNameLength);
+                        }
+                        if (value.trim().length > ValidationLimits.maxCustomerNameLength) {
+                          return l10n.nameTooLong;
+                        }
+                        return null;
+                      },
+                      textCapitalization: TextCapitalization.words,
+                      maxLength: ValidationLimits.maxCustomerNameLength,
+                    ),
+                    SizedBox(height: 16.h),
+                    
+                    TextFormField(
+                      controller: _customerPhoneController,
+                      style: TextStyle(
+                        color: theme.textPrimary, 
+                        fontSize: isVerySmall ? 14.sp : 16.sp,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: l10n.phoneField,
+                        labelStyle: TextStyle(
+                          color: theme.textSecondary, 
+                          fontSize: isVerySmall ? 12.sp : 14.sp,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.phone, 
+                          color: theme.iconColor, 
+                          size: isVerySmall ? 18.sp : 20.sp,
+                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: theme.borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: theme.primary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: theme.inputFillColor,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: isVerySmall ? 12.h : 14.h,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                      keyboardType: TextInputType.phone,
+                      maxLength: ValidationLimits.maxPhoneLength,
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty && value.length < ValidationLimits.minPhoneLength) {
+                          return l10n.invalidPhoneNumber;
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: isTablet ? 20.h : 24.h),
+                    
+                    // ✅✅ BOTONES CON PROTECCIÓN TOTAL ✅✅
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.textPrimary,
+                              side: BorderSide(color: theme.borderColor),
+                              padding: EdgeInsets.symmetric(
+                                vertical: isVerySmall ? 12.h : 16.h,
+                                horizontal: isVerySmall ? 8.w : 12.w,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
+                            ),
+                            child: Text(
+                              l10n.cancel, 
+                              style: TextStyle(fontSize: isVerySmall ? 13.sp : 16.sp),
+                              maxLines: 1, // ✅ PROTEGER
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (formKey.currentState!.validate()) {
+                                Navigator.pop(context);
+                                _createOrderAndInvoice();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.success,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: isVerySmall ? 12.h : 16.h,
+                                horizontal: isVerySmall ? 8.w : 12.w,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
+                            ),
+                            child: Text(
+                              l10n.confirm, 
+                              style: TextStyle(fontSize: isVerySmall ? 13.sp : 16.sp),
+                              maxLines: 1, // ✅ PROTEGER
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -242,7 +299,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ ${l10n.addToOrder}'),
+            content: Text(
+              '❌ ${l10n.addToOrder}',
+              maxLines: 2, // ✅ PROTEGER
+              overflow: TextOverflow.ellipsis,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -273,7 +334,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('❌ ${l10n.insufficientStock} ${product?.name ?? "producto"}'),
+                content: Text(
+                  '❌ ${l10n.insufficientStock} ${product?.name ?? "producto"}',
+                  maxLines: 3, // ✅ PROTEGER
+                  overflow: TextOverflow.ellipsis,
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -358,7 +423,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 children: [
                   Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
                   SizedBox(width: 8.w),
-                  Expanded(child: Text('✅ ${l10n.orderCreatedSuccess}')),
+                  Expanded(
+                    child: Text(
+                      '✅ ${l10n.orderCreatedSuccess}',
+                      maxLines: 2, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -376,7 +447,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ ${l10n.orderCreatedError}'),
+              content: Text(
+                '❌ ${l10n.orderCreatedError}',
+                maxLines: 2, // ✅ PROTEGER
+                overflow: TextOverflow.ellipsis,
+              ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
@@ -388,7 +463,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ ${l10n.unexpectedError(e.toString())}'), // ✅ TRADUCIDO
+            content: Text(
+              '❌ ${l10n.unexpectedError(e.toString())}',
+              maxLines: 3, // ✅ PROTEGER
+              overflow: TextOverflow.ellipsis,
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -401,6 +480,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
@@ -408,9 +489,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         title: Text(
           l10n.orders,
           style: TextStyle(
-            fontSize: 18.sp,
+            fontSize: isVerySmall ? 16.sp : 18.sp, // ✅ RESPONSIVE
             fontWeight: FontWeight.w600,
           ),
+          maxLines: 1, // ✅ PROTEGER
+          overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: theme.appBarBackground,
         foregroundColor: theme.appBarForeground,
@@ -419,9 +502,16 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
+          labelStyle: TextStyle(fontSize: isVerySmall ? 11.sp : 13.sp), // ✅ RESPONSIVE
           tabs: [
-            Tab(icon: const Icon(Icons.add_shopping_cart), text: l10n.createOrder),
-            Tab(icon: const Icon(Icons.receipt_long), text: l10n.invoices),
+            Tab(
+              icon: Icon(Icons.add_shopping_cart, size: isVerySmall ? 18.sp : 22.sp),
+              text: l10n.createOrder,
+            ),
+            Tab(
+              icon: Icon(Icons.receipt_long, size: isVerySmall ? 18.sp : 22.sp),
+              text: l10n.invoices,
+            ),
           ],
         ),
       ),
@@ -440,6 +530,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     final theme = ThemeHelper(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR
     
     final productProvider = context.watch<ProductProvider>();
     final settingsProvider = context.watch<SettingsProvider>();
@@ -456,14 +547,28 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           child: TextField(
             controller: _productSearchController,
             onChanged: _onSearchChanged,
-            style: TextStyle(color: theme.textPrimary, fontSize: 14.sp),
+            style: TextStyle(
+              color: theme.textPrimary, 
+              fontSize: isVerySmall ? 13.sp : 14.sp,
+            ),
             decoration: InputDecoration(
               hintText: l10n.searchProducts,
-              hintStyle: TextStyle(color: theme.textHint, fontSize: 14.sp),
-              prefixIcon: Icon(Icons.search, color: theme.iconColor, size: 20.sp),
+              hintStyle: TextStyle(
+                color: theme.textHint, 
+                fontSize: isVerySmall ? 12.sp : 14.sp,
+              ),
+              prefixIcon: Icon(
+                Icons.search, 
+                color: theme.iconColor, 
+                size: isVerySmall ? 18.sp : 20.sp,
+              ),
               suffixIcon: _productSearchQuery.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.clear, color: theme.iconColor, size: 20.sp),
+                      icon: Icon(
+                        Icons.clear, 
+                        color: theme.iconColor, 
+                        size: isVerySmall ? 18.sp : 20.sp,
+                      ),
                       onPressed: () {
                         setState(() {
                           _productSearchQuery = '';
@@ -483,7 +588,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               ),
               filled: true,
               fillColor: theme.inputFillColor,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.w, 
+                vertical: isVerySmall ? 10.h : 12.h,
+              ),
             ),
           ),
         ),
@@ -494,15 +602,17 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             margin: EdgeInsets.symmetric(horizontal: 16.w),
             child: ElevatedButton.icon(
               onPressed: () => _showCartPreview(productProvider, settingsProvider, l10n, theme),
-              icon: Icon(Icons.shopping_cart, size: 18.sp),
+              icon: Icon(Icons.shopping_cart, size: isVerySmall ? 16.sp : 18.sp),
               label: Text(
                 '${l10n.viewCart} (${_cart.values.fold(0, (sum, qty) => sum + qty)})',
-                style: TextStyle(fontSize: 14.sp),
+                style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                maxLines: 1, // ✅ PROTEGER
+                overflow: TextOverflow.ellipsis,
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.primary,
                 foregroundColor: Colors.white,
-                minimumSize: Size(double.infinity, 44.h),
+                minimumSize: Size(double.infinity, isVerySmall ? 40.h : 44.h),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
               ),
             ),
@@ -522,11 +632,17 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         color: theme.iconColorLight
                       ),
                       SizedBox(height: 16.h),
-                      Text(
-                        l10n.noProductsAvailable,
-                        style: TextStyle(
-                          fontSize: isTablet ? 16.sp : 18.sp, 
-                          color: theme.textSecondary
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: Text(
+                          l10n.noProductsAvailable,
+                          style: TextStyle(
+                            fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
+                            color: theme.textSecondary
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 3, // ✅ PROTEGER
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -553,8 +669,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                           children: [
                             // Imagen
                             Container(
-                              width: isTablet ? 60.w : 70.w,
-                              height: isTablet ? 60.w : 70.w,
+                              width: isVerySmall ? 60.w : (isTablet ? 60.w : 70.w),
+                              height: isVerySmall ? 60.w : (isTablet ? 60.w : 70.w),
                               decoration: BoxDecoration(
                                 color: theme.surfaceColor,
                                 borderRadius: BorderRadius.circular(8.r),
@@ -592,7 +708,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   Text(
                                     product.name,
                                     style: TextStyle(
-                                      fontSize: isTablet ? 15.sp : 16.sp,
+                                      fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                                       fontWeight: FontWeight.bold,
                                       color: theme.textPrimary,
                                     ),
@@ -603,19 +719,23 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   Text(
                                     settingsProvider.formatPrice(product.price),
                                     style: TextStyle(
-                                      fontSize: isTablet ? 15.sp : 16.sp,
+                                      fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                                       fontWeight: FontWeight.bold,
                                       color: theme.success,
                                     ),
+                                    maxLines: 1, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
                                     '${l10n.stock}: ${product.stock}',
                                     style: TextStyle(
-                                      fontSize: 12.sp,
+                                      fontSize: isVerySmall ? 11.sp : 12.sp,
                                       color: product.stock <= 5 
                                         ? theme.error 
                                         : theme.textSecondary,
                                     ),
+                                    maxLines: 1, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
@@ -629,18 +749,20 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
                                       onPressed: () => _removeFromCart(product.id),
                                       icon: const Icon(Icons.remove),
                                       color: theme.primary,
-                                      iconSize: 20.sp,
-                                      padding: EdgeInsets.all(8.w),
+                                      iconSize: isVerySmall ? 18.sp : 20.sp,
+                                      padding: EdgeInsets.all(isVerySmall ? 6.w : 8.w),
+                                      constraints: const BoxConstraints(),
                                     ),
                                     Text(
                                       '$inCart',
                                       style: TextStyle(
-                                        fontSize: 16.sp,
+                                        fontSize: isVerySmall ? 14.sp : 16.sp,
                                         fontWeight: FontWeight.bold,
                                         color: theme.textPrimary,
                                       ),
@@ -651,8 +773,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                         : null,
                                       icon: const Icon(Icons.add),
                                       color: theme.primary,
-                                      iconSize: 20.sp,
-                                      padding: EdgeInsets.all(8.w),
+                                      iconSize: isVerySmall ? 18.sp : 20.sp,
+                                      padding: EdgeInsets.all(isVerySmall ? 6.w : 8.w),
+                                      constraints: const BoxConstraints(),
                                     ),
                                   ],
                                 ),
@@ -662,21 +785,27 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                 onPressed: product.stock > 0 
                                   ? () => _addToCart(product.id) 
                                   : null,
-                                icon: Icon(Icons.add_shopping_cart, size: 18.sp),
+                                icon: Icon(
+                                  Icons.add_shopping_cart, 
+                                  size: isVerySmall ? 16.sp : 18.sp,
+                                ),
                                 label: Text(
                                   l10n.add, 
-                                  style: TextStyle(fontSize: 14.sp)
+                                  style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                                  maxLines: 1, // ✅ PROTEGER
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: theme.primary,
                                   foregroundColor: Colors.white,
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w, 
-                                    vertical: 10.h
+                                    horizontal: isVerySmall ? 10.w : 12.w, 
+                                    vertical: isVerySmall ? 8.h : 10.h
                                   ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8.r)
                                   ),
+                                  minimumSize: Size(0, isVerySmall ? 32.h : 36.h),
                                 ),
                               ),
                           ],
@@ -689,80 +818,102 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
         // Barra de total y botones
         if (_cart.isNotEmpty)
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: theme.cardBackground,
-              boxShadow: theme.cardShadow,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n.totalItems(_cart.values.fold(0, (sum, qty) => sum + qty)),
-                      style: TextStyle(
-                        fontSize: isTablet ? 16.sp : 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textPrimary,
+          SafeArea( // ✅ AGREGADO
+            child: Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: theme.cardBackground,
+                boxShadow: theme.cardShadow,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.totalItems(_cart.values.fold(0, (sum, qty) => sum + qty)),
+                          style: TextStyle(
+                            fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
+                            fontWeight: FontWeight.bold,
+                            color: theme.textPrimary,
+                          ),
+                          maxLines: 1, // ✅ PROTEGER
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    Text(
-                      settingsProvider.formatPrice(_calculateTotal(productProvider)),
-                      style: TextStyle(
-                        fontSize: isTablet ? 22.sp : 24.sp,
-                        fontWeight: FontWeight.bold,
-                        color: theme.success,
+                      SizedBox(width: 8.w),
+                      Text(
+                        settingsProvider.formatPrice(_calculateTotal(productProvider)),
+                        style: TextStyle(
+                          fontSize: isVerySmall ? 18.sp : (isTablet ? 22.sp : 24.sp),
+                          fontWeight: FontWeight.bold,
+                          color: theme.success,
+                        ),
+                        maxLines: 1, // ✅ PROTEGER
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _cart.clear();
-                          });
-                        },
-                        icon: Icon(Icons.clear, size: 18.sp),
-                        label: Text(l10n.clear, style: TextStyle(fontSize: 14.sp)),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.error,
-                          side: BorderSide(color: theme.error),
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r)
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _cart.clear();
+                            });
+                          },
+                          icon: Icon(Icons.clear, size: isVerySmall ? 16.sp : 18.sp),
+                          label: Text(
+                            l10n.clear, 
+                            style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                            maxLines: 1, // ✅ PROTEGER
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.error,
+                            side: BorderSide(color: theme.error),
+                            padding: EdgeInsets.symmetric(
+                              vertical: isVerySmall ? 12.h : 14.h,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r)
+                            ),
+                            minimumSize: Size(0, isVerySmall ? 40.h : 44.h),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: _showCustomerDialog,
-                        icon: Icon(Icons.check_circle, size: 18.sp),
-                        label: Text(
-                          l10n.createOrder, 
-                          style: TextStyle(fontSize: 14.sp)
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.success,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r)
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: _showCustomerDialog,
+                          icon: Icon(Icons.check_circle, size: isVerySmall ? 16.sp : 18.sp),
+                          label: Text(
+                            l10n.createOrder, 
+                            style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                            maxLines: 1, // ✅ PROTEGER
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.success,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isVerySmall ? 12.h : 14.h,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r)
+                            ),
+                            minimumSize: Size(0, isVerySmall ? 40.h : 44.h),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
       ],
@@ -775,7 +926,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     AppLocalizations l10n, 
     ThemeHelper theme
   ) {
-    final isTablet = MediaQuery.of(context).size.width > 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR
     
     showModalBottomSheet(
       context: context,
@@ -805,12 +958,16 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    l10n.cart,
-                    style: TextStyle(
-                      fontSize: isTablet ? 18.sp : 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: theme.textPrimary,
+                  Expanded(
+                    child: Text(
+                      l10n.cart,
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 18.sp : (isTablet ? 18.sp : 20.sp),
+                        fontWeight: FontWeight.bold,
+                        color: theme.textPrimary,
+                      ),
+                      maxLines: 1, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
@@ -848,7 +1005,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                 Text(
                                   product.name,
                                   style: TextStyle(
-                                    fontSize: isTablet ? 15.sp : 16.sp,
+                                    fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                                     fontWeight: FontWeight.bold,
                                     color: theme.textPrimary,
                                   ),
@@ -859,20 +1016,25 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                 Text(
                                   '${settingsProvider.formatPrice(product.price)} x $quantity',
                                   style: TextStyle(
-                                    fontSize: 14.sp, 
+                                    fontSize: isVerySmall ? 12.sp : 14.sp,
                                     color: theme.textSecondary
                                   ),
+                                  maxLines: 1, // ✅ PROTEGER
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
+                          SizedBox(width: 8.w),
                           Text(
                             settingsProvider.formatPrice(product.price * quantity),
                             style: TextStyle(
-                              fontSize: isTablet ? 15.sp : 16.sp,
+                              fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                               fontWeight: FontWeight.bold,
                               color: theme.success,
                             ),
+                            maxLines: 1, // ✅ PROTEGER
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -882,32 +1044,36 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               ),
             ),
 
-            Container(
-              padding: EdgeInsets.all(20.w),
-              decoration: BoxDecoration(
-                color: theme.primary,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${l10n.total}:',
-                    style: TextStyle(
-                      fontSize: isTablet ? 18.sp : 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+            SafeArea( // ✅ AGREGADO
+              child: Container(
+                padding: EdgeInsets.all(20.w),
+                decoration: BoxDecoration(
+                  color: theme.primary,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${l10n.total}:',
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 16.sp : (isTablet ? 18.sp : 20.sp),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  Text(
-                    settingsProvider.formatPrice(_calculateTotal(productProvider)),
-                    style: TextStyle(
-                      fontSize: isTablet ? 22.sp : 24.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Text(
+                      settingsProvider.formatPrice(_calculateTotal(productProvider)),
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 18.sp : (isTablet ? 22.sp : 24.sp),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

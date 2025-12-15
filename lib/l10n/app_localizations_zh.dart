@@ -1309,4 +1309,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get unitsLabel => '单位';
+
+  @override
+  String get savedInPicturesProion => 'Guardado en Pictures/Proïon';
+
+  @override
+  String get savedSuccessfullyIn => '✅ 已保存到 Pictures/Proïon';
+
+  @override
+  String get savedPdfInDocuments => '✅ PDF 已保存到 Documents/Proïon';
 }

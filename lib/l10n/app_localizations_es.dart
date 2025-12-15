@@ -1336,4 +1336,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unitsLabel => 'unidades';
+
+  @override
+  String get savedInPicturesProion => 'Guardado en Pictures/Proïon';
+
+  @override
+  String get savedSuccessfullyIn => '✅ Guardado en Pictures/Proïon';
+
+  @override
+  String get savedPdfInDocuments => '✅ PDF guardado en Documents/Proïon';
 }

@@ -2579,6 +2579,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'unidades'**
   String get unitsLabel;
+
+  /// No description provided for @savedInPicturesProion.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardado en Pictures/Proïon'**
+  String get savedInPicturesProion;
+
+  /// No description provided for @savedSuccessfullyIn.
+  ///
+  /// In es, this message translates to:
+  /// **'✅ Guardado en Pictures/Proïon'**
+  String get savedSuccessfullyIn;
+
+  /// No description provided for @savedPdfInDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'✅ PDF guardado en Documents/Proïon'**
+  String get savedPdfInDocuments;
 }
 
 class _AppLocalizationsDelegate

@@ -22,6 +22,8 @@ class InvoicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
@@ -29,9 +31,11 @@ class InvoicesScreen extends StatelessWidget {
         title: Text(
           l10n.invoices,
           style: TextStyle(
-            fontSize: 18.sp,
+            fontSize: isVerySmall ? 16.sp : 18.sp, // ✅ RESPONSIVE
             fontWeight: FontWeight.w600,
           ),
+          maxLines: 1, // ✅ PROTEGER
+          overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: theme.appBarBackground,
         foregroundColor: theme.appBarForeground,
@@ -169,6 +173,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     final invoiceProvider = Provider.of<InvoiceProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR
 
     final filteredInvoices = _getFilteredInvoices(invoiceProvider.invoices);
     final totalAmount = filteredInvoices.fold(0.0, (sum, invoice) => sum + invoice.total);
@@ -187,14 +192,28 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     _searchQuery = value;
                   });
                 },
-                style: TextStyle(fontSize: 14.sp, color: theme.textPrimary),
+                style: TextStyle(
+                  fontSize: isVerySmall ? 13.sp : 14.sp, // ✅ RESPONSIVE
+                  color: theme.textPrimary,
+                ),
                 decoration: InputDecoration(
                   hintText: l10n.searchByCustomer,
-                  hintStyle: TextStyle(fontSize: 14.sp, color: theme.textHint),
-                  prefixIcon: Icon(Icons.search, size: 20.sp, color: theme.iconColor),
+                  hintStyle: TextStyle(
+                    fontSize: isVerySmall ? 12.sp : 14.sp, // ✅ RESPONSIVE
+                    color: theme.textHint,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search, 
+                    size: isVerySmall ? 18.sp : 20.sp, 
+                    color: theme.iconColor,
+                  ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.clear, size: 20.sp, color: theme.iconColor),
+                          icon: Icon(
+                            Icons.clear, 
+                            size: isVerySmall ? 18.sp : 20.sp, 
+                            color: theme.iconColor,
+                          ),
                           onPressed: () {
                             setState(() {
                               _searchQuery = '';
@@ -214,7 +233,10 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                   ),
                   filled: true,
                   fillColor: theme.inputFillColor,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w, 
+                    vertical: isVerySmall ? 10.h : 12.h,
+                  ),
                 ),
               ),
               SizedBox(height: 12.h),
@@ -242,24 +264,33 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
           color: theme.primaryWithOpacity(0.1),
           child: Row(
             children: [
-              Icon(Icons.calendar_today, size: 16.sp, color: theme.primary),
+              Icon(
+                Icons.calendar_today, 
+                size: isVerySmall ? 14.sp : 16.sp, 
+                color: theme.primary,
+              ),
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
                   _getFilterLabel(l10n),
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: isVerySmall ? 12.sp : 14.sp, // ✅ RESPONSIVE
                     fontWeight: FontWeight.w600,
                     color: theme.textPrimary,
                   ),
+                  maxLines: 2, // ✅ PERMITIR 2 LÍNEAS
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              SizedBox(width: 8.w),
               Text(
                 _getCountText(l10n, filteredInvoices.length),
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: isVerySmall ? 11.sp : 13.sp, // ✅ RESPONSIVE
                   color: theme.textSecondary,
                 ),
+                maxLines: 1, // ✅ PROTEGER
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -271,21 +302,28 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  l10n.periodTotal,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.bold,
-                    color: theme.textPrimary,
+                Expanded(
+                  child: Text(
+                    l10n.periodTotal,
+                    style: TextStyle(
+                      fontSize: isVerySmall ? 14.sp : 15.sp, // ✅ RESPONSIVE
+                      fontWeight: FontWeight.bold,
+                      color: theme.textPrimary,
+                    ),
+                    maxLines: 1, // ✅ PROTEGER
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                SizedBox(width: 8.w),
                 Text(
                   settingsProvider.formatPrice(totalAmount),
                   style: TextStyle(
-                    fontSize: 18.sp,
+                    fontSize: isVerySmall ? 16.sp : 18.sp, // ✅ RESPONSIVE
                     fontWeight: FontWeight.bold,
                     color: theme.success,
                   ),
+                  maxLines: 1, // ✅ PROTEGER
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -302,11 +340,17 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         color: theme.iconColorLight,
                       ),
                       SizedBox(height: 16.h),
-                      Text(
-                        _searchQuery.isNotEmpty ? l10n.noReceiptsFound : l10n.noBilletsInPeriod,
-                        style: TextStyle(
-                          fontSize: isTablet ? 16.sp : 18.sp,
-                          color: theme.textSecondary,
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: Text(
+                          _searchQuery.isNotEmpty ? l10n.noReceiptsFound : l10n.noBilletsInPeriod,
+                          style: TextStyle(
+                            fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
+                            color: theme.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 3, // ✅ PROTEGER
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (_searchQuery.isNotEmpty || _selectedFilter != DateFilter.all) ...[
@@ -319,8 +363,11 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                               _selectedFilter = DateFilter.today;
                             });
                           },
-                          icon: Icon(Icons.clear_all, size: 18.sp),
-                          label: Text(l10n.clearAllFilters, style: TextStyle(fontSize: 14.sp)),
+                          icon: Icon(Icons.clear_all, size: isVerySmall ? 16.sp : 18.sp),
+                          label: Text(
+                            l10n.clearAllFilters, 
+                            style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                          ),
                           style: TextButton.styleFrom(foregroundColor: theme.primary),
                         ),
                       ],
@@ -345,8 +392,11 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                               CircularProgressIndicator(color: theme.primary),
                               SizedBox(height: 8.h),
                               Text(
-                                l10n.loadingMoreInvoices, // ✅ TRADUCIDO
-                                style: TextStyle(fontSize: 12.sp, color: theme.textSecondary),
+                                l10n.loadingMoreInvoices,
+                                style: TextStyle(
+                                  fontSize: isVerySmall ? 11.sp : 12.sp, 
+                                  color: theme.textSecondary,
+                                ),
                               ),
                             ],
                           ),
@@ -364,55 +414,79 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         onTap: () => _showInvoiceDetails(context, invoice),
                         borderRadius: BorderRadius.circular(12.r),
                         child: Padding(
-                          padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
+                          padding: EdgeInsets.all(isVerySmall ? 12.w : (isTablet ? 14.w : 16.w)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '${l10n.receipt} #${invoice.invoiceNumber}',
-                                    style: TextStyle(
-                                      fontSize: isTablet ? 16.sp : 18.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: theme.primary,
+                                  Expanded(
+                                    child: Text(
+                                      '${l10n.receipt} #${invoice.invoiceNumber}',
+                                      style: TextStyle(
+                                        fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.primary,
+                                      ),
+                                      maxLines: 1, // ✅ PROTEGER
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  SizedBox(width: 8.w),
                                   Text(
                                     settingsProvider.formatPrice(invoice.total),
                                     style: TextStyle(
-                                      fontSize: isTablet ? 16.sp : 18.sp,
+                                      fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
                                       fontWeight: FontWeight.bold,
                                       color: theme.success,
                                     ),
+                                    maxLines: 1, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                               SizedBox(height: 8.h),
                               Row(
                                 children: [
-                                  Icon(Icons.calendar_today, size: 14.sp, color: theme.iconColor),
+                                  Icon(
+                                    Icons.calendar_today, 
+                                    size: isVerySmall ? 12.sp : 14.sp, 
+                                    color: theme.iconColor,
+                                  ),
                                   SizedBox(width: 4.w),
-                                  Text(
-                                    DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
-                                    style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
+                                  Expanded(
+                                    child: Text(
+                                      DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
+                                      style: TextStyle(
+                                        fontSize: isVerySmall ? 12.sp : 14.sp, 
+                                        color: theme.textSecondary,
+                                      ),
+                                      maxLines: 1, // ✅ PROTEGER
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ],
                               ),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [
-                                  Icon(Icons.person, size: 16.sp, color: theme.iconColor),
+                                  Icon(
+                                    Icons.person, 
+                                    size: isVerySmall ? 14.sp : 16.sp, 
+                                    color: theme.iconColor,
+                                  ),
                                   SizedBox(width: 8.w),
                                   Expanded(
                                     child: Text(
                                       invoice.customerName,
                                       style: TextStyle(
-                                        fontSize: isTablet ? 15.sp : 16.sp,
+                                        fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                                         fontWeight: FontWeight.w500,
                                         color: theme.textPrimary,
                                       ),
+                                      maxLines: 2, // ✅ PERMITIR 2 LÍNEAS
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -421,11 +495,22 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                 SizedBox(height: 4.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.phone, size: 14.sp, color: theme.iconColor),
+                                    Icon(
+                                      Icons.phone, 
+                                      size: isVerySmall ? 12.sp : 14.sp, 
+                                      color: theme.iconColor,
+                                    ),
                                     SizedBox(width: 8.w),
-                                    Text(
-                                      invoice.customerPhone,
-                                      style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
+                                    Expanded(
+                                      child: Text(
+                                        invoice.customerPhone,
+                                        style: TextStyle(
+                                          fontSize: isVerySmall ? 12.sp : 14.sp, 
+                                          color: theme.textSecondary,
+                                        ),
+                                        maxLines: 1, // ✅ PROTEGER
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -439,7 +524,12 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                 ),
                                 child: Text(
                                   '${invoice.items.length} ${_getProductsText(l10n)}',
-                                  style: TextStyle(fontSize: 12.sp, color: theme.textSecondary),
+                                  style: TextStyle(
+                                    fontSize: isVerySmall ? 11.sp : 12.sp, 
+                                    color: theme.textSecondary,
+                                  ),
+                                  maxLines: 1, // ✅ PROTEGER
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -455,9 +545,15 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
   }
 
   Widget _buildFilterChip(String label, DateFilter filter, ThemeHelper theme) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 360;
     final isSelected = _selectedFilter == filter;
+    
     return FilterChip(
-      label: Text(label, style: TextStyle(fontSize: 13.sp)),
+      label: Text(
+        label, 
+        style: TextStyle(fontSize: isVerySmall ? 11.sp : 13.sp),
+      ),
       selected: isSelected,
       onSelected: (selected) {
         setState(() {
@@ -475,14 +571,24 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
   }
 
   Widget _buildCustomDateButton(ThemeHelper theme, AppLocalizations l10n) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 360;
     final isSelected = _selectedFilter == DateFilter.custom;
+    
     return ActionChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.date_range, size: 16.sp, color: isSelected ? Colors.white : theme.primary),
+          Icon(
+            Icons.date_range, 
+            size: isVerySmall ? 14.sp : 16.sp, 
+            color: isSelected ? Colors.white : theme.primary,
+          ),
           SizedBox(width: 4.w),
-          Text(l10n.filterRange, style: TextStyle(fontSize: 13.sp)),
+          Text(
+            l10n.filterRange, 
+            style: TextStyle(fontSize: isVerySmall ? 11.sp : 13.sp),
+          ),
         ],
       ),
       onPressed: () async {
@@ -551,6 +657,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR
 
     showModalBottomSheet(
       context: context,
@@ -579,12 +686,16 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '${l10n.receipt} #${invoice.invoiceNumber}',
-                    style: TextStyle(
-                      fontSize: isTablet ? 18.sp : 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: theme.textPrimary,
+                  Expanded(
+                    child: Text(
+                      '${l10n.receipt} #${invoice.invoiceNumber}',
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 17.sp : (isTablet ? 18.sp : 20.sp),
+                        fontWeight: FontWeight.bold,
+                        color: theme.textPrimary,
+                      ),
+                      maxLines: 2, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
@@ -604,11 +715,22 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     SizedBox(height: 12.h),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today, size: 16.sp, color: theme.iconColor),
+                        Icon(
+                          Icons.calendar_today, 
+                          size: isVerySmall ? 14.sp : 16.sp, 
+                          color: theme.iconColor,
+                        ),
                         SizedBox(width: 8.w),
-                        Text(
-                          DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
-                          style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
+                        Expanded(
+                          child: Text(
+                            DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
+                            style: TextStyle(
+                              fontSize: isVerySmall ? 12.sp : 14.sp, 
+                              color: theme.textSecondary,
+                            ),
+                            maxLines: 1, // ✅ PROTEGER
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -624,16 +746,22 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.person, size: 18.sp, color: theme.primary),
+                              Icon(
+                                Icons.person, 
+                                size: isVerySmall ? 16.sp : 18.sp, 
+                                color: theme.primary,
+                              ),
                               SizedBox(width: 8.w),
                               Expanded(
                                 child: Text(
                                   invoice.customerName,
                                   style: TextStyle(
-                                    fontSize: isTablet ? 16.sp : 18.sp,
+                                    fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
                                     fontWeight: FontWeight.bold,
                                     color: theme.textPrimary,
                                   ),
+                                  maxLines: 2, // ✅ PROTEGER
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -642,11 +770,22 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                             SizedBox(height: 8.h),
                             Row(
                               children: [
-                                Icon(Icons.phone, size: 16.sp, color: theme.iconColor),
+                                Icon(
+                                  Icons.phone, 
+                                  size: isVerySmall ? 14.sp : 16.sp, 
+                                  color: theme.iconColor,
+                                ),
                                 SizedBox(width: 8.w),
-                                Text(
-                                  invoice.customerPhone,
-                                  style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
+                                Expanded(
+                                  child: Text(
+                                    invoice.customerPhone,
+                                    style: TextStyle(
+                                      fontSize: isVerySmall ? 12.sp : 14.sp, 
+                                      color: theme.textSecondary,
+                                    ),
+                                    maxLines: 1, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ),
@@ -658,7 +797,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                     Text(
                       '${l10n.products}:',
                       style: TextStyle(
-                        fontSize: isTablet ? 16.sp : 18.sp,
+                        fontSize: isVerySmall ? 15.sp : (isTablet ? 16.sp : 18.sp),
                         fontWeight: FontWeight.bold,
                         color: theme.textPrimary,
                       ),
@@ -683,26 +822,36 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                                   Text(
                                     item.productName,
                                     style: TextStyle(
-                                      fontSize: isTablet ? 15.sp : 16.sp,
+                                      fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                                       fontWeight: FontWeight.w600,
                                       color: theme.textPrimary,
                                     ),
+                                    maxLines: 2, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
                                     '${settingsProvider.formatPrice(item.price)} x ${item.quantity}',
-                                    style: TextStyle(fontSize: 14.sp, color: theme.textSecondary),
+                                    style: TextStyle(
+                                      fontSize: isVerySmall ? 12.sp : 14.sp, 
+                                      color: theme.textSecondary,
+                                    ),
+                                    maxLines: 1, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
+                            SizedBox(width: 8.w),
                             Text(
                               settingsProvider.formatPrice(item.total),
                               style: TextStyle(
-                                fontSize: isTablet ? 15.sp : 16.sp,
+                                fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp),
                                 fontWeight: FontWeight.bold,
                                 color: theme.success,
                               ),
+                              maxLines: 1, // ✅ PROTEGER
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -717,7 +866,7 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         Text(
                           '${l10n.total}:',
                           style: TextStyle(
-                            fontSize: isTablet ? 18.sp : 20.sp,
+                            fontSize: isVerySmall ? 16.sp : (isTablet ? 18.sp : 20.sp),
                             fontWeight: FontWeight.bold,
                             color: theme.textPrimary,
                           ),
@@ -725,10 +874,12 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                         Text(
                           settingsProvider.formatPrice(invoice.total),
                           style: TextStyle(
-                            fontSize: isTablet ? 22.sp : 24.sp,
+                            fontSize: isVerySmall ? 18.sp : (isTablet ? 22.sp : 24.sp),
                             fontWeight: FontWeight.bold,
                             color: theme.success,
                           ),
+                          maxLines: 1, // ✅ PROTEGER
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -737,9 +888,10 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                 ),
               ),
             ),
+            // ✅✅ BOTONES CON PROTECCIÓN TOTAL ✅✅
             SafeArea(
               child: Padding(
-                padding: EdgeInsets.all(20.w),
+                padding: EdgeInsets.all(isVerySmall ? 16.w : 20.w),
                 child: Row(
                   children: [
                     Expanded(
@@ -750,13 +902,24 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                           businessProvider,
                           settingsProvider,
                         ),
-                        icon: Icon(Icons.share, size: 18.sp),
-                        label: Text(l10n.share, style: TextStyle(fontSize: 14.sp)),
+                        icon: Icon(Icons.share, size: isVerySmall ? 16.sp : 18.sp),
+                        label: Text(
+                          l10n.share, 
+                          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                          maxLines: 1, // ✅ PROTEGER
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.success,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isVerySmall ? 12.h : 14.h,
+                            horizontal: isVerySmall ? 8.w : 12.w,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
                         ),
                       ),
                     ),
@@ -769,31 +932,44 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
                           businessProvider,
                           settingsProvider,
                         ),
-                        icon: Icon(Icons.download, size: 18.sp),
-                        label: Text(l10n.download, style: TextStyle(fontSize: 14.sp)),
+                        icon: Icon(Icons.download, size: isVerySmall ? 16.sp : 18.sp),
+                        label: Text(
+                          l10n.download, 
+                          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                          maxLines: 1, // ✅ PROTEGER
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: theme.primary,
                           side: BorderSide(color: theme.borderColor),
-                          padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isVerySmall ? 12.h : 14.h,
+                            horizontal: isVerySmall ? 8.w : 12.w,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
                         ),
                       ),
                     ),
-                    SizedBox(width: 8.w),
-                    if (authProvider.esAdmin)
+                    if (authProvider.esAdmin) ...[
+                      SizedBox(width: 8.w),
                       IconButton(
                         onPressed: () {
                           Navigator.pop(context);
                           _confirmDeleteInvoice(context, invoice);
                         },
-                        icon: Icon(Icons.delete, size: 24.sp),
+                        icon: Icon(Icons.delete, size: isVerySmall ? 20.sp : 24.sp),
                         color: theme.error,
                         tooltip: l10n.delete,
                         style: IconButton.styleFrom(
                           backgroundColor: theme.errorWithOpacity(0.1),
-                          padding: EdgeInsets.all(12.w),
+                          padding: EdgeInsets.all(isVerySmall ? 10.w : 12.w),
+                          minimumSize: Size(isVerySmall ? 40.w : 48.w, isVerySmall ? 40.h : 48.h),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ),
@@ -807,63 +983,142 @@ class _InvoicesScreenContentState extends State<InvoicesScreenContent> {
   void _confirmDeleteInvoice(BuildContext context, dynamic invoice) {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 360;
+    final isTablet = screenWidth > 600;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: theme.warning, size: 24.sp),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                l10n.deleteInvoice,
-                style: TextStyle(fontSize: 18.sp, color: theme.textPrimary),
+        contentPadding: EdgeInsets.zero, // ✅ CONTROL MANUAL
+        title: Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 12.h),
+          child: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded, 
+                color: theme.warning, 
+                size: isVerySmall ? 20.sp : 24.sp,
               ),
-            ),
-          ],
-        ),
-// ✅ DESPUÉS (CORRECTO)
-content: Text(
-  '${l10n.confirmDeleteInvoice}\n\n${l10n.cannotUndo}'
-      .replaceAll('{receipt}', l10n.receipt)
-      .replaceAll('{number}', invoice.invoiceNumber.toString()),
-  style: TextStyle(fontSize: 15.sp, color: theme.textPrimary),
-),
-
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(fontSize: 14.sp)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
-              await invoiceProvider.deleteInvoice(invoice.id);
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                        SizedBox(width: 8.w),
-                        Text(l10n.invoiceDeleted, style: TextStyle(fontSize: 14.sp)),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  l10n.deleteInvoice,
+                  style: TextStyle(
+                    fontSize: isVerySmall ? 16.sp : (isTablet ? 18.sp : 18.sp),
+                    fontWeight: FontWeight.bold,
+                    color: theme.textPrimary,
                   ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.error,
-              foregroundColor: Colors.white,
+                  maxLines: 2, // ✅ PROTEGER
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        content: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          child: Text(
+            '${l10n.confirmDeleteInvoice}\n\n${l10n.cannotUndo}'
+                .replaceAll('{receipt}', l10n.receipt)
+                .replaceAll('{number}', invoice.invoiceNumber.toString()),
+            style: TextStyle(
+              fontSize: isVerySmall ? 13.sp : 15.sp,
+              color: theme.textPrimary,
             ),
-            child: Text(l10n.delete, style: TextStyle(fontSize: 14.sp)),
+            maxLines: 5, // ✅ PROTEGER
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.textPrimary,
+                      side: BorderSide(color: theme.borderColor, width: 1.5),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isVerySmall ? 12.h : 16.h,
+                        horizontal: isVerySmall ? 8.w : 12.w,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 13.sp : 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+                      await invoiceProvider.deleteInvoice(invoice.id);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: Text(
+                                    l10n.invoiceDeleted,
+                                    style: TextStyle(fontSize: 14.sp),
+                                    maxLines: 2, // ✅ PROTEGER
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.error,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isVerySmall ? 12.h : 16.h,
+                        horizontal: isVerySmall ? 8.w : 12.w,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
+                      elevation: 2,
+                    ),
+                    child: Text(
+                      l10n.delete,
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 13.sp : 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1, // ✅ PROTEGER
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -932,7 +1187,12 @@ content: Text(
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ ${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)),
+            content: Text(
+              '❌ ${l10n.error}: $e',
+              style: TextStyle(fontSize: 14.sp),
+              maxLines: 3, // ✅ PROTEGER
+              overflow: TextOverflow.ellipsis,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -940,115 +1200,132 @@ content: Text(
     }
   }
 
-  // ✅ DESCARGAR - SÍ PIDE PERMISOS
-  Future<void> _handleDownloadInvoice(
-    BuildContext context,
-    dynamic invoice,
-    BusinessProvider businessProvider,
-    SettingsProvider settingsProvider,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = ThemeHelper(context);
+// ✅ DESCARGAR - SÍ PIDE PERMISOS
+Future<void> _handleDownloadInvoice(
+  BuildContext context,
+  dynamic invoice,
+  BusinessProvider businessProvider,
+  SettingsProvider settingsProvider,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final theme = ThemeHelper(context);
 
-    final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
+  final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
 
-    if (!hasPermission) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.needPermissionsToDownload,
-              style: TextStyle(fontSize: 14.sp),
-            ),
-            backgroundColor: Colors.orange,
+  if (!hasPermission) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.needPermissionsToDownload,
+            style: TextStyle(fontSize: 14.sp),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-        );
-      }
-      return;
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+    return;
+  }
+
+  if (!context.mounted) return;
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(child: CircularProgressIndicator()),
+  );
+
+  try {
+    String filePath;
+    bool isPdf = settingsProvider.downloadFormat == 'pdf';
+
+    if (isPdf) {
+      filePath = await InvoicePdfGenerator.generatePdf(
+        invoice: invoice,
+        businessProfile: businessProvider.profile ??
+            BusinessProfile(
+              name: '',
+              address: '',
+              phone: '',
+              email: '',
+              logoPath: '',
+            ),
+        settingsProvider: settingsProvider,
+        l10n: l10n,
+      );
+    } else {
+      filePath = await InvoiceImageGenerator.generateImage(
+        invoice: invoice,
+        businessProfile: businessProvider.profile ??
+            BusinessProfile(
+              name: '',
+              address: '',
+              phone: '',
+              email: '',
+              logoPath: '',
+            ),
+        context: context,
+        settingsProvider: settingsProvider,
+      );
     }
 
-    if (!context.mounted) return;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+    final savedPath = await GallerySaver.saveInvoiceToGallery(
+      tempFilePath: filePath,
+      invoiceNumber: invoice.invoiceNumber,
+      isPdf: isPdf,
     );
 
-    try {
-      String filePath;
-      bool isPdf = settingsProvider.downloadFormat == 'pdf';
-
-      if (isPdf) {
-        filePath = await InvoicePdfGenerator.generatePdf(
-          invoice: invoice,
-          businessProfile: businessProvider.profile ??
-              BusinessProfile(
-                name: '',
-                address: '',
-                phone: '',
-                email: '',
-                logoPath: '',
-              ),
-          settingsProvider: settingsProvider,
-          l10n: l10n,
-        );
-      } else {
-        filePath = await InvoiceImageGenerator.generateImage(
-          invoice: invoice,
-          businessProfile: businessProvider.profile ??
-              BusinessProfile(
-                name: '',
-                address: '',
-                phone: '',
-                email: '',
-                logoPath: '',
-              ),
-          context: context,
-          settingsProvider: settingsProvider,
-        );
-      }
-
-      final savedPath = await GallerySaver.saveInvoiceToGallery(
-        tempFilePath: filePath,
-        invoiceNumber: invoice.invoiceNumber,
-        isPdf: isPdf,
-      );
-
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: Text(
-                    l10n.savedSuccessfully, // ✅ TRADUCIDO
-                    style: TextStyle(fontSize: 14.sp),
-                  ),
+    if (context.mounted) {
+      // ✅ PRIMERO CERRAR EL LOADING
+      Navigator.pop(context);
+      
+      // ✅ SEGUNDO CERRAR EL MODAL DE DETALLES
+      Navigator.pop(context);
+      
+      // ✅ TERCERO MOSTRAR EL MENSAJE SEGÚN TIPO
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  isPdf ? l10n.savedPdfInDocuments : l10n.savedSuccessfullyIn,
+                  style: TextStyle(fontSize: 14.sp),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-            backgroundColor: theme.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
+              ),
+            ],
           ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ ${l10n.error}: $e', style: TextStyle(fontSize: 14.sp)),
-            backgroundColor: Colors.red,
+          backgroundColor: theme.success,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      Navigator.pop(context); // Cerrar loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '❌ ${l10n.error}: $e',
+            style: TextStyle(fontSize: 14.sp),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
-        );
-      }
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+}
+
+
 
   String _getProductsText(AppLocalizations l10n) {
     switch (l10n.localeName) {

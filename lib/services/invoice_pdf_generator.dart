@@ -7,7 +7,6 @@ import '../models/business_profile.dart';
 import '../providers/settings_provider.dart';
 import '../l10n/app_localizations.dart';
 
-/// ⚡ PDF LIGERO - Sin Google Fonts (ahorra ~15-20 MB)
 class InvoicePdfGenerator {
   static Future<String> generatePdf({
     required dynamic invoice,
@@ -17,10 +16,18 @@ class InvoicePdfGenerator {
   }) async {
     final pdf = pw.Document();
 
-    // ⚡ USAR FUENTES POR DEFECTO (no descargar nada)
-    final textStyle = const pw.TextStyle(fontSize: 12);
-    final boldStyle = pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
-    final titleStyle = pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold);
+    final textStyle = const pw.TextStyle(fontSize: 12, color: PdfColors.black);
+    final boldStyle = pw.TextStyle(
+      fontSize: 13,
+      fontWeight: pw.FontWeight.bold,
+      color: PdfColors.black,
+    );
+    final titleStyle = pw.TextStyle(
+      fontSize: 32,
+      fontWeight: pw.FontWeight.bold,
+      color: PdfColors.black,
+    );
+    final infoStyle = const pw.TextStyle(fontSize: 16, color: PdfColors.black);
 
     pw.ImageProvider? logoImage;
     if (businessProfile.logoPath.isNotEmpty) {
@@ -31,7 +38,7 @@ class InvoicePdfGenerator {
           logoImage = pw.MemoryImage(bytes);
         }
       } catch (e) {
-        print('⚠️ Logo no disponible');
+        print('Logo error: $e');
       }
     }
 
@@ -43,60 +50,143 @@ class InvoicePdfGenerator {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Logo
+              pw.SizedBox(height: 20),
+
               if (logoImage != null)
                 pw.Center(
                   child: pw.Container(
-                    width: 80,
-                    height: 80,
-                    margin: const pw.EdgeInsets.only(bottom: 20),
+                    width: 100,
+                    height: 100,
+                    margin: const pw.EdgeInsets.only(bottom: 8),
                     child: pw.Image(logoImage, fit: pw.BoxFit.contain),
                   ),
                 ),
 
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 30),
 
-              // Nombre del negocio
               pw.Text(
-                businessProfile.name.isNotEmpty ? businessProfile.name : l10n.businessNameLabel,
+                businessProfile.name.isNotEmpty
+                    ? businessProfile.name
+                    : l10n.businessNameLabel,
                 style: titleStyle,
               ),
 
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 12),
 
-              // Información
               if (businessProfile.address.isNotEmpty)
-                pw.Text('📍 ${businessProfile.address}', style: textStyle),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('📍 ', style: infoStyle),
+                    pw.Expanded(
+                      child: pw.Text(businessProfile.address, style: infoStyle),
+                    ),
+                  ],
+                ),
+
+              pw.SizedBox(height: 8),
+
               if (businessProfile.phone.isNotEmpty)
-                pw.Text('📞 ${businessProfile.phone}', style: textStyle),
+                pw.Row(
+                  children: [
+                    pw.Text('📞 ', style: infoStyle),
+                    pw.Text(businessProfile.phone, style: infoStyle),
+                  ],
+                ),
+
+              pw.SizedBox(height: 8),
+
               if (businessProfile.email.isNotEmpty)
-                pw.Text('📧 ${businessProfile.email}', style: textStyle),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('📧 ', style: infoStyle),
+                    pw.Expanded(
+                      child: pw.Text(businessProfile.email, style: infoStyle),
+                    ),
+                  ],
+                ),
 
               pw.SizedBox(height: 30),
 
-              // Tabla de productos
               pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey400),
+                border: pw.TableBorder.all(color: PdfColors.grey400, width: 1),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(2.8),
+                  1: const pw.FlexColumnWidth(1.2),
+                  2: const pw.FlexColumnWidth(1.5),
+                  3: const pw.FlexColumnWidth(1.5),
+                },
                 children: [
-                  // Header
                   pw.TableRow(
                     decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                     children: [
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(l10n.productList, style: boldStyle)),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(l10n.quantity, style: boldStyle)),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(l10n.unitPrice, style: boldStyle)),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(l10n.totalPrice, style: boldStyle)),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(l10n.productList, style: boldStyle),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          l10n.quantity,
+                          style: boldStyle,
+                          textAlign: pw.TextAlign.center,
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          l10n.unitPrice,
+                          style: boldStyle,
+                          textAlign: pw.TextAlign.center,
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          l10n.totalPrice,
+                          style: boldStyle,
+                          textAlign: pw.TextAlign.center,
+                        ),
+                      ),
                     ],
                   ),
 
-                  // Items
                   ...invoice.items.map<pw.TableRow>((item) {
                     return pw.TableRow(
                       children: [
-                        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(item.productName, style: textStyle)),
-                        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('${item.quantity}', style: textStyle)),
-                        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(settingsProvider.formatPrice(item.price), style: textStyle)),
-                        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(settingsProvider.formatPrice(item.total), style: textStyle)),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(item.productName, style: textStyle),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            '${item.quantity}',
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.black,
+                            ),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            settingsProvider.formatPrice(item.price),
+                            style: textStyle,
+                            textAlign: pw.TextAlign.right,
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            settingsProvider.formatPrice(item.total),
+                            style: textStyle,
+                            textAlign: pw.TextAlign.right,
+                          ),
+                        ),
                       ],
                     );
                   }).toList(),
@@ -105,24 +195,29 @@ class InvoicePdfGenerator {
 
               pw.SizedBox(height: 20),
 
-              // Total
               pw.Container(
                 width: double.infinity,
                 padding: const pw.EdgeInsets.all(16),
                 decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                 child: pw.Text(
                   '${l10n.totalLabel} ${settingsProvider.formatPrice(invoice.total)}',
-                  style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
+                  ),
                 ),
               ),
 
               pw.SizedBox(height: 20),
 
-              // Fecha
               pw.Center(
                 child: pw.Text(
                   DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
-                  style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                  style: const pw.TextStyle(
+                    fontSize: 11,
+                    color: PdfColors.grey700,
+                  ),
                 ),
               ),
             ],

@@ -322,136 +322,148 @@ class OptimizedProductCard extends StatelessWidget {
     );
   }
 
-void _confirmDelete(BuildContext context, Product product) {
-  final l10n = AppLocalizations.of(context)!;
-  final theme = ThemeHelper(context);
-  final screenWidth = MediaQuery.of(context).size.width;
-  final isTablet = screenWidth > 600;
+  void _confirmDelete(BuildContext context, Product product) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = ThemeHelper(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR PANTALLAS MUY PEQUEÑAS
 
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: theme.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-      contentPadding: EdgeInsets.zero, // ✅ NUEVO
-      title: Padding(
-        padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 12.h), // ✅ NUEVO
-        child: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: theme.warning, size: 28.sp),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                l10n.deleteProduct,
-                style: TextStyle(
-                  fontSize: isTablet ? 18.sp : 20.sp,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      content: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h), // ✅ NUEVO
-        child: Text(
-          '${l10n.deleteProductConfirm}\n\n"${product.name}"',
-          style: TextStyle(
-            fontSize: isTablet ? 14.sp : 16.sp,
-            color: theme.textPrimary,
-            height: 1.4,
-          ),
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h), // ✅ NUEVO: Padding alrededor
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        contentPadding: EdgeInsets.zero,
+        title: Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 12.h),
           child: Row(
             children: [
-              // Botón Cancelar
+              Icon(Icons.warning_amber_rounded, color: theme.warning, size: 28.sp),
+              SizedBox(width: 12.w),
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.textPrimary,
-                    side: BorderSide(color: theme.borderColor, width: 1.5),
-                    padding: EdgeInsets.symmetric(
-                      vertical: isTablet ? 14.h : 16.h, // ✅ MÁS ALTO
-                      horizontal: 16.w, // ✅ MÁS ANCHO
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    minimumSize: Size(0, isTablet ? 44.h : 48.h), // ✅ ALTURA MÍNIMA
+                child: Text(
+                  l10n.deleteProduct,
+                  style: TextStyle(
+                    fontSize: isTablet ? 18.sp : (isVerySmall ? 17.sp : 20.sp), // ✅ RESPONSIVE
+                    fontWeight: FontWeight.bold,
+                    color: theme.textPrimary,
                   ),
-                  child: Text(
-                    l10n.cancel,
-                    style: TextStyle(
-                      fontSize: isTablet ? 14.sp : 16.sp, // ✅ TEXTO MÁS GRANDE
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.w), // ✅ ESPACIO ENTRE BOTONES
-              // Botón Eliminar
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final productProvider = context.read<ProductProvider>();
-                    await productProvider.deleteProduct(product.id);
-
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                              SizedBox(width: 8.w),
-                              Text(
-                                l10n.productDeleted,
-                                style: TextStyle(fontSize: 14.sp),
-                              ),
-                            ],
-                          ),
-                          backgroundColor: Colors.green,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.error,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      vertical: isTablet ? 14.h : 16.h, // ✅ MÁS ALTO
-                      horizontal: 16.w, // ✅ MÁS ANCHO
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    minimumSize: Size(0, isTablet ? 44.h : 48.h), // ✅ ALTURA MÍNIMA
-                    elevation: 2,
-                  ),
-                  child: Text(
-                    l10n.delete,
-                    style: TextStyle(
-                      fontSize: isTablet ? 14.sp : 16.sp, // ✅ TEXTO MÁS GRANDE
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  maxLines: 2, // ✅ PERMITIR 2 LÍNEAS
+                  overflow: TextOverflow.ellipsis, // ✅ TRUNCAR SI ES MUY LARGO
                 ),
               ),
             ],
           ),
         ),
-      ],
-    ),
-  );
-}
+        content: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          child: Text(
+            '${l10n.deleteProductConfirm}\n\n"${product.name}"',
+            style: TextStyle(
+              fontSize: isTablet ? 14.sp : (isVerySmall ? 13.sp : 16.sp), // ✅ RESPONSIVE
+              color: theme.textPrimary,
+              height: 1.4,
+            ),
+            maxLines: 5, // ✅ LIMITAR LÍNEAS
+            overflow: TextOverflow.ellipsis, // ✅ TRUNCAR SI ES MUY LARGO
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
+            child: Row(
+              children: [
+                // Botón Cancelar
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.textPrimary,
+                      side: BorderSide(color: theme.borderColor, width: 1.5),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isTablet ? 14.h : (isVerySmall ? 12.h : 16.h), // ✅ RESPONSIVE
+                        horizontal: 16.w,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(0, isTablet ? 44.h : (isVerySmall ? 40.h : 48.h)), // ✅ RESPONSIVE
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: TextStyle(
+                        fontSize: isTablet ? 14.sp : (isVerySmall ? 12.sp : 16.sp), // ✅ RESPONSIVE
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1, // ✅ UNA LÍNEA
+                      overflow: TextOverflow.ellipsis, // ✅ TRUNCAR SI ES NECESARIO
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                // Botón Eliminar
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final productProvider = context.read<ProductProvider>();
+                      await productProvider.deleteProduct(product.id);
 
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                                SizedBox(width: 8.w),
+                                Expanded( // ✅ EXPANDIR TEXTO
+                                  child: Text(
+                                    l10n.productDeleted,
+                                    style: TextStyle(fontSize: 14.sp),
+                                    maxLines: 2, // ✅ PERMITIR 2 LÍNEAS
+                                    overflow: TextOverflow.ellipsis, // ✅ TRUNCAR
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.error,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isTablet ? 14.h : (isVerySmall ? 12.h : 16.h), // ✅ RESPONSIVE
+                        horizontal: 16.w,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(0, isTablet ? 44.h : (isVerySmall ? 40.h : 48.h)), // ✅ RESPONSIVE
+                      elevation: 2,
+                    ),
+                    child: Text(
+                      l10n.delete,
+                      style: TextStyle(
+                        fontSize: isTablet ? 14.sp : (isVerySmall ? 12.sp : 16.sp), // ✅ RESPONSIVE
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1, // ✅ UNA LÍNEA
+                      overflow: TextOverflow.ellipsis, // ✅ TRUNCAR SI ES NECESARIO
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -530,6 +542,8 @@ void _confirmDelete(BuildContext context, Product product) {
                         fontWeight: FontWeight.bold,
                         color: theme.success,
                       ),
+                      maxLines: 1, // ✅ EVITAR OVERFLOW
+                      overflow: TextOverflow.ellipsis, // ✅ TRUNCAR
                     ),
                     SizedBox(height: 2.h),
                     Row(
@@ -540,11 +554,15 @@ void _confirmDelete(BuildContext context, Product product) {
                           color: product.stock <= 5 ? theme.error : theme.textSecondary,
                         ),
                         SizedBox(width: 4.w),
-                        Text(
-                          '${l10n.stock}: ${product.stock}',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: product.stock <= 5 ? theme.error : theme.textSecondary,
+                        Expanded( // ✅ EVITAR OVERFLOW
+                          child: Text(
+                            '${l10n.stock}: ${product.stock}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: product.stock <= 5 ? theme.error : theme.textSecondary,
+                            ),
+                            maxLines: 1, // ✅ UNA LÍNEA
+                            overflow: TextOverflow.ellipsis, // ✅ TRUNCAR
                           ),
                         ),
                       ],

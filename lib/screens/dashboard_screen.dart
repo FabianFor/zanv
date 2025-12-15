@@ -32,14 +32,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
-    final horizontalPadding = isTablet ? 24.w : 20.w;
-    final verticalSpacing = isTablet ? 12.h : 16.h;
+    final isVerySmall = screenWidth < 360; // ✅ DETECTAR PANTALLAS PEQUEÑAS
+    final horizontalPadding = isTablet ? 24.w : (isVerySmall ? 16.w : 20.w);
+    final verticalSpacing = isTablet ? 12.h : (isVerySmall ? 12.h : 16.h);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       body: Column(
         children: [
-          // ✅ HEADER LIMPIO Y ARREGLADO
+          // ✅ HEADER LIMPIO Y ARREGLADO CON PROTECCIÓN
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -57,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: horizontalPadding,
-                  vertical: isTablet ? 16.h : 20.h,
+                  vertical: isVerySmall ? 14.h : (isTablet ? 16.h : 20.h),
                 ),
                 child: Row(
                   children: [
@@ -65,9 +66,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     if (businessProvider.profile?.logoPath != null &&
                         businessProvider.profile!.logoPath!.isNotEmpty)
                       Container(
-                        width: isTablet ? 50.w : 56.w,
-                        height: isTablet ? 50.w : 56.w,
-                        margin: EdgeInsets.only(right: 16.w),
+                        width: isVerySmall ? 48.w : (isTablet ? 50.w : 56.w),
+                        height: isVerySmall ? 48.w : (isTablet ? 50.w : 56.w),
+                        margin: EdgeInsets.only(right: isVerySmall ? 12.w : 16.w),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
@@ -85,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 child: Icon(
                                   Icons.business,
                                   color: theme.appBarForeground,
-                                  size: isTablet ? 24.sp : 28.sp,
+                                  size: isVerySmall ? 22.sp : (isTablet ? 24.sp : 28.sp),
                                 ),
                               );
                             },
@@ -94,9 +95,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       )
                     else
                       Container(
-                        width: isTablet ? 50.w : 56.w,
-                        height: isTablet ? 50.w : 56.w,
-                        margin: EdgeInsets.only(right: 16.w),
+                        width: isVerySmall ? 48.w : (isTablet ? 50.w : 56.w),
+                        height: isVerySmall ? 48.w : (isTablet ? 50.w : 56.w),
+                        margin: EdgeInsets.only(right: isVerySmall ? 12.w : 16.w),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: theme.primary.withOpacity(0.2),
@@ -108,7 +109,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Icon(
                           Icons.business,
                           color: theme.appBarForeground,
-                          size: isTablet ? 24.sp : 28.sp,
+                          size: isVerySmall ? 22.sp : (isTablet ? 24.sp : 28.sp),
                         ),
                       ),
 
@@ -123,14 +124,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ? l10n.businessName
                                 : businessProvider.profile!.businessName,
                             style: TextStyle(
-                              fontSize: isTablet ? 22.sp : 24.sp,
+                              fontSize: isVerySmall ? 18.sp : (isTablet ? 22.sp : 24.sp), // ✅ RESPONSIVE
                               fontWeight: FontWeight.bold,
                               color: theme.appBarForeground,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          // ✅ MOSTRAR ROL ACTUAL (INFORMATIVO, NO BOTÓN)
                           SizedBox(height: 4.h),
                         ],
                       ),
@@ -148,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
                 horizontal: horizontalPadding,
-                vertical: isTablet ? 20.h : 24.h,
+                vertical: isVerySmall ? 16.h : (isTablet ? 20.h : 24.h),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,10 +156,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     l10n.quickAccess,
                     style: TextStyle(
-                      fontSize: isTablet ? 17.sp : 18.sp,
+                      fontSize: isVerySmall ? 16.sp : (isTablet ? 17.sp : 18.sp), // ✅ RESPONSIVE
                       fontWeight: FontWeight.bold,
                       color: theme.textPrimary,
                     ),
+                    maxLines: 1, // ✅ PROTEGER
+                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: isTablet ? 14.h : 16.h),
 
@@ -169,6 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.inventory_2,
                     color: theme.success,
                     isTablet: isTablet,
+                    isVerySmall: isVerySmall, // ✅ PASAR PARÁMETRO
                     theme: theme,
                     onTap: () {
                       Navigator.push(
@@ -185,6 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.shopping_cart,
                     color: theme.primary,
                     isTablet: isTablet,
+                    isVerySmall: isVerySmall, // ✅ PASAR PARÁMETRO
                     theme: theme,
                     onTap: () {
                       Navigator.push(
@@ -201,6 +205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.receipt_long,
                     color: theme.warning,
                     isTablet: isTablet,
+                    isVerySmall: isVerySmall, // ✅ PASAR PARÁMETRO
                     theme: theme,
                     onTap: () {
                       Navigator.push(
@@ -218,6 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.analytics,
                       color: const Color(0xFF9C27B0),
                       isTablet: isTablet,
+                      isVerySmall: isVerySmall, // ✅ PASAR PARÁMETRO
                       theme: theme,
                       onTap: () {
                         Navigator.push(
@@ -235,6 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.settings,
                     color: theme.info,
                     isTablet: isTablet,
+                    isVerySmall: isVerySmall, // ✅ PASAR PARÁMETRO
                     theme: theme,
                     onTap: () {
                       Navigator.push(
@@ -246,12 +253,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   // ALERTA DE STOCK BAJO
                   if (productProvider.lowStockProducts.isNotEmpty) ...[
-                    SizedBox(height: isTablet ? 28.h : 32.h),
+                    SizedBox(height: isVerySmall ? 24.h : (isTablet ? 28.h : 32.h)),
                     _buildLowStockAlert(
                       context,
                       productProvider,
                       l10n,
                       isTablet,
+                      isVerySmall, // ✅ PASAR PARÁMETRO
                       theme,
                     ),
                   ],
@@ -269,10 +277,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ProductProvider productProvider,
     AppLocalizations l10n,
     bool isTablet,
+    bool isVerySmall, // ✅ NUEVO PARÁMETRO
     ThemeHelper theme,
   ) {
     return Container(
-      padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
+      padding: EdgeInsets.all(isVerySmall ? 12.w : (isTablet ? 14.w : 16.w)),
       decoration: BoxDecoration(
         color: theme.errorWithOpacity(0.1),
         borderRadius: BorderRadius.circular(16.r),
@@ -289,17 +298,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Icon(
                 Icons.warning_amber_rounded,
                 color: theme.error,
-                size: isTablet ? 22.sp : 24.sp,
+                size: isVerySmall ? 20.sp : (isTablet ? 22.sp : 24.sp), // ✅ RESPONSIVE
               ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Text(
                   l10n.lowStockProducts,
                   style: TextStyle(
-                    fontSize: isTablet ? 15.sp : 16.sp,
+                    fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp), // ✅ RESPONSIVE
                     fontWeight: FontWeight.bold,
                     color: theme.error,
                   ),
+                  maxLines: 2, // ✅ PROTEGER
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -312,10 +323,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
+                    flex: 2,
                     child: Text(
                       product.name,
                       style: TextStyle(
-                        fontSize: isTablet ? 13.sp : 14.sp,
+                        fontSize: isVerySmall ? 12.sp : (isTablet ? 13.sp : 14.sp), // ✅ RESPONSIVE
                         color: theme.textPrimary,
                       ),
                       maxLines: 1,
@@ -326,10 +338,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     '${l10n.stock}: ${product.stock}',
                     style: TextStyle(
-                      fontSize: isTablet ? 13.sp : 14.sp,
+                      fontSize: isVerySmall ? 12.sp : (isTablet ? 13.sp : 14.sp), // ✅ RESPONSIVE
                       fontWeight: FontWeight.bold,
                       color: theme.error,
                     ),
+                    maxLines: 1, // ✅ PROTEGER
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -346,6 +360,7 @@ class _QuickAccessTile extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool isTablet;
+  final bool isVerySmall; // ✅ NUEVO PARÁMETRO
   final ThemeHelper theme;
   final VoidCallback onTap;
 
@@ -354,6 +369,7 @@ class _QuickAccessTile extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.isTablet,
+    required this.isVerySmall, // ✅ REQUERIDO
     required this.theme,
     required this.onTap,
   });
@@ -371,8 +387,8 @@ class _QuickAccessTile extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-            vertical: isTablet ? 16.h : 18.h,
-            horizontal: isTablet ? 18.w : 18.w,
+            vertical: isVerySmall ? 14.h : (isTablet ? 16.h : 18.h), // ✅ RESPONSIVE
+            horizontal: isVerySmall ? 14.w : 18.w, // ✅ RESPONSIVE
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
@@ -384,8 +400,8 @@ class _QuickAccessTile extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: isTablet ? 40.w : 44.w,
-                height: isTablet ? 40.w : 44.w,
+                width: isVerySmall ? 38.w : (isTablet ? 40.w : 44.w), // ✅ RESPONSIVE
+                height: isVerySmall ? 38.w : (isTablet ? 40.w : 44.w), // ✅ RESPONSIVE
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
@@ -393,26 +409,30 @@ class _QuickAccessTile extends StatelessWidget {
                 child: Icon(
                   icon,
                   color: Colors.white,
-                  size: isTablet ? 22.sp : 24.sp,
+                  size: isVerySmall ? 20.sp : (isTablet ? 22.sp : 24.sp), // ✅ RESPONSIVE
                 ),
               ),
-              SizedBox(width: isTablet ? 16.w : 16.w),
+              SizedBox(width: isVerySmall ? 12.w : 16.w), // ✅ RESPONSIVE
               
               Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: isTablet ? 15.sp : 16.sp,
+                    fontSize: isVerySmall ? 14.sp : (isTablet ? 15.sp : 16.sp), // ✅ RESPONSIVE
                     fontWeight: FontWeight.w600,
                     color: theme.textPrimary,
                   ),
+                  maxLines: 2, // ✅ PERMITIR 2 LÍNEAS PARA LABELS LARGOS
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              
+              SizedBox(width: 8.w), // ✅ ESPACIO MÍNIMO
               
               Icon(
                 Icons.arrow_forward_ios,
                 color: theme.iconColor,
-                size: isTablet ? 18.sp : 20.sp,
+                size: isVerySmall ? 16.sp : (isTablet ? 18.sp : 20.sp), // ✅ RESPONSIVE
               ),
             ],
           ),

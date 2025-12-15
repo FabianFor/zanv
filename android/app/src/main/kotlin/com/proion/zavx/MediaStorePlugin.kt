@@ -2,17 +2,21 @@ package com.proion.zavx
 
 import android.content.ContentValues
 import android.content.Context
+import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 
 class MediaStorePlugin {
     companion object {
         private const val CHANNEL = "com.proion.zavx/media_store"
+        private const val TAG = "MediaStorePlugin"
 
         fun registerWith(flutterEngine: FlutterEngine, context: Context) {
             val channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
@@ -22,13 +26,13 @@ class MediaStorePlugin {
                     "saveToPublicStorage" -> {
                         try {
                             val fileName = call.argument<String>("fileName") ?: ""
-                            val subfolder = call.argument<String>("subfolder") ?: "Invoices"
-                            val mimeType = call.argument<String>("mimeType") ?: "application/pdf"
+                            val mimeType = call.argument<String>("mimeType") ?: "image/png"
                             val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
                             
-                            val savedPath = saveToPublicStorage(context, fileName, subfolder, mimeType, bytes)
+                            val savedPath = saveToPublicStorage(context, fileName, mimeType, bytes)
                             result.success(savedPath)
                         } catch (e: Exception) {
+                            Log.e(TAG, "Error saving file", e)
                             result.error("SAVE_ERROR", e.message, null)
                         }
                     }
@@ -40,22 +44,19 @@ class MediaStorePlugin {
         private fun saveToPublicStorage(
             context: Context,
             fileName: String,
-            subfolder: String,
             mimeType: String,
             bytes: ByteArray
         ): String {
-            // Determinar si es imagen
-            val isImage = mimeType.startsWith("image/")
+            val isPdf = mimeType.contains("pdf")
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Android 10+ - Usar MediaStore
-                val baseFolder = if (isImage) {
-                    Environment.DIRECTORY_PICTURES
+                // ✅ IMÁGENES → Pictures/Proïon
+                // ✅ PDFs → Documents/Proïon
+                val relativePath = if (isPdf) {
+                    "${Environment.DIRECTORY_DOCUMENTS}/Proïon"
                 } else {
-                    Environment.DIRECTORY_DOCUMENTS
+                    "${Environment.DIRECTORY_PICTURES}/Proïon"
                 }
-                
-                val relativePath = "$baseFolder/Proion/$subfolder"
                 
                 val contentValues = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -64,10 +65,10 @@ class MediaStorePlugin {
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
 
-                val collection = if (isImage) {
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                } else {
+                val collection = if (isPdf) {
                     MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 }
 
                 val uri = context.contentResolver.insert(collection, contentValues)
@@ -82,16 +83,33 @@ class MediaStorePlugin {
                 contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
                 context.contentResolver.update(uri, contentValues, null, null)
 
+                // ✅ FORZAR ACTUALIZACIÓN DE LA GALERÍA
+                try {
+                    val filePath = getFilePathFromUri(context, uri)
+                    if (filePath != null) {
+                        MediaScannerConnection.scanFile(
+                            context,
+                            arrayOf(filePath),
+                            arrayOf(mimeType)
+                        ) { path, scanUri ->
+                            Log.d(TAG, "✅ Archivo escaneado: $path")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Media scanner warning: ${e.message}")
+                }
+
                 return uri.toString()
+                
             } else {
-                // Android 9 o menos - Acceso directo
-                val baseDir = if (isImage) {
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                } else {
+                // ✅ ANDROID 9 O MENOS
+                val baseDir = if (isPdf) {
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                } else {
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 }
                 
-                val proionDir = File(baseDir, "Proion/$subfolder")
+                val proionDir = File(baseDir, "Proïon")
                 
                 if (!proionDir.exists()) {
                     proionDir.mkdirs()
@@ -103,7 +121,38 @@ class MediaStorePlugin {
                     outputStream.flush()
                 }
                 
+                try {
+                    MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(file.absolutePath),
+                        arrayOf(mimeType),
+                        null
+                    )
+                } catch (e: Exception) {
+                    Log.w(TAG, "Media scanner warning: ${e.message}")
+                }
+                
                 return file.absolutePath
+            }
+        }
+
+        private fun getFilePathFromUri(context: Context, uri: Uri): String? {
+            return try {
+                context.contentResolver.query(
+                    uri,
+                    arrayOf(MediaStore.MediaColumns.DATA),
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+                        cursor.getString(columnIndex)
+                    } else null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting file path", e)
+                null
             }
         }
     }

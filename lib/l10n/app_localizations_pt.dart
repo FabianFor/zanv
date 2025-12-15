@@ -1332,4 +1332,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get unitsLabel => 'unidades';
+
+  @override
+  String get savedInPicturesProion => 'Salvo em Pictures/Proïon';
+
+  @override
+  String get savedSuccessfullyIn => '✅ Salvo em Pictures/Proïon';
+
+  @override
+  String get savedPdfInDocuments => '✅ PDF salvo em Documents/Proïon';
 }

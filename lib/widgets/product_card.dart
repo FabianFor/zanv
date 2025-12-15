@@ -7,7 +7,7 @@ import '../core/utils/theme_helper.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 import '../providers/settings_provider.dart';
-import '../providers/auth_provider.dart'; // ✅ AGREGADO
+import '../providers/auth_provider.dart';
 import '../screens/products_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -20,7 +20,7 @@ class ProductCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = context.read<SettingsProvider>();
-    final authProvider = context.watch<AuthProvider>(); // ✅ AGREGADO
+    final authProvider = context.watch<AuthProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
     
     final isVerySmall = screenWidth < 360;
@@ -149,7 +149,6 @@ class ProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  // ❌ Usuario no ve botones de editar/borrar
                 ],
               ),
             ],
@@ -163,7 +162,7 @@ class ProductCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = ThemeHelper(context);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false); // ✅ AGREGADO
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isVerySmall = screenWidth < 360;
@@ -234,6 +233,8 @@ class ProductCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: theme.textPrimary,
                       ),
+                      maxLines: 3, // ✅ PERMITIR MÁS LÍNEAS
+                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 16.h),
 
@@ -288,52 +289,70 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             
-            // ✅✅ BOTONES SOLO PARA ADMIN ✅✅
+            // ✅✅ BOTONES SOLO PARA ADMIN - CON PROTECCIÓN CONTRA OVERFLOW ✅✅
             if (authProvider.esAdmin)
-              Padding(
-                padding: EdgeInsets.all(isVerySmall ? 16.w : 20.w),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _editProduct(context);
-                        },
-                        icon: Icon(Icons.edit, size: isVerySmall ? 18.sp : 20.sp),
-                        label: Text(
-                          l10n.edit,
-                          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.primary,
-                          side: BorderSide(color: theme.borderColor),
-                          padding: EdgeInsets.symmetric(vertical: isVerySmall ? 14.h : 16.h),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _confirmDelete(context);
-                        },
-                        icon: Icon(Icons.delete, size: isVerySmall ? 18.sp : 20.sp),
-                        label: Text(
-                          l10n.delete,
-                          style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.error,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: isVerySmall ? 14.h : 16.h),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              SafeArea( // ✅ AGREGADO SafeArea
+                child: Padding(
+                  padding: EdgeInsets.all(isVerySmall ? 16.w : 20.w),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _editProduct(context);
+                          },
+                          icon: Icon(Icons.edit, size: isVerySmall ? 16.sp : 20.sp),
+                          label: Text(
+                            l10n.edit,
+                            style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                            maxLines: 1, // ✅ PROTEGER OVERFLOW
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.primary,
+                            side: BorderSide(color: theme.borderColor),
+                            padding: EdgeInsets.symmetric(
+                              vertical: isVerySmall ? 12.h : 16.h, // ✅ AJUSTADO
+                              horizontal: isVerySmall ? 8.w : 12.w, // ✅ AJUSTADO
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            minimumSize: Size(0, isVerySmall ? 40.h : 48.h), // ✅ ALTURA MÍNIMA
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _confirmDelete(context);
+                          },
+                          icon: Icon(Icons.delete, size: isVerySmall ? 16.sp : 20.sp),
+                          label: Text(
+                            l10n.delete,
+                            style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                            maxLines: 1, // ✅ PROTEGER OVERFLOW
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.error,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isVerySmall ? 12.h : 16.h, // ✅ AJUSTADO
+                              horizontal: isVerySmall ? 8.w : 12.w, // ✅ AJUSTADO
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            minimumSize: Size(0, isVerySmall ? 40.h : 48.h), // ✅ ALTURA MÍNIMA
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -364,6 +383,8 @@ class ProductCard extends StatelessWidget {
               fontSize: isVerySmall ? 12.sp : 14.sp,
               color: theme.textSecondary,
             ),
+            maxLines: 1, // ✅ PROTEGER
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         Flexible(
@@ -395,113 +416,184 @@ class ProductCard extends StatelessWidget {
     final theme = ThemeHelper(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isVerySmall = screenWidth < 360;
+    final isTablet = screenWidth > 600;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: theme.warning, size: isVerySmall ? 20.sp : 24.sp),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                l10n.deleteProduct,
+        contentPadding: EdgeInsets.zero, // ✅ CONTROL MANUAL DE PADDING
+        // ✅✅ TÍTULO CON PADDING MANUAL ✅✅
+        title: Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 12.h),
+          child: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded, 
+                color: theme.warning, 
+                size: isVerySmall ? 20.sp : 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  l10n.deleteProduct,
+                  style: TextStyle(
+                    fontSize: isVerySmall ? 15.sp : (isTablet ? 18.sp : 17.sp), // ✅ AJUSTADO
+                    fontWeight: FontWeight.bold,
+                    color: theme.textPrimary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // ✅✅ CONTENIDO CON PADDING MANUAL ✅✅
+        content: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.deleteProductConfirm,
                 style: TextStyle(
-                  fontSize: isVerySmall ? 16.sp : 18.sp,
+                  fontSize: isVerySmall ? 13.sp : 15.sp, // ✅ AJUSTADO
+                  color: theme.textPrimary,
+                ),
+                maxLines: 3, // ✅ PERMITIR MÁS LÍNEAS
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: theme.errorWithOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: theme.errorWithOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline, 
+                      color: theme.error, 
+                      size: isVerySmall ? 16.sp : 20.sp,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        l10n.cannotUndo,
+                        style: TextStyle(
+                          fontSize: isVerySmall ? 11.sp : 12.sp,
+                          color: theme.error,
+                        ),
+                        maxLines: 2, // ✅ PERMITIR 2 LÍNEAS
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                '${l10n.name}: ${product.name}',
+                style: TextStyle(
+                  fontSize: isVerySmall ? 12.sp : 14.sp,
+                  fontWeight: FontWeight.bold,
                   color: theme.textPrimary,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.deleteProductConfirm,
-              style: TextStyle(
-                fontSize: isVerySmall ? 13.sp : 16.sp,
-                color: theme.textPrimary,
-              ),
-            ),
-            SizedBox(height: 12.h),
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: theme.errorWithOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: theme.errorWithOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: theme.error, size: isVerySmall ? 16.sp : 20.sp),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: Text(
-                      l10n.cannotUndo,
-                      style: TextStyle(
-                        fontSize: isVerySmall ? 11.sp : 12.sp,
-                        color: theme.error,
+        // ✅✅ ACCIONES CON BOTONES MEJORADOS ✅✅
+        actions: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h), // ✅ PADDING MANUAL
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.textPrimary,
+                      side: BorderSide(color: theme.borderColor, width: 1.5),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isVerySmall ? 12.h : 16.h,
+                        horizontal: isVerySmall ? 8.w : 12.w,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 12.sp : 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1, // ✅ PROTEGER OVERFLOW
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
-              ),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              '${l10n.name}: ${product.name}',
-              style: TextStyle(
-                fontSize: isVerySmall ? 12.sp : 14.sp,
-                fontWeight: FontWeight.bold,
-                color: theme.textPrimary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              l10n.cancel,
-              style: TextStyle(
-                fontSize: isVerySmall ? 12.sp : 14.sp,
-                color: theme.textSecondary,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Provider.of<ProductProvider>(context, listen: false).deleteProduct(product.id);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
-                      SizedBox(width: 8.w),
-                      Expanded(child: Text(l10n.productDeleted)),
-                    ],
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.error,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(
-              l10n.delete,
-              style: TextStyle(fontSize: isVerySmall ? 12.sp : 14.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Provider.of<ProductProvider>(context, listen: false)
+                          .deleteProduct(product.id);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(Icons.check_circle, color: Colors.white),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Text(
+                                  l10n.productDeleted,
+                                  maxLines: 2, // ✅ PROTEGER
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.error,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isVerySmall ? 12.h : 16.h,
+                        horizontal: isVerySmall ? 8.w : 12.w,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      minimumSize: Size(0, isVerySmall ? 40.h : 48.h),
+                      elevation: 2,
+                    ),
+                    child: Text(
+                      l10n.delete,
+                      style: TextStyle(
+                        fontSize: isVerySmall ? 12.sp : 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1, // ✅ PROTEGER OVERFLOW
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
