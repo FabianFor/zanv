@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
+import '../core/utils/image_cache_manager.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/optimized_product_card.dart';
+import '../widgets/ultra_optimized_product_card.dart';
 import '../widgets/pagination_controls.dart';
 import '../services/permission_handler.dart';
 
@@ -31,6 +32,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _precacheVisibleImages(); // ✅ PRECARGAR IMÁGENES
   }
 
   @override
@@ -39,6 +41,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
     _scrollController.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  // ✅ PRECARGAR IMÁGENES DE PRODUCTOS VISIBLES
+  void _precacheVisibleImages() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final productProvider = context.read<ProductProvider>();
+      final imagePaths = productProvider.products
+          .take(20)
+          .where((p) => p.imagePath.isNotEmpty)
+          .map((p) => p.imagePath)
+          .toList();
+      ImageCacheManager.precacheProductImages(imagePaths);
+    });
   }
 
   void _onScroll() {
@@ -364,9 +379,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ),
                             );
                           }
-                          return OptimizedProductCard(
+                          return UltraOptimizedProductCard(
                             product: filteredProducts[index],
-                            onTap: () {},
                           );
                         },
                       )
@@ -375,9 +389,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
                         itemCount: filteredProducts.length + 
                             (productProvider.isLoadingMore && !_showPagination ? 1 : 0),
-                        cacheExtent: 500,
+                        cacheExtent: 200, // ✅ REDUCIDO DE 500 A 200
                         addAutomaticKeepAlives: false,
-                        addRepaintBoundaries: true,
+                        addRepaintBoundaries: false, // ✅ YA TENEMOS RepaintBoundary en la card
                         physics: const BouncingScrollPhysics(),
                         itemBuilder: (context, index) {
                           if (index == filteredProducts.length) {
@@ -401,9 +415,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             );
                           }
                           
-                          return OptimizedProductCard(
+                          return UltraOptimizedProductCard(
                             product: filteredProducts[index],
-                            onTap: () {},
                           );
                         },
                       ),
@@ -484,61 +497,62 @@ class _AddProductDialogState extends State<AddProductDialog> {
     super.dispose();
   }
 
- Future<void> _pickImage() async {
-  final l10n = AppLocalizations.of(context)!;
-  
-  try {
-    // ✅ CORREGIDO: Usar permiso de LECTURA de media
-    final hasPermission = await AppPermissionHandler.requestMediaReadPermission(context);
+  Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
     
-    if (!hasPermission) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.permissionsDenied),
-            backgroundColor: Colors.orange,
-          ),
-        );
+    try {
+      final hasPermission = await AppPermissionHandler.requestMediaReadPermission(context);
+      
+      if (!hasPermission) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.permissionsDenied),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
       }
-      return;
-    }
 
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 85,
-    );
-
-    if (image != null) {
-      if (mounted) {
-        setState(() {
-          _imagePath = image.path;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.imageSelectedSuccess),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      }
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${l10n.error}: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 600, // ✅ REDUCIDO DE 1024 A 600
+        maxHeight: 600,
+        imageQuality: 70, // ✅ REDUCIDO DE 85 A 70
       );
+
+      if (image != null) {
+        if (mounted) {
+          setState(() {
+            _imagePath = image.path;
+          });
+          
+          // ✅ PRECARGAR INMEDIATAMENTE
+          ImageCacheManager.precacheProductImage(image.path);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.imageSelectedSuccess),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
-}
-
 
   Future<void> _saveProduct() async {
     final l10n = AppLocalizations.of(context)!;
