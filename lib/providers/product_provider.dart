@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/product.dart';
 import '../core/constants/validation_limits.dart';
 import '../services/backup_service.dart';
+
 
 
 class ProductProvider with ChangeNotifier {
@@ -30,6 +32,7 @@ class ProductProvider with ChangeNotifier {
   bool _sortAscending = true;
 
 
+
   // Getters
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
@@ -44,8 +47,10 @@ class ProductProvider with ChangeNotifier {
   bool get sortAscending => _sortAscending;
 
 
+
   List<Product> get lowStockProducts => 
       _products.where((p) => p.stock <= 5).toList();
+
 
 
   @override
@@ -55,12 +60,15 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   Future<void> loadProducts() async {
     if (_isInitialized) return;
+
 
     _isLoading = true;
     _error = null;
     notifyListeners();
+
 
     try {
       _box = await Hive.openBox<Product>('products');
@@ -74,6 +82,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 
 
   Future<void> _loadPage(int page) async {
@@ -103,6 +112,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   Future<void> loadNextPage() async {
     if (_isLoadingMore || !_hasMorePages || _lastSearchQuery.isNotEmpty) return;
     
@@ -118,6 +128,7 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 
 
   Future<void> goToPage(int page) async {
@@ -139,6 +150,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   Future<void> resetToScrollMode() async {
     _lastSearchQuery = '';
     _lastSearchResults = [];
@@ -148,6 +160,7 @@ class ProductProvider with ChangeNotifier {
     await _loadPage(0);
     notifyListeners();
   }
+
 
 
   // ORDENAMIENTO
@@ -179,6 +192,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   // VALIDACIONES
   bool _validateProductName(String name) {
     final sanitized = _sanitizeInput(name.trim());
@@ -194,6 +208,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   bool _validateProductPrice(double price) {
     if (price <= 0 || price > ValidationLimits.maxProductPrice) {
       _error = 'Precio inválido';
@@ -201,6 +216,7 @@ class ProductProvider with ChangeNotifier {
     }
     return true;
   }
+
 
 
   bool _validateProductStock(int stock) {
@@ -212,6 +228,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   String _sanitizeInput(String input) {
     input = input.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '');
     if (input.length > ValidationLimits.maxInputLength) {
@@ -221,6 +238,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   // ==================== AGREGAR PRODUCTO ====================
   Future<Map<String, dynamic>> addProduct(Product product) async {
     // ✅ VALIDAR NOMBRE VACÍO
@@ -228,10 +246,12 @@ class ProductProvider with ChangeNotifier {
       return {'success': false, 'errorKey': 'productNameCannotBeEmpty'};
     }
 
+
     // ✅ VALIDAR DUPLICADOS
     final duplicateExists = _box!.values.any(
       (p) => p.name.trim().toLowerCase() == product.name.trim().toLowerCase(),
     );
+
 
     if (duplicateExists) {
       return {
@@ -241,12 +261,14 @@ class ProductProvider with ChangeNotifier {
       };
     }
 
+
     // Validaciones existentes
     if (!_validateProductName(product.name) ||
         !_validateProductPrice(product.price) ||
         !_validateProductStock(product.stock)) {
       return {'success': false, 'errorKey': 'validationError', 'error': _error};
     }
+
 
     try {
       final sanitizedProduct = Product(
@@ -278,6 +300,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   // ==================== ACTUALIZAR PRODUCTO ====================
   Future<Map<String, dynamic>> updateProduct(Product updatedProduct) async {
     // ✅ VALIDAR NOMBRE VACÍO
@@ -285,12 +308,14 @@ class ProductProvider with ChangeNotifier {
       return {'success': false, 'errorKey': 'productNameCannotBeEmpty'};
     }
 
+
     // ✅ VALIDAR DUPLICADOS
     final duplicateExists = _box!.values.any(
       (p) =>
           p.id != updatedProduct.id &&
           p.name.trim().toLowerCase() == updatedProduct.name.trim().toLowerCase(),
     );
+
 
     if (duplicateExists) {
       return {
@@ -300,12 +325,14 @@ class ProductProvider with ChangeNotifier {
       };
     }
 
+
     // Validaciones existentes
     if (!_validateProductName(updatedProduct.name) ||
         !_validateProductPrice(updatedProduct.price) ||
         !_validateProductStock(updatedProduct.stock)) {
       return {'success': false, 'errorKey': 'validationError', 'error': _error};
     }
+
 
     try {
       final index = _products.indexWhere((p) => p.id == updatedProduct.id);
@@ -336,21 +363,56 @@ class ProductProvider with ChangeNotifier {
   }
 
 
-  Future<void> deleteProduct(String productId) async {
+
+  // ==================== ELIMINAR PRODUCTO ====================
+  Future<Map<String, dynamic>> deleteProduct(String productId) async {
     try {
+      final product = _box!.get(productId);
+      
+      if (product == null) {
+        return {'success': false, 'error': 'error'};
+      }
+
+      // ✅ Eliminar imagen de carpeta permanente
+      if (product.imagePath.isNotEmpty) {
+        try {
+          final file = File(product.imagePath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          if (kDebugMode) print('⚠️ Error al eliminar imagen: $e');
+        }
+      }
+
+      // Eliminar de Hive
       await _box!.delete(productId);
+      
+      // Eliminar de la lista en memoria
       _products.removeWhere((p) => p.id == productId);
+      
+      // Recargar si es necesario
+      if (_products.length < _itemsPerPage && _hasMorePages) {
+        await loadNextPage();
+      }
+      
       _error = null;
       notifyListeners();
+      
+      return {'success': true};
     } catch (e) {
       _error = 'Error al eliminar producto: $e';
       notifyListeners();
+      
+      return {'success': false, 'error': 'error'};
     }
   }
 
 
+
   Future<bool> updateStock(String productId, int newStock) async {
     if (!_validateProductStock(newStock)) return false;
+
 
     try {
       final index = _products.indexWhere((p) => p.id == productId);
@@ -378,6 +440,7 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   // BÚSQUEDA
   List<Product> searchProducts(String query) {
     if (query.isEmpty) return _products;
@@ -396,7 +459,9 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   Product? getProductById(String id) => _box?.get(id);
+
 
 
   // EXPORTACIÓN
@@ -405,6 +470,7 @@ class ProductProvider with ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
+
 
       final products = _box!.values.toList();
       final List<Map<String, dynamic>> items = [];
@@ -471,12 +537,14 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   // IMPORTACIÓN
   Future<Map<String, dynamic>> importProducts(File file) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
+
 
       final jsonString = await file.readAsString();
       final Map<String, dynamic> backupData = jsonDecode(jsonString);
@@ -536,7 +604,7 @@ class ProductProvider with ChangeNotifier {
           
           await _box!.put(newId, product);
         } catch (e) {
-          print('Error importando producto: $e');
+          if (kDebugMode) print('Error importando producto: $e');
           failed++;
         }
       }
@@ -561,10 +629,12 @@ class ProductProvider with ChangeNotifier {
   }
 
 
+
   // UTILIDADES
   void clearError() {
     _error = null;
   }
+
 
 
   Future<void> reload() async {

@@ -1,9 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../core/utils/theme_helper.dart';
 import '../core/utils/image_cache_manager.dart';
@@ -14,12 +18,14 @@ import '../widgets/ultra_optimized_product_card.dart';
 import '../widgets/pagination_controls.dart';
 import '../services/permission_handler.dart';
 
+
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
+
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
@@ -28,12 +34,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
   String _searchQuery = '';
   bool _showPagination = false;
 
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _precacheVisibleImages(); // ✅ PRECARGAR IMÁGENES
+    _precacheVisibleImages();
   }
+
 
   @override
   void dispose() {
@@ -43,7 +51,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     super.dispose();
   }
 
-  // ✅ PRECARGAR IMÁGENES DE PRODUCTOS VISIBLES
+
   void _precacheVisibleImages() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final productProvider = context.read<ProductProvider>();
@@ -55,6 +63,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ImageCacheManager.precacheProductImages(imagePaths);
     });
   }
+
 
   void _onScroll() {
     if (_showPagination || _searchQuery.isNotEmpty) return;
@@ -68,6 +77,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
   }
 
+
   void _togglePaginationMode() {
     setState(() {
       _showPagination = !_showPagination;
@@ -76,6 +86,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       }
     });
   }
+
 
   void _goToSpecificPage() {
     final l10n = AppLocalizations.of(context)!;
@@ -122,6 +133,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -134,6 +146,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final isLarge = screenWidth >= 900;
     final isTablet = screenWidth > 600;
 
+
     if (productProvider.isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackground,
@@ -142,6 +155,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ),
       );
     }
+
 
     if (productProvider.error != null) {
       return Scaffold(
@@ -389,9 +403,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         padding: EdgeInsets.all(isLarge ? 16.w : 16.w),
                         itemCount: filteredProducts.length + 
                             (productProvider.isLoadingMore && !_showPagination ? 1 : 0),
-                        cacheExtent: 200, // ✅ REDUCIDO DE 500 A 200
+                        cacheExtent: 200,
                         addAutomaticKeepAlives: false,
-                        addRepaintBoundaries: false, // ✅ YA TENEMOS RepaintBoundary en la card
+                        addRepaintBoundaries: false,
                         physics: const BouncingScrollPhysics(),
                         itemBuilder: (context, index) {
                           if (index == filteredProducts.length) {
@@ -458,6 +472,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 }
 
+// 🚀 DIÁLOGO OPTIMIZADO CON GUARDADO PERMANENTE
 class AddProductDialog extends StatefulWidget {
   final Product? product;
 
@@ -475,6 +490,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
   final _stockController = TextEditingController();
   String _imagePath = '';
   bool _isSubmitting = false;
+  
+  Uint8List? _imageBytes;
+  bool _imageLoaded = false;
 
   @override
   void initState() {
@@ -485,6 +503,37 @@ class _AddProductDialogState extends State<AddProductDialog> {
       _priceController.text = widget.product!.price.toString();
       _stockController.text = widget.product!.stock.toString();
       _imagePath = widget.product!.imagePath;
+      
+      if (_imagePath.isNotEmpty) {
+        _preloadImage();
+      }
+    }
+  }
+
+  Future<void> _preloadImage() async {
+    if (_imagePath.isEmpty) return;
+    
+    try {
+      final file = File(_imagePath);
+      if (!await file.exists()) return;
+      
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(
+        bytes,
+        targetWidth: 300,
+        targetHeight: 300,
+      );
+      final frame = await codec.getNextFrame();
+      final data = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+      
+      if (mounted && data != null) {
+        setState(() {
+          _imageBytes = data.buffer.asUint8List();
+          _imageLoaded = true;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error precargando imagen: $e');
     }
   }
 
@@ -494,9 +543,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
     _descriptionController.dispose();
     _priceController.dispose();
     _stockController.dispose();
+    _imageBytes = null;
     super.dispose();
   }
 
+  // ✅ GUARDADO PERMANENTE
   Future<void> _pickImage() async {
     final l10n = AppLocalizations.of(context)!;
     
@@ -518,19 +569,48 @@ class _AddProductDialogState extends State<AddProductDialog> {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 600, // ✅ REDUCIDO DE 1024 A 600
+        maxWidth: 600,
         maxHeight: 600,
-        imageQuality: 70, // ✅ REDUCIDO DE 85 A 70
+        imageQuality: 70,
       );
 
       if (image != null) {
-        if (mounted) {
+        // 📂 /Android/data/com.proion.zavx/files/
+        final Directory? appDir = await getExternalStorageDirectory();
+        
+        if (appDir == null) {
+          throw Exception('No se pudo acceder al almacenamiento');
+        }
+        
+        // 🗂️ Crear carpeta product_images
+        final String productsDir = '${appDir.path}/product_images';
+        await Directory(productsDir).create(recursive: true);
+        
+        // 🏷️ Nombre único
+        final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final String permanentPath = '$productsDir/$fileName';
+        
+        // 📋 Copiar imagen
+        await File(image.path).copy(permanentPath);
+        
+        if (kDebugMode) print('✅ Imagen guardada en: $permanentPath');
+        
+        // 🖼️ Comprimir para preview
+        final bytes = await File(permanentPath).readAsBytes();
+        final codec = await ui.instantiateImageCodec(
+          bytes,
+          targetWidth: 300,
+          targetHeight: 300,
+        );
+        final frame = await codec.getNextFrame();
+        final data = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+        
+        if (mounted && data != null) {
           setState(() {
-            _imagePath = image.path;
+            _imagePath = permanentPath;
+            _imageBytes = data.buffer.asUint8List();
+            _imageLoaded = true;
           });
-          
-          // ✅ PRECARGAR INMEDIATAMENTE
-          ImageCacheManager.precacheProductImage(image.path);
           
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -671,6 +751,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Header
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: 20.w,
@@ -709,6 +790,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
               ),
             ),
 
+            // Form
             Flexible(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(isTablet ? 18.w : 20.w),
@@ -717,6 +799,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Imagen
                       Center(
                         child: GestureDetector(
                           onTap: _pickImage,
@@ -731,16 +814,17 @@ class _AddProductDialogState extends State<AddProductDialog> {
                                 width: 2,
                               ),
                             ),
-                            child: _imagePath.isNotEmpty
+                            child: _imagePath.isNotEmpty && _imageLoaded && _imageBytes != null
                                 ? Stack(
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(14.r),
-                                        child: Image.file(
-                                          File(_imagePath),
+                                        child: Image.memory(
+                                          _imageBytes!,
                                           width: isTablet ? 100.w : 120.w,
                                           height: isTablet ? 100.w : 120.w,
                                           fit: BoxFit.cover,
+                                          gaplessPlayback: true,
                                         ),
                                       ),
                                       Positioned(
@@ -784,6 +868,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: isTablet ? 16.h : 20.h),
 
+                      // Nombre
                       TextFormField(
                         controller: _nameController,
                         style: TextStyle(color: theme.textPrimary, fontSize: 15.sp),
@@ -816,6 +901,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: 14.h),
 
+                      // Descripción
                       TextFormField(
                         controller: _descriptionController,
                         style: TextStyle(color: theme.textPrimary, fontSize: 15.sp),
@@ -840,6 +926,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: 14.h),
 
+                      // Precio y Stock
                       Row(
                         children: [
                           Expanded(
@@ -913,6 +1000,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       ),
                       SizedBox(height: isTablet ? 16.h : 20.h),
 
+                      // Botones
                       Row(
                         children: [
                           Expanded(
@@ -926,7 +1014,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                               ),
-                              child: Text(l10n.cancel, style: TextStyle(fontSize: 15.sp)),
+                              child: Text(l10n.cancel),
                             ),
                           ),
                           SizedBox(width: 12.w),
@@ -935,7 +1023,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                             child: ElevatedButton(
                               onPressed: _isSubmitting ? null : _saveProduct,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.success,
+                                backgroundColor: theme.primary,
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.symmetric(vertical: 14.h),
                                 shape: RoundedRectangleBorder(
@@ -944,14 +1032,14 @@ class _AddProductDialogState extends State<AddProductDialog> {
                               ),
                               child: _isSubmitting
                                   ? SizedBox(
-                                      height: 20.h,
                                       width: 20.w,
+                                      height: 20.h,
                                       child: CircularProgressIndicator(
-                                        color: Colors.white,
                                         strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                       ),
                                     )
-                                  : Text(l10n.save, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold)),
+                                  : Text(l10n.save),
                             ),
                           ),
                         ],
