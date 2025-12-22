@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../services/permission_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PermissionDialog extends StatelessWidget {
   final String title;
@@ -92,7 +92,6 @@ class PermissionDialog extends StatelessWidget {
   }
 }
 
-/// Diálogo cuando el permiso fue denegado permanentemente
 class PermanentlyDeniedDialog extends StatelessWidget {
   const PermanentlyDeniedDialog({super.key});
 
@@ -143,8 +142,7 @@ class PermanentlyDeniedDialog extends StatelessWidget {
         ElevatedButton(
           onPressed: () async {
             Navigator.of(context).pop();
-            // ✅ CORREGIDO: Cambiar de openAppSettings() a openSettings()
-            await PermissionService.openSettings();
+            await openAppSettings(); // ✅ CORRECTO
           },
           child: Text(
             'Abrir Configuración',

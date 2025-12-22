@@ -20,7 +20,7 @@ import 'models/order.dart';
 import 'models/invoice.dart';
 import 'models/business_profile.dart';
 import 'models/user.dart';
-import 'services/storage_service.dart';  // ✅ NUEVO
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -144,34 +144,32 @@ class _AppInitializerState extends State<_AppInitializer> {
     });
   }
 
-  Future<void> _initializeApp() async {
-    debugPrint('🔧 Inicializando app...');
+Future<void> _initializeApp() async {
+  debugPrint('🔧 Inicializando app...');
+  
+  try {
+    // Cargar todos los providers en paralelo
+    await Future.wait([
+      context.read<AuthProvider>().initialize(),
+      context.read<SettingsProvider>().loadSettings(),
+      context.read<BusinessProvider>().loadProfile(),
+      context.read<ProductProvider>().loadProducts(),
+      context.read<OrderProvider>().loadOrders(),
+      context.read<InvoiceProvider>().loadInvoices(),
+    ]);
     
-    // ✅ INICIALIZAR STORAGE PRIMERO
-    await StorageService.initializeStorage();
-    
-    try {
-      // Cargar todos los providers en paralelo
-      await Future.wait([
-        context.read<AuthProvider>().initialize(),
-        context.read<SettingsProvider>().loadSettings(),
-        context.read<BusinessProvider>().loadProfile(),
-        context.read<ProductProvider>().loadProducts(),
-        context.read<OrderProvider>().loadOrders(),
-        context.read<InvoiceProvider>().loadInvoices(),
-      ]);
-      
-      debugPrint('✅ Todos los providers inicializados correctamente');
-    } catch (e) {
-      debugPrint('❌ Error inicializando providers: $e');
-    }
-    
-    if (mounted) {
-      setState(() {
-        _isInitializing = false;
-      });
-    }
+    debugPrint('✅ Todos los providers inicializados correctamente');
+  } catch (e) {
+    debugPrint('❌ Error inicializando providers: $e');
   }
+  
+  if (mounted) {
+    setState(() {
+      _isInitializing = false;
+    });
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
